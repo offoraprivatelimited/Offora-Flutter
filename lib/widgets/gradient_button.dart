@@ -16,11 +16,12 @@ class GradientButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+        padding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         elevation: 6,
         backgroundColor: Colors.transparent,
         shadowColor: AppColors.primary.withAlpha((0.25 * 255).round()),
+        minimumSize: const Size.fromHeight(48),
       ),
       child: Ink(
         decoration: BoxDecoration(
@@ -28,6 +29,8 @@ class GradientButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
         ),
         child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
           alignment: Alignment.center,
           child: Text(
             label,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../utils/dummy_data.dart';
 
 class OfferCard extends StatelessWidget {
   final Map<String, dynamic> offer;

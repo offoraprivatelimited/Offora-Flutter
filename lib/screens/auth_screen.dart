@@ -11,38 +11,32 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  bool _isLogin = true;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_isLogin ? 'Login' : 'Sign Up')),
+      appBar: AppBar(title: const Text('Sign in')),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            TextField(decoration: const InputDecoration(labelText: 'Email')),
-            const SizedBox(height: 12),
-            TextField(
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password'),
+        child: Center(
+          child: SizedBox(
+            width: 320,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 8),
+                GradientButton(
+                  label: 'Continue with Google',
+                  onPressed: () {
+                    // UI-only: replace with real Google Sign-In later
+                    Navigator.pushReplacementNamed(
+                      context,
+                      MainScreen.routeName,
+                    );
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            GradientButton(
-              label: _isLogin ? 'Login' : 'Create Account',
-              onPressed: () {
-                // UI only - navigate to main screen
-                Navigator.pushReplacementNamed(context, MainScreen.routeName);
-              },
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => setState(() => _isLogin = !_isLogin),
-              child: Text(
-                _isLogin ? 'Create account' : 'Have an account? Login',
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
