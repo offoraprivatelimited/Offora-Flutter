@@ -24,7 +24,7 @@ class OfferCard extends StatelessWidget {
                 height: 140,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   height: 140,
                   color: Colors.grey.shade200,
                   child: const Center(child: Icon(Icons.image, size: 48)),

@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "266482313771",
+    "project_id": "offora-private-limited",
+    "storage_bucket": "offora-private-limited.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:266482313771:android:cdb73d1bda7fb0fb9b986e",
+        "android_client_info": {
+          "package_name": "com.example.offora"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDch_sMeS2g9voe2gybDhyYepUB4cXENAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "266482313771-v7vmgsjmg9eo1b639rqu75032tikrbad.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.offora"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

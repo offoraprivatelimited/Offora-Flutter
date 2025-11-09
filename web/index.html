@@ -19,6 +19,7 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
+  <meta name="google-signin-client_id" content="$GOOGLE_CLIENT_ID">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -31,8 +32,48 @@
 
   <title>offora</title>
   <link rel="manifest" href="manifest.json">
+  
+  <script>
+    // Load environment variables from .env file
+    fetch('.env')
+      .then(response => response.text())
+      .then(data => {
+        const envVars = {};
+        data.split('\n').forEach(line => {
+          const [key, value] = line.split('=');
+          if (key && value) {
+            envVars[key.trim()] = value.trim();
+          }
+        });
+        // Set the client ID in the meta tag
+        const metaTag = document.querySelector('meta[name="google-signin-client_id"]');
+        if (metaTag) {
+          metaTag.content = envVars.GOOGLE_CLIENT_ID;
+        }
+      });
+      </script>
 </head>
 <body>
+  <!-- Firebase Configuration -->
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+  
+  <script>
+    const firebaseConfig = {
+      // Replace with your Firebase configuration
+      apiKey: "YOUR-API-KEY",
+      authDomain: "YOUR-PROJECT-ID.firebaseapp.com",
+      projectId: "YOUR-PROJECT-ID",
+      storageBucket: "YOUR-PROJECT-ID.appspot.com",
+      messagingSenderId: "YOUR-MESSAGING-SENDER-ID",
+      appId: "YOUR-APP-ID"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
