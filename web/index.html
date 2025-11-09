@@ -1,25 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
-  <meta name="google-signin-client_id" content="$GOOGLE_CLIENT_ID">
+  
+  <!-- Security Headers -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: http: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval' blob: data:; connect-src 'self' https: http: ws: wss:;">
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
+  <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+  
+  <!-- Google Sign-In configuration -->
+  <meta name="google-signin-client_id" content="266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -32,48 +25,120 @@
 
   <title>offora</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Load Google APIs -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   
-  <script>
-    // Load environment variables from .env file
-    fetch('.env')
-      .then(response => response.text())
-      .then(data => {
-        const envVars = {};
-        data.split('\n').forEach(line => {
-          const [key, value] = line.split('=');
-          if (key && value) {
-            envVars[key.trim()] = value.trim();
-          }
-        });
-        // Set the client ID in the meta tag
-        const metaTag = document.querySelector('meta[name="google-signin-client_id"]');
-        if (metaTag) {
-          metaTag.content = envVars.GOOGLE_CLIENT_ID;
-        }
-      });
-      </script>
-</head>
-<body>
-  <!-- Firebase Configuration -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
+</head>
+<body>
   
   <script>
     const firebaseConfig = {
-      // Replace with your Firebase configuration
-      apiKey: "YOUR-API-KEY",
-      authDomain: "YOUR-PROJECT-ID.firebaseapp.com",
-      projectId: "YOUR-PROJECT-ID",
-      storageBucket: "YOUR-PROJECT-ID.appspot.com",
-      messagingSenderId: "YOUR-MESSAGING-SENDER-ID",
-      appId: "YOUR-APP-ID"
+      apiKey: "AIzaSyApJI06ily-qq6USw-asz3CheG88ghamJ8",
+      authDomain: "offora-private-limited.firebaseapp.com",
+      projectId: "offora-private-limited",
+      storageBucket: "offora-private-limited.firebasestorage.app",
+      messagingSenderId: "266482313771",
+      appId: "1:266482313771:web:a7f4f46e0e226ead9b986e",
+      measurementId: "G-Z2TC531M2R"
     };
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase first
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    // Initialize Google APIs and Identity Services
+    window.onload = function() {
+      // Initialize GAPI client first
+      gapi.load('client', async function() {
+        try {
+          await gapi.client.init({
+            apiKey: 'AIzaSyApJI06ily-qq6USw-asz3CheG88ghamJ8',
+            clientId: '266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com',
+            scope: 'email profile openid'
+          });
+          console.log('GAPI client initialized');
+
+          // Then initialize Google Identity Services
+          window.google.accounts.id.initialize({
+            client_id: '266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com',
+            callback: handleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true
+          });
+
+          // Create a custom button element for Google Sign In
+          const googleSignInButton = document.createElement('div');
+          googleSignInButton.id = 'g_id_signin';
+          googleSignInButton.style.display = 'none';
+          document.body.appendChild(googleSignInButton);
+
+          // Render the sign-in button (hidden but functional)
+          window.google.accounts.id.renderButton(
+            googleSignInButton,
+            { type: 'standard', theme: 'outline', size: 'large', width: '400' }
+          );
+        } catch (error) {
+          console.error('Error initializing Google APIs:', error);
+        }
+      });
+    };
+
+    function handleCredentialResponse(response) {
+      if (response.credential) {
+        // Create a Firebase credential with the Google ID token
+        const credential = firebase.auth.GoogleAuthProvider.credential(
+          response.credential
+        );
+
+        // Sign in with credential
+        firebase.auth().signInWithCredential(credential)
+          .then(function(result) {
+            console.log('Successfully signed in:', result.user);
+            // Dispatch a custom event that Flutter can listen to
+            window.dispatchEvent(new CustomEvent('gis-signed-in', {
+              detail: {
+                user: result.user,
+                credential: response.credential
+              }
+            }));
+          })
+          .catch(function(error) {
+            console.error('Error signing in with credential:', error);
+            window.dispatchEvent(new CustomEvent('gis-error', {
+              detail: error
+            }));
+          });
+      }
+    }
+
+    // Expose a function to trigger sign in programmatically
+    window.triggerGoogleSignIn = function() {
+      const buttonElement = document.getElementById('g_id_signin');
+      if (buttonElement) {
+        buttonElement.querySelector('div[role="button"]').click();
+      }
+    };
+    // Monitor authentication state
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        console.log('User is signed in');
+      } else {
+        console.log('No user is signed in');
+      }
+    });
   </script>
 
+  <!-- Add a container for the Google Sign-In button -->
+  <div id="g_id_signin"></div>
+  
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

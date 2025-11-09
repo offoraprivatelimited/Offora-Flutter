@@ -8,8 +8,7 @@ class OfferDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    final offer =
-        args ??
+    final offer = args ??
         {
           'title': 'Offer',
           'store': 'Store',
@@ -26,7 +25,7 @@ class OfferDetailsScreen extends StatelessWidget {
             height: 220,
             width: double.infinity,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
+            errorBuilder: (context, error, stackTrace) =>
                 Container(height: 220, color: Colors.grey),
           ),
           Padding(

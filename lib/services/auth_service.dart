@@ -80,39 +80,49 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // --- Google Sign In (Fixed) ---
+  // --- Google Sign In with Web Support ---
   Future<void> signInWithGoogle() async {
     try {
-      // FIX 2: Correct method call is .signIn()
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
-      if (account == null) {
-        throw AuthException('Google sign-in cancelled.');
+      UserCredential? userCred;
+
+      if (kIsWeb) {
+        // Web-specific sign in using Firebase Auth directly
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+
+        try {
+          userCred = await _auth.signInWithPopup(googleProvider);
+        } catch (e) {
+          // Fallback to redirect method if popup fails
+          await _auth.signInWithRedirect(googleProvider);
+          // Get redirect result (this should be called after returning from redirect)
+          userCred = await _auth.getRedirectResult();
+        }
+      } else {
+        // Mobile/Desktop flow using GoogleSignIn package
+        final GoogleSignInAccount? account = await _googleSignIn.signIn();
+        if (account == null) {
+          throw AuthException('Google sign-in cancelled.');
+        }
+
+        final GoogleSignInAuthentication googleAuth =
+            await account.authentication;
+        final String? idToken = googleAuth.idToken;
+
+        if (idToken == null) {
+          throw AuthException(
+              'Failed to retrieve ID Token. Check client setup.');
+        }
+
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: idToken,
+        );
+
+        userCred = await _auth.signInWithCredential(credential);
       }
 
-      // FIX 3 & 4: Corrected: .authentication is a Future, so await it.
-      // And the result of .authentication does NOT have an accessToken getter
-      // in the standard package when used with Firebase Auth.
-      // You just need the idToken. The GoogleAuthProvider handles the rest.
-      final GoogleSignInAuthentication googleAuth =
-          await account.authentication;
-
-      final String? idToken = googleAuth.idToken;
-
-      if (idToken == null) {
-        throw AuthException('Failed to retrieve ID Token. Check client setup.');
-      }
-
-      // The standard GoogleSignInAuthentication object only provides idToken and accessToken,
-      // but only idToken is strictly required for Firebase Auth in this common scenario.
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth
-            .accessToken, // Retaining for completeness, as it is available
-        idToken: idToken,
-      );
-
-      final UserCredential userCred = await _auth.signInWithCredential(
-        credential,
-      );
       final user = userCred.user;
 
       if (user != null) {

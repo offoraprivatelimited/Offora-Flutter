@@ -22,13 +22,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _dark,
             onChanged: (v) => setState(() => _dark = v),
           ),
-          ListTile(
-            title: const Text('About Us'),
-            subtitle: const Text('Offora - All offers in one place'),
+          const ListTile(
+            title: Text('About Us'),
+            subtitle: Text('Offora - All offers in one place'),
           ),
-          ListTile(
-            title: const Text('Contact Support'),
-            subtitle: const Text('support@offora.example'),
+          const ListTile(
+            title: Text('Contact Support'),
+            subtitle: Text('support@offora.example'),
           ),
         ],
       ),

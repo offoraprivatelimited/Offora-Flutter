@@ -17,15 +17,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final slides = [
-      _Slide(
+      const _Slide(
         title: 'Discover',
         subtitle: 'Find offers from all types of stores.',
       ),
-      _Slide(
+      const _Slide(
         title: 'Compare',
         subtitle: 'Compare deals side-by-side and choose the best.',
       ),
-      _Slide(
+      const _Slide(
         title: 'Save',
         subtitle: 'Save favourites and get notified before they expire.',
       ),
@@ -49,9 +49,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Expanded(
                     child: GradientButton(
-                      label: _page == slides.length - 1
-                          ? 'Get Started'
-                          : 'Next',
+                      label:
+                          _page == slides.length - 1 ? 'Get Started' : 'Next',
                       onPressed: () {
                         if (_page == slides.length - 1) {
                           Navigator.pushReplacementNamed(

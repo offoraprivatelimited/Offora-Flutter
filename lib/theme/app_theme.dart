@@ -19,7 +19,7 @@ class AppTheme {
     colorScheme: _lightColorScheme,
     scaffoldBackgroundColor: AppColors.background,
     textTheme: GoogleFonts.poppinsTextTheme(),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
       elevation: 0,
       centerTitle: true,
