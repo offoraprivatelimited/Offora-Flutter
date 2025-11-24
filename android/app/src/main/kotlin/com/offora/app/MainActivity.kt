@@ -1,5 +1,6 @@
-package com.example.offora
+package com.offora.app
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+

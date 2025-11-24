@@ -14,6 +14,18 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool _isLoading = false;
+  late String _role;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map && args['role'] is String) {
+      _role = args['role'] as String;
+    } else {
+      _role = 'user';
+    }
+  }
 
   Future<void> _handleGoogleSignIn() async {
     setState(() {
@@ -22,12 +34,23 @@ class _AuthScreenState extends State<AuthScreen> {
 
     try {
       final authService = context.read<AuthService>();
-      await authService.signInWithGoogle();
+      // Pass the selected role to the sign-in logic (update AuthService as needed)
+      await authService.signInWithGoogle(role: _role);
 
       if (!mounted) return;
 
+      final user = authService.currentUser;
+      if (user == null) {
+        throw Exception('Sign in succeeded but user is null');
+      }
+
       // Check if user needs to complete profile
-      if (authService.currentUser?.address.isEmpty ?? true) {
+      if (user.role == 'shopowner') {
+        // Redirect to shopowner login (which will handle approval logic)
+        Navigator.pushReplacementNamed(context, '/login');
+      } else if (user.address.isEmpty ||
+          user.gender.isEmpty ||
+          user.dob.isEmpty) {
         Navigator.pushReplacementNamed(
           context,
           ProfileCompleteScreen.routeName,
@@ -57,7 +80,17 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign in')),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/role-selection');
+          },
+        ),
+        title: const Text('Sign in'),
+        centerTitle: true,
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -71,49 +104,50 @@ class _AuthScreenState extends State<AuthScreen> {
                     padding: EdgeInsets.only(bottom: 24.0),
                     child: CircularProgressIndicator(),
                   )
-                else
+                else ...[
                   const Text(
                     'Welcome! Sign in to continue.',
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                     textAlign: TextAlign.center,
                   ),
-                const SizedBox(height: 16),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF3C4043),
-                    backgroundColor: Colors.white,
-                    side: const BorderSide(color: Color(0xFFDADCE0)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 24),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF3C4043),
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: Color(0xFFDADCE0)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 12,
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 12,
+                    onPressed: _isLoading ? null : _handleGoogleSignIn,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(right: 12),
+                          child: Icon(
+                            Icons.public,
+                            color: Color(0xFF4285F4),
+                            size: 20,
+                          ),
+                        ),
+                        Text(
+                          'Continue with Google',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  onPressed: _isLoading ? null : _handleGoogleSignIn,
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(right: 12),
-                        child: Icon(
-                          Icons.public,
-                          color: Color(0xFF4285F4),
-                          size: 20,
-                        ),
-                      ),
-                      Text(
-                        'Continue with Google',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ],
             ),
           ),

@@ -45,7 +45,17 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () async {
+                // Sign out logic (update as needed for your AuthService)
+                // If using Provider:
+                // await context.read<AuthService>().signOut();
+                // Then navigate:
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/role-selection',
+                  (route) => false,
+                );
+              },
               icon: const Icon(Icons.logout),
               label: const Text('Logout'),
             ),

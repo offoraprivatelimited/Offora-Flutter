@@ -6,12 +6,20 @@ import 'firebase_options.dart';
 
 import 'theme/app_theme.dart';
 import 'services/auth_service.dart';
-import 'screens/splash_screen.dart';
+import 'screens/splash_screen.dart' as user;
 import 'screens/onboarding_screen.dart';
 import 'screens/auth_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/offer_details_screen.dart';
 import 'screens/profile_complete_screen.dart';
+import 'role_selection_screen.dart';
+import 'client/screens/auth/login_screen.dart' as client;
+import 'client/screens/auth/signup_screen.dart' as client;
+import 'client/screens/auth/pending_approval_page.dart' as client;
+import 'client/screens/auth/rejection_page.dart' as client;
+import 'client/screens/dashboard/dashboard_screen.dart' as client;
+import 'screens/user_login_screen.dart';
+import 'client/screens/offers/offer_form_screen.dart' as client;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,14 +41,28 @@ class OfforaApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
-        initialRoute: SplashScreen.routeName,
+        initialRoute: user.UserSplashScreen.routeName,
         routes: {
-          SplashScreen.routeName: (_) => const SplashScreen(),
+          // Entry point
+          RoleSelectionScreen.routeName: (_) => const RoleSelectionScreen(),
+          // User flow
+          user.UserSplashScreen.routeName: (_) => const user.UserSplashScreen(),
           OnboardingScreen.routeName: (_) => const OnboardingScreen(),
           AuthScreen.routeName: (_) => const AuthScreen(),
           MainScreen.routeName: (_) => const MainScreen(),
           OfferDetailsScreen.routeName: (_) => const OfferDetailsScreen(),
           ProfileCompleteScreen.routeName: (_) => const ProfileCompleteScreen(),
+          // Shopowner (client) flow
+          client.LoginScreen.routeName: (_) => const client.LoginScreen(),
+          client.SignupScreen.routeName: (_) => const client.SignupScreen(),
+          client.PendingApprovalPage.routeName: (_) =>
+              const client.PendingApprovalPage(),
+          client.RejectionPage.routeName: (_) => const client.RejectionPage(),
+          client.DashboardScreen.routeName: (_) =>
+              const client.DashboardScreen(),
+          client.OfferFormScreen.routeName: (_) =>
+              const client.OfferFormScreen(),
+          UserLoginScreen.routeName: (context) => const UserLoginScreen(),
         },
       ),
     );

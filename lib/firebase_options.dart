@@ -41,50 +41,50 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyApJI06ily-qq6USw-asz3CheG88ghamJ8',
-    appId: '1:266482313771:web:a7f4f46e0e226ead9b986e',
+    apiKey: 'AIzaSyDcBRA9Wtncwi14BkWuzXXUW3P3RPOpKo8',
+    appId: '1:266482313771:web:d36fa5e5afc224cd9b986e',
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
     authDomain: 'offora-private-limited.firebaseapp.com',
     storageBucket: 'offora-private-limited.firebasestorage.app',
-    measurementId: 'G-Z2TC531M2R',
+    measurementId: 'G-LP3K1E5D96',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDch_sMeS2g9voe2gybDhyYepUB4cXENAg',
-    appId: '1:266482313771:android:cdb73d1bda7fb0fb9b986e',
+    appId: '1:266482313771:android:21bb4350561cf9d09b986e',
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
     storageBucket: 'offora-private-limited.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCYl1p2D7yY-G_InyfYV8ZKuEAOf72qcPM',
-    appId: '1:266482313771:ios:2b15e309473df0609b986e',
+    apiKey: 'AIzaSyCDrKuJreHSyr_oEDGT0mf60SKglMn56Zo',
+    appId: '1:266482313771:ios:7cae862e1778c1099b986e',
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
     storageBucket: 'offora-private-limited.firebasestorage.app',
-    iosClientId: '266482313771-v7vmgsjmg9eo1b639rqu75032tikrbad.apps.googleusercontent.com',
-    iosBundleId: 'com.example.offora',
+    iosClientId: '266482313771-rqh7v18rerklqjmjc8duiiqlgc270v2t.apps.googleusercontent.com',
+    iosBundleId: 'com.offora.app',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCYl1p2D7yY-G_InyfYV8ZKuEAOf72qcPM',
-    appId: '1:266482313771:ios:2b15e309473df0609b986e',
+    apiKey: 'AIzaSyCDrKuJreHSyr_oEDGT0mf60SKglMn56Zo',
+    appId: '1:266482313771:ios:7cae862e1778c1099b986e',
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
     storageBucket: 'offora-private-limited.firebasestorage.app',
-    iosClientId: '266482313771-v7vmgsjmg9eo1b639rqu75032tikrbad.apps.googleusercontent.com',
-    iosBundleId: 'com.example.offora',
+    iosClientId: '266482313771-rqh7v18rerklqjmjc8duiiqlgc270v2t.apps.googleusercontent.com',
+    iosBundleId: 'com.offora.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyApJI06ily-qq6USw-asz3CheG88ghamJ8',
-    appId: '1:266482313771:web:7d62de082c8bb7339b986e',
+    apiKey: 'AIzaSyDcBRA9Wtncwi14BkWuzXXUW3P3RPOpKo8',
+    appId: '1:266482313771:web:1816917f7eb0ba3c9b986e',
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
     authDomain: 'offora-private-limited.firebaseapp.com',
     storageBucket: 'offora-private-limited.firebasestorage.app',
-    measurementId: 'G-VB1PC9DBNH',
+    measurementId: 'G-LW1L9P3JVG',
   );
 }

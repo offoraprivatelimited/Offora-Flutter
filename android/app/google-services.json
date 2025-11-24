@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:266482313771:android:cdb73d1bda7fb0fb9b986e",
+        "mobilesdk_app_id": "1:266482313771:android:d4bfea92f74c40809b986e",
         "android_client_info": {
-          "package_name": "com.example.offora"
+          "package_name": "com.offora.adminpanel"
         }
       },
       "oauth_client": [
@@ -21,6 +21,9 @@
       "api_key": [
         {
           "current_key": "AIzaSyDch_sMeS2g9voe2gybDhyYepUB4cXENAg"
+        },
+        {
+          "current_key": "AIzaSyDirmQfCmNtSU-m-plqPBi3ymLoLKY2LSg"
         }
       ],
       "services": {
@@ -31,10 +34,88 @@
               "client_type": 3
             },
             {
-              "client_id": "266482313771-v7vmgsjmg9eo1b639rqu75032tikrbad.apps.googleusercontent.com",
+              "client_id": "266482313771-dasdftc9uqta3hv60k90t0q1kqgbrp8i.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.offora"
+                "bundle_id": "com.offora.adminpanel"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:266482313771:android:21bb4350561cf9d09b986e",
+        "android_client_info": {
+          "package_name": "com.offora.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDch_sMeS2g9voe2gybDhyYepUB4cXENAg"
+        },
+        {
+          "current_key": "AIzaSyDirmQfCmNtSU-m-plqPBi3ymLoLKY2LSg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "266482313771-dasdftc9uqta3hv60k90t0q1kqgbrp8i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.offora.adminpanel"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:266482313771:android:18dbc457f2bc0c299b986e",
+        "android_client_info": {
+          "package_name": "com.offora.clientpanel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDch_sMeS2g9voe2gybDhyYepUB4cXENAg"
+        },
+        {
+          "current_key": "AIzaSyDirmQfCmNtSU-m-plqPBi3ymLoLKY2LSg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "266482313771-dasdftc9uqta3hv60k90t0q1kqgbrp8i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.offora.adminpanel"
               }
             }
           ]

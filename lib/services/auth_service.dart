@@ -1,40 +1,189 @@
-import '../core/exceptions.dart';
-import '../models/user.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_sign_in/google_sign_in.dart'; // <--- Ensure this is the import
+import 'package:google_sign_in/google_sign_in.dart';
+import '../core/exceptions.dart';
+import '../models/user.dart';
+import '../models/client_panel_stage.dart';
 
 class AuthService extends ChangeNotifier {
+  /// Refreshes the current user's profile from Firestore and updates approval stage.
+  Future<void> refreshProfile() async {
+    if (_currentUser == null) return;
+    await _loadUserFromFirestore(_currentUser!.uid);
+    await _determineStage(_currentUser!.uid);
+    notifyListeners();
+  }
+
   AppUser? _currentUser;
   bool _loggedIn = false;
+  // Track busy state and error message
+  bool _isBusy = false;
+  String? _errorMessage;
+
+  // Track approval stage
+  ClientPanelStage _stage = ClientPanelStage.pendingApproval;
+
+  bool get isBusy => _isBusy;
+  String? get errorMessage => _errorMessage;
+  ClientPanelStage get stage => _stage;
 
   AppUser? get currentUser => _currentUser;
   bool get isLoggedIn => _loggedIn;
 
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
-  // FIX 1: Use the standard constructor GoogleSignIn()
   final _googleSignIn = GoogleSignIn();
 
+  AuthService() {
+    // Listen to Firebase Auth state changes
+    _auth.authStateChanges().listen(_handleAuthStateChanged);
+  }
+
+  Future<void> _handleAuthStateChanged(User? user) async {
+    if (user != null) {
+      // User is signed in, load their profile
+      try {
+        await _loadUserFromFirestore(user.uid);
+        _loggedIn = true;
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error loading user profile: $e');
+        }
+        _loggedIn = false;
+        _currentUser = null;
+      }
+    } else {
+      // User is signed out
+      _loggedIn = false;
+      _currentUser = null;
+    }
+    notifyListeners();
+  }
+
   // --- Email/Password Sign In ---
-  Future<void> signInWithEmail(String email, String password) async {
+  Future<void> signIn({required String email, required String password}) async {
+    _isBusy = true;
+    _errorMessage = null;
+    notifyListeners();
     try {
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
       final user = credential.user;
-
       if (user != null) {
         await _loadUserFromFirestore(user.uid);
         _loggedIn = true;
+        await _determineStage(user.uid);
         notifyListeners();
       } else {
         throw AuthException('No user found after sign-in.');
       }
     } on FirebaseAuthException catch (e) {
-      throw AuthException(_getFirebaseErrorMessage(e.code));
+      _errorMessage = _getFirebaseErrorMessage(e.code);
+      notifyListeners();
+      rethrow;
+    } catch (e) {
+      _errorMessage = 'Unable to sign in. Please try again.';
+      notifyListeners();
+      rethrow;
+    } finally {
+      _isBusy = false;
+      notifyListeners();
+    }
+  }
+
+  // Determine approval stage for the user
+  Future<void> _determineStage(String uid) async {
+    final firestore = FirebaseFirestore.instance;
+    final approvedSnap = await firestore
+        .collection('clients')
+        .doc('approved')
+        .collection('clients')
+        .doc(uid)
+        .get();
+    if (approvedSnap.exists) {
+      _stage = ClientPanelStage.active;
+      return;
+    }
+    final pendingSnap = await firestore
+        .collection('clients')
+        .doc('pending')
+        .collection('clients')
+        .doc(uid)
+        .get();
+    if (pendingSnap.exists) {
+      _stage = ClientPanelStage.pendingApproval;
+      return;
+    }
+    final rejectedSnap = await firestore
+        .collection('clients')
+        .doc('rejected')
+        .collection('clients')
+        .doc(uid)
+        .get();
+    if (rejectedSnap.exists) {
+      _stage = ClientPanelStage.rejected;
+      return;
+    }
+    _stage = ClientPanelStage.pendingApproval;
+  }
+
+  // Dummy registerClient for demonstration (implement as needed)
+  Future<void> registerClient({
+    required String email,
+    required String password,
+    required String businessName,
+    required String contactPerson,
+    required String phoneNumber,
+    required String address,
+    required String location,
+    required String category,
+  }) async {
+    _isBusy = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = credential.user;
+      if (user != null) {
+        // Save client info to Firestore (pending approval)
+        await FirebaseFirestore.instance
+            .collection('clients')
+            .doc('pending')
+            .collection('clients')
+            .doc(user.uid)
+            .set({
+          'businessName': businessName,
+          'contactPerson': contactPerson,
+          'phoneNumber': phoneNumber,
+          'email': email,
+          'address': address,
+          'location': location,
+          'category': category,
+        });
+        await _loadUserFromFirestore(user.uid);
+        _loggedIn = true;
+        await _determineStage(user.uid);
+        notifyListeners();
+      } else {
+        throw AuthException('No user found after sign-up.');
+      }
+    } on FirebaseAuthException catch (e) {
+      _errorMessage = _getFirebaseErrorMessage(e.code);
+      notifyListeners();
+      rethrow;
+    } catch (e) {
+      _errorMessage = 'Unable to create account.';
+      notifyListeners();
+      rethrow;
+    } finally {
+      _isBusy = false;
+      notifyListeners();
     }
   }
 
@@ -47,6 +196,7 @@ class AuthService extends ChangeNotifier {
     required String address,
     required String gender,
     required String dob,
+    required String role, // 'user' or 'shopowner'
   }) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
@@ -58,18 +208,42 @@ class AuthService extends ChangeNotifier {
       if (user != null) {
         await user.updateDisplayName(name);
 
-        final appUser = AppUser(
-          uid: user.uid,
-          name: name,
-          email: email,
-          phone: phone,
-          address: address,
-          gender: gender,
-          dob: dob,
-        );
-        await _firestore.collection('users').doc(user.uid).set(appUser.toMap());
+        if (role == 'user') {
+          // Only store user fields
+          await _firestore.collection('users').doc(user.uid).set({
+            'uid': user.uid,
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'address': address,
+            'gender': gender,
+            'dob': dob,
+            'role': role,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        } else {
+          // Store shop owner fields
+          final appUser = AppUser(
+            uid: user.uid,
+            name: name,
+            email: email,
+            phone: phone,
+            address: address,
+            gender: gender,
+            dob: dob,
+            role: role,
+            approvalStatus: 'pending',
+            rejectionReason: null,
+            businessName: '',
+            contactPerson: '',
+            phoneNumber: phone,
+          );
+          await _firestore
+              .collection('users')
+              .doc(user.uid)
+              .set(appUser.toMap());
+        }
 
-        _currentUser = appUser;
         _loggedIn = true;
         notifyListeners();
       } else {
@@ -81,7 +255,7 @@ class AuthService extends ChangeNotifier {
   }
 
   // --- Google Sign In with Web Support ---
-  Future<void> signInWithGoogle() async {
+  Future<void> signInWithGoogle({String role = 'user'}) async {
     try {
       UserCredential? userCred;
 
@@ -140,6 +314,12 @@ class AuthService extends ChangeNotifier {
             address: '',
             gender: '',
             dob: '',
+            role: role,
+            approvalStatus: 'pending',
+            rejectionReason: null,
+            businessName: '',
+            contactPerson: '',
+            phoneNumber: user.phoneNumber ?? '',
           );
           await _firestore
               .collection('users')
@@ -207,6 +387,12 @@ class AuthService extends ChangeNotifier {
       address: address,
       gender: gender,
       dob: dob,
+      role: _currentUser!.role,
+      approvalStatus: _currentUser!.approvalStatus,
+      rejectionReason: _currentUser!.rejectionReason,
+      businessName: _currentUser!.businessName,
+      contactPerson: _currentUser!.contactPerson,
+      phoneNumber: phone,
     );
 
     await _firestore

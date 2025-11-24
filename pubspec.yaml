@@ -37,6 +37,9 @@ dependencies:
   # If you are using custom web interop code, you still need the 'web' and 'js' packages.
   web: ^0.5.1
   js: ^0.7.1 # Correctly placed in dependencies if used in the main app logic (like your web interop file).
+  intl: ^0.20.2
+  image_picker: ^1.2.1
+  firebase_storage: ^12.2.0
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/gradient_button.dart';
-import 'auth_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   static const String routeName = '/onboarding';
@@ -55,7 +54,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         if (_page == slides.length - 1) {
                           Navigator.pushReplacementNamed(
                             context,
-                            AuthScreen.routeName,
+                            '/role-selection',
                           );
                         } else {
                           _controller.nextPage(
