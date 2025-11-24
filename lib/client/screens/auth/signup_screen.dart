@@ -265,7 +265,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                             child: Text(c),
                                           ))
                                       .toList(),
-                                  value: _selectedCategory,
+                                  initialValue: _selectedCategory,
                                   onChanged: (v) => setState(() {
                                     _selectedCategory = v;
                                   }),
