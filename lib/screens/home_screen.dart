@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/dummy_data.dart';
 import '../widgets/offer_card.dart';
+import '../widgets/offer_banner.dart';
 import '../widgets/category_card.dart';
 import '../widgets/section_title.dart';
 import 'offer_details_screen.dart';
@@ -15,28 +16,20 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            const SectionTitle(title: 'Trending offers', onViewAll: null),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 220,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: sampleOffers.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 12),
-                itemBuilder: (context, i) {
-                  final offer = sampleOffers[i];
-                  return SizedBox(
-                    width: 280,
-                    child: OfferCard(
-                      offer: offer,
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        OfferDetailsScreen.routeName,
-                        arguments: offer,
-                      ),
-                    ),
-                  );
-                },
+            // Offer banner carousel (loads from Firebase)
+            OfferBanner(
+              imageUrls: const [
+                'https://via.placeholder.com/400x180?text=Offer+1',
+                'https://via.placeholder.com/400x180?text=Offer+2',
+                'https://via.placeholder.com/400x180?text=Offer+3',
+                'https://via.placeholder.com/400x180?text=Offer+4',
+                'https://via.placeholder.com/400x180?text=Offer+5',
+                'https://via.placeholder.com/400x180?text=Offer+6',
+              ],
+              onTap: () => Navigator.pushNamed(
+                context,
+                OfferDetailsScreen.routeName,
+                arguments: sampleOffers.isNotEmpty ? sampleOffers[0] : null,
               ),
             ),
             const SizedBox(height: 20),
