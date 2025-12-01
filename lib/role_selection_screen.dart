@@ -30,8 +30,8 @@ class RoleSelectionScreen extends StatelessWidget {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        brightGold.withOpacity(0.9),
-                        brightGold.withOpacity(0.4)
+                        brightGold.withAlpha(230),
+                        brightGold.withAlpha(102)
                       ],
                       center: Alignment.topRight,
                       radius: 0.9,
@@ -48,10 +48,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
-                      colors: [
-                        darkBlue.withOpacity(0.8),
-                        darkBlue.withOpacity(0.3)
-                      ],
+                      colors: [darkBlue.withAlpha(204), darkBlue.withAlpha(77)],
                       center: Alignment.bottomLeft,
                       radius: 0.9,
                     ),
@@ -76,7 +73,7 @@ class RoleSelectionScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 boxShadow: [
                                   BoxShadow(
-                                    color: darkerGold.withOpacity(0.3),
+                                    color: darkerGold.withAlpha(77),
                                     blurRadius: 20,
                                     offset: const Offset(0, 10),
                                   ),
@@ -88,7 +85,7 @@ class RoleSelectionScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 28),
-                            Text(
+                            const Text(
                               'Welcome to Offora',
                               style: TextStyle(
                                 fontSize: 32,
@@ -97,7 +94,7 @@ class RoleSelectionScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            Text(
+                            const Text(
                               'Choose how you want to use Offora',
                               style: TextStyle(
                                 fontSize: 16,
@@ -192,7 +189,7 @@ class _RoleCardState extends State<_RoleCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
-          transform: Matrix4.identity()..translate(0, _isHovered ? -8 : 0),
+          transform: Matrix4.translationValues(0, _isHovered ? -8 : 0, 0),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
@@ -200,19 +197,19 @@ class _RoleCardState extends State<_RoleCard> {
               end: Alignment.bottomRight,
               colors: [
                 Colors.white,
-                Colors.white.withOpacity(0.9),
+                Colors.white.withAlpha(230),
               ],
             ),
             boxShadow: [
               BoxShadow(
-                color: widget.accentColor.withOpacity(_isHovered ? 0.3 : 0.15),
+                color: widget.accentColor.withAlpha(_isHovered ? 77 : 38),
                 blurRadius: _isHovered ? 24 : 12,
                 spreadRadius: _isHovered ? 2 : 0,
                 offset: Offset(0, _isHovered ? 12 : 8),
               ),
             ],
             border: Border.all(
-              color: widget.accentColor.withOpacity(0.2),
+              color: widget.accentColor.withAlpha(51),
               width: 2,
             ),
           ),
@@ -228,7 +225,7 @@ class _RoleCardState extends State<_RoleCard> {
                     gradient: LinearGradient(
                       colors: [
                         widget.accentColor,
-                        widget.accentColor.withOpacity(0.7),
+                        widget.accentColor.withAlpha(179),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -272,7 +269,7 @@ class _RoleCardState extends State<_RoleCard> {
                     gradient: LinearGradient(
                       colors: [
                         widget.accentColor,
-                        widget.accentColor.withOpacity(0.8),
+                        widget.accentColor.withAlpha(204),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -280,7 +277,7 @@ class _RoleCardState extends State<_RoleCard> {
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: widget.accentColor.withOpacity(0.3),
+                        color: widget.accentColor.withAlpha(77),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),

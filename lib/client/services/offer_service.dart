@@ -8,20 +8,20 @@ import '../models/offer.dart';
 
 class OfferService {
   OfferService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
-  CollectionReference<Map<String, dynamic>> get _offersCollection =>
-      _firestore.collection('offers');
+  /// Reference to offers/{status}/offers subcollection
+  CollectionReference<Map<String, dynamic>> _statusCollection(
+    String status,
+  ) =>
+      _firestore.collection('offers').doc(status).collection('offers');
 
-  CollectionReference<Map<String, dynamic>> _pendingCollection(
-    String clientId,
-  ) => _firestore.collection('offers').doc('pending').collection(clientId);
-
+  /// Watch all offers for a specific client (across all statuses for their dashboard)
   Stream<List<Offer>> watchClientOffers(String clientId) {
-    // Watch top-level offers collection for this client (keeps backward compatibility)
-    return _offersCollection
+    // Query across pending offers for this client
+    return _statusCollection('pending')
         .where('clientId', isEqualTo: clientId)
         .orderBy('createdAt', descending: true)
         .withConverter<Offer>(
@@ -32,7 +32,59 @@ class OfferService {
         .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
   }
 
-  Future<void> submitOffer({
+  /// Watch all approved offers (for user explore screen)
+  /// Fetches from offers/approved/offers subcollection
+  Stream<List<Offer>> watchApprovedOffers() {
+    return _statusCollection('approved')
+        .orderBy('createdAt', descending: true)
+        .withConverter<Offer>(
+          fromFirestore: (snapshot, _) => Offer.fromFirestore(snapshot),
+          toFirestore: (Offer offer, _) => offer.toJson(),
+        )
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+  }
+
+  /// Watch pending offers (for admin approval panel)
+  Stream<List<Offer>> watchPendingOffers() {
+    return _statusCollection('pending')
+        .orderBy('createdAt', descending: true)
+        .withConverter<Offer>(
+          fromFirestore: (snapshot, _) => Offer.fromFirestore(snapshot),
+          toFirestore: (Offer offer, _) => offer.toJson(),
+        )
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+  }
+
+  /// Watch rejected offers (for admin review)
+  Stream<List<Offer>> watchRejectedOffers() {
+    return _statusCollection('rejected')
+        .orderBy('createdAt', descending: true)
+        .withConverter<Offer>(
+          fromFirestore: (snapshot, _) => Offer.fromFirestore(snapshot),
+          toFirestore: (Offer offer, _) => offer.toJson(),
+        )
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+  }
+
+  /// Get a single offer by ID and status
+  Future<Offer?> getOffer({
+    required String offerId,
+    required String status,
+  }) async {
+    try {
+      final doc = await _statusCollection(status).doc(offerId).get();
+      if (!doc.exists) return null;
+      return Offer.fromFirestore(doc);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Submit a new offer (saved to offers/pending/offers)
+  Future<String> submitOffer({
     required String clientId,
     required String title,
     required String description,
@@ -54,8 +106,8 @@ class OfferService {
       for (var i = 0; i < images.length; i++) {
         final file = File(images[i].path);
         final ref = storage.ref().child(
-          'offers/$clientId/${createdAt.millisecondsSinceEpoch}_$i.jpg',
-        );
+              'offers/$clientId/${createdAt.millisecondsSinceEpoch}_$i.jpg',
+            );
         final uploadTask = await ref.putFile(file);
         final downloadUrl = await uploadTask.ref.getDownloadURL();
         imageUrls.add(downloadUrl);
@@ -78,10 +130,63 @@ class OfferService {
       createdAt: createdAt,
     );
 
-    // Write to top-level offers collection (existing consumers)
-    await _offersCollection.add(offer.toJson());
+    // Write to offers/pending/offers subcollection
+    final docRef = await _statusCollection('pending').add(offer.toJson());
+    return docRef.id;
+  }
 
-    // Also write to offers/pending/{clientId} as requested
-    await _pendingCollection(clientId).add(offer.toJson());
+  /// Move an offer from one status to another (used by admin)
+  /// For example: pending → approved, or pending → rejected
+  Future<void> updateOfferStatus({
+    required String offerId,
+    required String fromStatus,
+    required String toStatus,
+    String? rejectionReason,
+  }) async {
+    try {
+      // Get the offer from current status
+      final currentDoc = await _statusCollection(fromStatus).doc(offerId).get();
+
+      if (!currentDoc.exists) {
+        throw Exception('Offer not found in $fromStatus collection');
+      }
+
+      // Get the data
+      final offerData = currentDoc.data() ?? <String, dynamic>{};
+
+      // Update status in the data
+      offerData['status'] = toStatus;
+      if (rejectionReason != null) {
+        offerData['rejectionReason'] = rejectionReason;
+      }
+      offerData['updatedAt'] = FieldValue.serverTimestamp();
+
+      // Write to new status collection
+      await _statusCollection(toStatus).doc(offerId).set(offerData);
+
+      // Delete from old status collection
+      await _statusCollection(fromStatus).doc(offerId).delete();
+    } catch (e) {
+      throw Exception('Failed to update offer status: $e');
+    }
+  }
+
+  /// Approve an offer (move from pending to approved)
+  Future<void> approveOffer(String offerId) async {
+    await updateOfferStatus(
+      offerId: offerId,
+      fromStatus: 'pending',
+      toStatus: 'approved',
+    );
+  }
+
+  /// Reject an offer (move from pending to rejected)
+  Future<void> rejectOffer(String offerId, String reason) async {
+    await updateOfferStatus(
+      offerId: offerId,
+      fromStatus: 'pending',
+      toStatus: 'rejected',
+      rejectionReason: reason,
+    );
   }
 }

@@ -133,14 +133,14 @@ class _OfferFormScreenState extends State<OfferFormScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     final user = auth.currentUser;
-    if (user == null || !user.isApproved) {
+    if (user == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Create offer')),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
             child: Text(
-              'Your account must be approved before submitting offers. Please wait for the admin panel to approve your profile.',
+              'Sign in required to create offers.',
               textAlign: TextAlign.center,
             ),
           ),

@@ -25,6 +25,9 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPasswordController = TextEditingController();
   final _addressController = TextEditingController();
   final _locationController = TextEditingController();
+  final _gstNumberController = TextEditingController();
+  final _shopLicenseController = TextEditingController();
+  final _registrationNumberController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String? _selectedCategory;
@@ -69,6 +72,9 @@ class _SignupScreenState extends State<SignupScreen> {
     _confirmPasswordController.dispose();
     _addressController.dispose();
     _locationController.dispose();
+    _gstNumberController.dispose();
+    _shopLicenseController.dispose();
+    _registrationNumberController.dispose();
     super.dispose();
   }
 
@@ -85,6 +91,16 @@ class _SignupScreenState extends State<SignupScreen> {
         address: _addressController.text.trim(),
         location: _locationController.text.trim(),
         category: _selectedCategory ?? 'Other',
+        gstNumber: _gstNumberController.text.trim().isEmpty
+            ? null
+            : _gstNumberController.text.trim(),
+        shopLicenseNumber: _shopLicenseController.text.trim().isEmpty
+            ? null
+            : _shopLicenseController.text.trim(),
+        businessRegistrationNumber:
+            _registrationNumberController.text.trim().isEmpty
+                ? null
+                : _registrationNumberController.text.trim(),
       );
 
       await auth.refreshProfile();
@@ -133,8 +149,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        darkBlue.withOpacity(0.96),
-                        darkBlue.withOpacity(0.6)
+                        darkBlue.withAlpha(253),
+                        darkBlue.withAlpha(153)
                       ],
                       center: Alignment.topLeft,
                       radius: 0.8,
@@ -152,15 +168,15 @@ class _SignupScreenState extends State<SignupScreen> {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        brightGold.withOpacity(1.0),
-                        brightGold.withOpacity(0.85)
+                        brightGold.withAlpha(255),
+                        brightGold.withAlpha(217)
                       ],
                       center: Alignment.topRight,
                       radius: 0.9,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: darkerGold.withOpacity(0.22),
+                        color: darkerGold.withAlpha(56),
                         blurRadius: 40,
                         spreadRadius: 8,
                       ),
@@ -179,11 +195,20 @@ class _SignupScreenState extends State<SignupScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        darkerGold.withOpacity(0.18),
-                        Colors.transparent
-                      ],
+                      colors: [darkerGold.withAlpha(46), Colors.transparent],
                     ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                left: 0,
+                child: SafeArea(
+                  child: IconButton(
+                    onPressed: () => Navigator.of(context)
+                        .pushReplacementNamed('/role-selection'),
+                    icon: const Icon(Icons.arrow_back),
+                    tooltip: 'Back to role selection',
                   ),
                 ),
               ),
@@ -195,11 +220,11 @@ class _SignupScreenState extends State<SignupScreen> {
                         horizontal: isWide ? 28 : 16, vertical: 28),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.98),
+                        color: Colors.white.withAlpha(250),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.12),
+                            color: Colors.black.withAlpha(31),
                             blurRadius: 24,
                             offset: const Offset(0, 12),
                           ),
@@ -245,7 +270,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                       decoration: BoxDecoration(
                                         boxShadow: [
                                           BoxShadow(
-                                            color: darkerGold.withOpacity(0.22),
+                                            color: darkerGold.withAlpha(56),
                                             blurRadius: 12,
                                             offset: const Offset(0, 6),
                                           ),
@@ -260,16 +285,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ],
                               ),
                               const SizedBox(height: 20),
-                              // Top-left back button
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: IconButton(
-                                  onPressed: () => Navigator.of(context)
-                                      .pushReplacementNamed('/role-selection'),
-                                  icon: const Icon(Icons.arrow_back),
-                                  tooltip: 'Back to role selection',
-                                ),
-                              ),
+                              // (Back button moved to top-level SafeArea)
                               Center(
                                 child: Form(
                                   key: _formKey,
@@ -394,7 +410,39 @@ class _SignupScreenState extends State<SignupScreen> {
                                           return null;
                                         },
                                       ),
+                                      const SizedBox(height: 20),
+                                      // Optional Business Registration Details
+                                      Text(
+                                        'Business Registration (Optional)',
+                                        style: theme.textTheme.labelLarge
+                                            ?.copyWith(
+                                          color: const Color(0xFF1F477D),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _styledField(
+                                        controller: _gstNumberController,
+                                        label: 'GST Number',
+                                        icon: Icons.receipt_outlined,
+                                        keyboardType: TextInputType.text,
+                                      ),
                                       const SizedBox(height: 14),
+                                      _styledField(
+                                        controller: _shopLicenseController,
+                                        label: 'Shop License Number',
+                                        icon: Icons.card_giftcard,
+                                        keyboardType: TextInputType.text,
+                                      ),
+                                      const SizedBox(height: 14),
+                                      _styledField(
+                                        controller:
+                                            _registrationNumberController,
+                                        label: 'Business Registration Number',
+                                        icon: Icons.description_outlined,
+                                        keyboardType: TextInputType.text,
+                                      ),
+                                      const SizedBox(height: 20),
                                       _styledField(
                                         controller: _emailController,
                                         label: 'Work email',

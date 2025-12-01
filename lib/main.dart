@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 
 import 'theme/app_theme.dart';
 import 'services/auth_service.dart';
+import 'client/services/offer_service.dart';
 import 'screens/splash_screen.dart' as user;
 import 'screens/onboarding_screen.dart';
 import 'screens/auth_screen.dart';
@@ -33,8 +34,11 @@ class OfforaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AuthService(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        Provider(create: (_) => OfferService()),
+      ],
       child: MaterialApp(
         title: 'Offora',
         debugShowCheckedModeBanner: false,

@@ -45,12 +45,14 @@ class AuthService extends ChangeNotifier {
       // User is signed in, load their profile
       try {
         await _loadUserFromFirestore(user.uid);
+        // Keep `_currentUser` as loaded (may be null if no profile present)
         _loggedIn = true;
       } catch (e) {
         if (kDebugMode) {
           print('Error loading user profile: $e');
         }
-        _loggedIn = false;
+        // Keep the auth state but clear currentUser so UI can react accordingly
+        _loggedIn = true;
         _currentUser = null;
       }
     } else {
@@ -81,10 +83,20 @@ class AuthService extends ChangeNotifier {
         throw AuthException('No user found after sign-in.');
       }
     } on FirebaseAuthException catch (e) {
+      // Log FirebaseAuthException details for debugging (visible in console / browser)
+      if (kDebugMode) {
+        debugPrint(
+            'FirebaseAuthException.signIn -> code=${e.code}, message=${e.message}');
+      } else {
+        // Ensure we still have some logging in non-debug runs
+      }
       _errorMessage = _getFirebaseErrorMessage(e.code);
       notifyListeners();
       rethrow;
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Non-Firebase error during signIn: $e');
+      } else {}
       _errorMessage = 'Unable to sign in. Please try again.';
       notifyListeners();
       rethrow;
@@ -130,7 +142,7 @@ class AuthService extends ChangeNotifier {
     _stage = ClientPanelStage.pendingApproval;
   }
 
-  // Dummy registerClient for demonstration (implement as needed)
+  // Register client (shop owner) - stores all information in Firestore
   Future<void> registerClient({
     required String email,
     required String password,
@@ -140,6 +152,9 @@ class AuthService extends ChangeNotifier {
     required String address,
     required String location,
     required String category,
+    String? gstNumber,
+    String? shopLicenseNumber,
+    String? businessRegistrationNumber,
   }) async {
     _isBusy = true;
     _errorMessage = null;
@@ -151,21 +166,49 @@ class AuthService extends ChangeNotifier {
       );
       final user = credential.user;
       if (user != null) {
-        // Save client info to Firestore (pending approval)
+        final clientData = {
+          // Authentication & Identity
+          'uid': user.uid,
+          'email': email,
+
+          // Business Information
+          'businessName': businessName,
+          'businessCategory': category,
+          'location': location,
+          'address': address,
+
+          // Contact Information
+          'contactPerson': contactPerson,
+          'phoneNumber': phoneNumber,
+
+          // Business Registration Details (Optional)
+          'gstNumber': gstNumber,
+          'shopLicenseNumber': shopLicenseNumber,
+          'businessRegistrationNumber': businessRegistrationNumber,
+
+          // Approval Status & Metadata
+          'approvalStatus': 'pending',
+          'rejectionReason': null,
+          'lastSignInAt': null,
+
+          // Timestamps
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+
+          // Additional fields for future use
+          'isActive': true,
+          'offersCount': 0,
+          'isVerified': false,
+        };
+
+        // Save to clients/pending/clients/{uid} (hierarchical structure)
         await FirebaseFirestore.instance
             .collection('clients')
             .doc('pending')
             .collection('clients')
             .doc(user.uid)
-            .set({
-          'businessName': businessName,
-          'contactPerson': contactPerson,
-          'phoneNumber': phoneNumber,
-          'email': email,
-          'address': address,
-          'location': location,
-          'category': category,
-        });
+            .set(clientData);
+
         await _loadUserFromFirestore(user.uid);
         _loggedIn = true;
         await _determineStage(user.uid);
@@ -345,9 +388,34 @@ class AuthService extends ChangeNotifier {
   // --- Utility Methods ---
 
   Future<void> _loadUserFromFirestore(String uid) async {
-    final doc = await _firestore.collection('users').doc(uid).get();
-    if (doc.exists && doc.data() != null) {
-      _currentUser = AppUser.fromMap(doc.data() as Map<String, dynamic>);
+    // Try `users/{uid}` first
+    final userDoc = await _firestore.collection('users').doc(uid).get();
+    if (userDoc.exists && userDoc.data() != null) {
+      _currentUser = AppUser.fromMap(userDoc.data() as Map<String, dynamic>);
+      return;
+    }
+
+    // Then try clients/{uid}
+    final clientDirect = await _firestore.collection('clients').doc(uid).get();
+    if (clientDirect.exists && clientDirect.data() != null) {
+      _currentUser =
+          AppUser.fromMap(clientDirect.data() as Map<String, dynamic>);
+      return;
+    }
+
+    // Then try hierarchical client locations: pending / approved / rejected
+    final statuses = ['approved', 'pending', 'rejected'];
+    for (final status in statuses) {
+      final doc = await _firestore
+          .collection('clients')
+          .doc(status)
+          .collection('clients')
+          .doc(uid)
+          .get();
+      if (doc.exists && doc.data() != null) {
+        _currentUser = AppUser.fromMap(doc.data() as Map<String, dynamic>);
+        return;
+      }
     }
   }
 

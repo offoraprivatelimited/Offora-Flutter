@@ -154,7 +154,7 @@ class _UserSplashScreenState extends State<UserSplashScreen>
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Local Deals, Big Savings',
+                        'The Offer World',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,

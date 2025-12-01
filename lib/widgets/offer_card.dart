@@ -22,17 +22,7 @@ class OfferCard extends StatelessWidget {
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(16),
                   ),
-                  child: Image.asset(
-                    offer['image'] as String,
-                    height: 140,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 140,
-                      color: Colors.grey.shade200,
-                      child: const Center(child: Icon(Icons.image, size: 48)),
-                    ),
-                  ),
+                  child: _buildImage(offer['image'] as String?),
                 ),
                 Expanded(
                   child: Padding(
@@ -92,6 +82,45 @@ class OfferCard extends StatelessWidget {
               ],
             ),
           )),
+    );
+  }
+
+  /// Helper to build image from either network URL or asset path
+  Widget _buildImage(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return Container(
+        height: 140,
+        color: Colors.grey.shade200,
+        child: const Center(child: Icon(Icons.image, size: 48)),
+      );
+    }
+
+    // Check if it's a network URL (Firebase Storage URL)
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return Image.network(
+        imagePath,
+        height: 140,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          height: 140,
+          color: Colors.grey.shade200,
+          child: const Center(child: Icon(Icons.image, size: 48)),
+        ),
+      );
+    }
+
+    // Otherwise treat as asset path
+    return Image.asset(
+      imagePath,
+      height: 140,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => Container(
+        height: 140,
+        color: Colors.grey.shade200,
+        child: const Center(child: Icon(Icons.image, size: 48)),
+      ),
     );
   }
 }

@@ -78,6 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showError(String message) {
+    if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(content: Text(message)));
@@ -110,8 +111,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        darkBlue.withOpacity(0.95),
-                        darkBlue.withOpacity(0.6)
+                        darkBlue.withAlpha(242),
+                        darkBlue.withAlpha(153)
                       ],
                       center: Alignment.topLeft,
                       radius: 0.8,
@@ -129,15 +130,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        brightGold.withOpacity(1.0),
-                        brightGold.withOpacity(0.85)
+                        brightGold.withAlpha(255),
+                        brightGold.withAlpha(217)
                       ],
                       center: Alignment.topRight,
                       radius: 0.9,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: darkerGold.withOpacity(0.22),
+                        color: darkerGold.withAlpha(56),
                         blurRadius: 40,
                         spreadRadius: 8,
                       ),
@@ -157,10 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        darkerGold.withOpacity(0.18),
-                        Colors.transparent
-                      ],
+                      colors: [darkerGold.withAlpha(46), Colors.transparent],
                     ),
                   ),
                 ),
@@ -175,11 +173,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         horizontal: isWide ? 24 : 16, vertical: 28),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.95),
+                        color: Colors.white.withAlpha(242),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.12),
+                            color: Colors.black.withAlpha(31),
                             blurRadius: 24,
                             offset: const Offset(0, 12),
                           ),
@@ -228,7 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       BoxShadow(
                                         color: const Color.fromRGBO(
                                                 163, 131, 77, 1)
-                                            .withOpacity(0.25),
+                                            .withAlpha(64),
                                         blurRadius: 12,
                                         offset: const Offset(0, 6),
                                       ),
@@ -381,8 +379,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             vertical: 14),
                                         backgroundColor: darkBlue,
                                         elevation: 6,
-                                        shadowColor:
-                                            darkerGold.withOpacity(0.18),
+                                        shadowColor: darkerGold.withAlpha(46),
                                       ),
                                       child: auth.isBusy
                                           ? const SizedBox(

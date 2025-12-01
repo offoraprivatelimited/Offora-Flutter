@@ -6,7 +6,8 @@ import '../../../services/auth_service.dart';
 import '../../services/offer_service.dart';
 import '../auth/login_screen.dart';
 import '../offers/offer_form_screen.dart';
-import '../../../models/client_panel_stage.dart';
+// removed unused import
+import '../../../theme/colors.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,12 +20,19 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final _currency = NumberFormat.currency(symbol: '₹');
+  final darkBlue = const Color(0xFF1F477D);
+  final brightGold = const Color(0xFFF0B84D);
+  final darkerGold = const Color(0xFFA3834D);
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final auth = context.watch<AuthService>();
-    if (auth.stage != ClientPanelStage.active) {
+    // Only redirect to login when the user is not authenticated.
+    // Allow users who are signed in but pending approval to access the
+    // dashboard so they can draft offers. Previously we redirected any
+    // non-active stage which prevented drafting.
+    if (!auth.isLoggedIn) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
@@ -39,18 +47,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return;
     }
 
+    // Allow users who are not yet approved to open the offer form and
+    // create drafts. We still notify them about approval requirements.
     if (!(user.isApproved)) {
       _showMessage(
-        'Your account is awaiting approval. You can draft offers once approved.',
+        'Your account is awaiting approval. You can draft offers; they will be submitted for review once approved.',
       );
-      return;
     }
 
-    final result = await Navigator.of(
-      context,
-    ).pushNamed(OfferFormScreen.routeName);
+    final result =
+        await Navigator.of(context).pushNamed(OfferFormScreen.routeName);
     if (result == true) {
-      _showMessage('Offer submitted for moderator approval.');
+      if (user.isApproved) {
+        _showMessage('Offer submitted for moderator approval.');
+      } else {
+        _showMessage(
+            'Offer saved as a draft. It will be submitted when your account is approved.');
+      }
     }
   }
 
@@ -72,108 +85,177 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final user = auth.currentUser;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Client Workspace')),
-      drawer: Drawer(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user?.businessName ?? 'Business',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
+      backgroundColor: Colors.white,
+      body: user == null
+          ? const Center(child: CircularProgressIndicator())
+          : CustomScrollView(
+              slivers: [
+                // Modern premium header with logo (smaller)
+                SliverAppBar(
+                  expandedHeight: 96,
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: Colors.white,
+                  elevation: 1,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.darkBlue,
+                            AppColors.darkBlue.withAlpha(200)
+                          ],
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              SizedBox(
+                                height: 36,
+                                child: Image.asset(
+                                  'images/logo/original/Text_without_logo_without_background.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Manage your offers',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: Colors.white70,
+                                    ),
+                              ),
+                            ],
                           ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      user?.email ?? '',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          IconButton(
+                            icon: const Icon(Icons.logout_outlined,
+                                color: Colors.white),
+                            onPressed: _signOut,
+                            tooltip: 'Sign out',
                           ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              Expanded(
-                child: ListView(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.dashboard_outlined),
-                      title: const Text('Dashboard'),
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.campaign_outlined),
-                      title: const Text('My Offers'),
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.settings_outlined),
-                      title: const Text('Settings'),
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _signOut,
-                    icon: const Icon(Icons.logout_outlined),
-                    label: const Text('Sign out'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.error,
-                      foregroundColor: Theme.of(context).colorScheme.onError,
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: (user?.isApproved ?? false)
-          ? FloatingActionButton.extended(
-              onPressed: _createOffer,
-              icon: const Icon(Icons.add),
-              label: const Text('New offer'),
-            )
-          : null,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: user == null
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _OffersSection(
-                        currency: _currency,
-                        userId: user.uid,
-                        canCreateOffers: user.isApproved,
-                        onCreateOffer: _createOffer,
-                      ),
+                // Content
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Business info card
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: darkBlue.withAlpha(13),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: brightGold.withAlpha(76),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome back!',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: darkBlue.withAlpha(179),
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                user.businessName,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: darkBlue,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(Icons.location_on_outlined,
+                                      size: 16, color: darkerGold),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      user.address,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Offers section header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'My Offers',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: darkBlue,
+                                  ),
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: _createOffer,
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('New offer'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: brightGold,
+                                foregroundColor: darkBlue,
+                                elevation: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-        ),
-      ),
+                // Offers list
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(
+                    child: _OffersSection(
+                      currency: _currency,
+                      userId: user.uid,
+                      // Allow creating offers (drafts) for signed-in users
+                      canCreateOffers: true,
+                      onCreateOffer: _createOffer,
+                      darkBlue: darkBlue,
+                      brightGold: brightGold,
+                      darkerGold: darkerGold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
@@ -184,12 +266,18 @@ class _OffersSection extends StatelessWidget {
     required this.userId,
     required this.canCreateOffers,
     required this.onCreateOffer,
+    required this.darkBlue,
+    required this.brightGold,
+    required this.darkerGold,
   });
 
   final NumberFormat currency;
   final String userId;
   final bool canCreateOffers;
   final VoidCallback onCreateOffer;
+  final Color darkBlue;
+  final Color brightGold;
+  final Color darkerGold;
 
   @override
   Widget build(BuildContext context) {
@@ -201,364 +289,243 @@ class _OffersSection extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final offers = snapshot.data ?? const <Offer>[];
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        }
 
-        return DefaultTabController(
-          length: 5,
-          child: Column(
-            children: [
-              const TabBar(
-                isScrollable: true,
-                tabs: [
-                  Tab(text: 'Upload new offer'),
-                  Tab(text: 'Live offers'),
-                  Tab(text: 'Expired'),
-                  Tab(text: 'Rejected'),
-                  Tab(text: 'Pending approval'),
+        final offers = snapshot.data ?? [];
+
+        if (offers.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 48),
+              child: Column(
+                children: [
+                  Icon(Icons.campaign_outlined,
+                      size: 64, color: darkBlue.withAlpha(76)),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No offers yet',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: darkBlue,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Create your first offer to get started',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey,
+                        ),
+                  ),
+                  if (canCreateOffers) ...[
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: onCreateOffer,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: brightGold,
+                        foregroundColor: darkBlue,
+                      ),
+                      child: const Text('Create first offer'),
+                    ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: TabBarView(
+            ),
+          );
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: offers.length,
+          itemBuilder: (context, index) {
+            final offer = offers[index];
+            final discount =
+                ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
+                    .toStringAsFixed(0);
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.grey.shade200,
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(13),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Upload tab
-                    Center(
-                      child: _EmptyOffersState(
-                        canCreateOffer: canCreateOffers,
-                        onCreateOffer: onCreateOffer,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                offer.title,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: darkBlue,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                offer.description,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: Colors.grey.shade600,
+                                    ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [brightGold, darkerGold],
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '$discount%',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ),
+                      ],
                     ),
-                    // Live offers: approved and not expired
-                    _OffersList(
-                      offers: offers
-                          .where(
-                            (o) =>
-                                o.isApproved &&
-                                (o.endDate == null ||
-                                    o.endDate!.isAfter(DateTime.now())),
-                          )
-                          .toList(),
-                      currency: currency,
-                    ),
-                    // Expired: endDate before now
-                    _OffersList(
-                      offers: offers
-                          .where(
-                            (o) =>
-                                o.endDate != null &&
-                                o.endDate!.isBefore(DateTime.now()),
-                          )
-                          .toList(),
-                      currency: currency,
-                    ),
-                    // Rejected
-                    _OffersList(
-                      offers: offers.where((o) => o.isRejected).toList(),
-                      currency: currency,
-                    ),
-                    // Pending
-                    _OffersList(
-                      offers: offers.where((o) => o.isPending).toList(),
-                      currency: currency,
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Status',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color: Colors.grey.shade600,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color:
+                                    _getStatusColor(offer.status).withAlpha(38),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                offer.status.name.toUpperCase(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: _getStatusColor(offer.status),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Price',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color: Colors.grey.shade600,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: currency.format(offer.discountPrice),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          color: brightGold,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        ' / ${currency.format(offer.originalPrice)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: Colors.grey.shade500,
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
-}
 
-class _OffersList extends StatelessWidget {
-  const _OffersList({required this.offers, required this.currency});
-
-  final List<Offer> offers;
-  final NumberFormat currency;
-
-  @override
-  Widget build(BuildContext context) {
-    if (offers.isEmpty) {
-      return const Center(child: Text('No offers in this section'));
-    }
-    return ListView.separated(
-      padding: const EdgeInsets.only(top: 4),
-      itemCount: offers.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final offer = offers[index];
-        return _OfferCard(offer: offer, currency: currency);
-      },
-    );
-  }
-}
-
-class _OfferCard extends StatelessWidget {
-  const _OfferCard({required this.offer, required this.currency});
-
-  final Offer offer;
-  final NumberFormat currency;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final statusChip = _OfferStatusChip(status: offer.status);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        offer.title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        offer.description,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                statusChip,
-              ],
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _InfoPill(
-                  icon: Icons.price_check_outlined,
-                  label: 'Original',
-                  value: currency.format(offer.originalPrice),
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                _InfoPill(
-                  icon: Icons.sell_outlined,
-                  label: 'Offer price',
-                  value: currency.format(offer.discountPrice),
-                  color: theme.colorScheme.primary,
-                ),
-                if (offer.startDate != null)
-                  _InfoPill(
-                    icon: Icons.event_available_outlined,
-                    label: 'Starts',
-                    value: DateFormat('d MMM').format(offer.startDate!),
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                if (offer.endDate != null)
-                  _InfoPill(
-                    icon: Icons.event_busy_outlined,
-                    label: 'Ends',
-                    value: DateFormat('d MMM').format(offer.endDate!),
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-              ],
-            ),
-            if (offer.terms != null && offer.terms!.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Text(
-                'Terms & conditions',
-                style: theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(offer.terms!, style: theme.textTheme.bodyMedium),
-            ],
-            if (offer.isRejected && offer.rejectionReason != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Moderator note: ${offer.rejectionReason}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onErrorContainer,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _OfferStatusChip extends StatelessWidget {
-  const _OfferStatusChip({required this.status});
-
-  final OfferApprovalStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    late Color background;
-    late Color foreground;
-    late String label;
-    late IconData icon;
-
+  Color _getStatusColor(OfferApprovalStatus status) {
     switch (status) {
       case OfferApprovalStatus.pending:
-        background = theme.colorScheme.secondaryContainer;
-        foreground = theme.colorScheme.onSecondaryContainer;
-        label = 'Pending review';
-        icon = Icons.hourglass_bottom_outlined;
-        break;
+        return Colors.orange;
       case OfferApprovalStatus.approved:
-        background = theme.colorScheme.primaryContainer;
-        foreground = theme.colorScheme.onPrimaryContainer;
-        label = 'Approved';
-        icon = Icons.verified_outlined;
-        break;
+        return Colors.green;
       case OfferApprovalStatus.rejected:
-        background = theme.colorScheme.errorContainer;
-        foreground = theme.colorScheme.onErrorContainer;
-        label = 'Needs changes';
-        icon = Icons.error_outline;
-        break;
+        return Colors.red;
     }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: foreground, size: 18),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: foreground,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoPill extends StatelessWidget {
-  const _InfoPill({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest
-            .withAlpha((0.35 * 255).toInt()),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            value,
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyOffersState extends StatelessWidget {
-  const _EmptyOffersState({
-    required this.canCreateOffer,
-    required this.onCreateOffer,
-  });
-
-  final bool canCreateOffer;
-  final VoidCallback onCreateOffer;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 56,
-            color: theme.colorScheme.outline,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'No offers yet',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            canCreateOffer
-                ? 'Create your first offer to submit it for Offora approval.'
-                : 'Once your account is approved you can start drafting offers for the marketplace.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          if (canCreateOffer)
-            OutlinedButton.icon(
-              onPressed: onCreateOffer,
-              icon: const Icon(Icons.add),
-              label: const Text('Draft an offer'),
-            ),
-        ],
-      ),
-    );
   }
 }

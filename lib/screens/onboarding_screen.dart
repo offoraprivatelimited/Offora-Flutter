@@ -55,8 +55,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      brightGold.withOpacity(0.8),
-                      brightGold.withOpacity(0.2)
+                      brightGold.withAlpha(204),
+                      brightGold.withAlpha(51)
                     ],
                   ),
                 ),
@@ -71,10 +71,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
-                    colors: [
-                      darkBlue.withOpacity(0.7),
-                      darkBlue.withOpacity(0.1)
-                    ],
+                    colors: [darkBlue.withAlpha(179), darkBlue.withAlpha(26)],
                   ),
                 ),
               ),
@@ -92,7 +89,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              color: darkerGold.withOpacity(0.2),
+                              color: darkerGold.withAlpha(51),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -263,7 +260,7 @@ class _Slide extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   accentColor,
-                  accentColor.withOpacity(0.7),
+                  accentColor.withAlpha(179),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -271,7 +268,7 @@ class _Slide extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: accentColor.withOpacity(0.3),
+                  color: accentColor.withAlpha(77),
                   blurRadius: 24,
                   offset: const Offset(0, 12),
                 ),

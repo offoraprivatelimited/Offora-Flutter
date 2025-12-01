@@ -119,8 +119,8 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        darkBlue.withOpacity(0.96),
-                        darkBlue.withOpacity(0.6)
+                        darkBlue.withAlpha(153),
+                        darkBlue.withAlpha(153)
                       ],
                       center: Alignment.topLeft,
                       radius: 0.8,
@@ -138,15 +138,15 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        brightGold.withOpacity(1.0),
-                        brightGold.withOpacity(0.85)
+                        brightGold.withAlpha(255),
+                        brightGold.withAlpha(217)
                       ],
                       center: Alignment.topRight,
                       radius: 0.9,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: darkerGold.withOpacity(0.22),
+                        color: darkerGold.withAlpha(56),
                         blurRadius: 40,
                         spreadRadius: 8,
                       ),
@@ -165,10 +165,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        darkerGold.withOpacity(0.18),
-                        Colors.transparent
-                      ],
+                      colors: [darkerGold.withAlpha(46), Colors.transparent],
                     ),
                   ),
                 ),
@@ -179,14 +176,14 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
                 top: 12,
                 right: 12,
                 child: Material(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withAlpha(230),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                   elevation: 6,
                   child: IconButton(
                     tooltip: 'Sign out',
                     onPressed: _signOut,
-                    icon: Icon(Icons.logout_outlined, color: darkBlue),
+                    icon: const Icon(Icons.logout_outlined, color: darkBlue),
                   ),
                 ),
               ),
@@ -200,11 +197,11 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
                         horizontal: isWide ? 28 : 16, vertical: 28),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.98),
+                        color: Colors.white.withAlpha(250),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.12),
+                            color: Colors.black.withAlpha(31),
                             blurRadius: 24,
                             offset: const Offset(0, 12),
                           ),
@@ -220,19 +217,19 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
                               // Icon badge
                               Container(
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
+                                  gradient: const LinearGradient(
                                       colors: [brightGold, darkerGold]),
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: darkerGold.withOpacity(0.22),
+                                      color: darkerGold.withAlpha(56),
                                       blurRadius: 18,
                                       offset: const Offset(0, 8),
                                     ),
                                   ],
                                 ),
                                 padding: const EdgeInsets.all(18),
-                                child: Icon(
+                                child: const Icon(
                                   Icons.hourglass_bottom_outlined,
                                   size: 56,
                                   color: Colors.white,
@@ -329,8 +326,8 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
                                   onPressed: _signOut,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.white,
-                                    side:
-                                        BorderSide(color: darkBlue, width: 1.5),
+                                    side: const BorderSide(
+                                        color: darkBlue, width: 1.5),
                                     shape: RoundedRectangleBorder(
                                         borderRadius:
                                             BorderRadius.circular(12)),
@@ -339,7 +336,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.logout_outlined,
+                                      const Icon(Icons.logout_outlined,
                                           color: darkBlue),
                                       const SizedBox(width: 8),
                                       Text(
