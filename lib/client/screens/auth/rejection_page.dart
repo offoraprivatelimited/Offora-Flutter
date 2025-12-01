@@ -26,118 +26,250 @@ class _RejectionPageState extends State<RejectionPage> {
     final auth = context.watch<AuthService>();
     final rejectionReason =
         auth.currentUser?.rejectionReason ?? 'No reason provided.';
+    const darkBlue = Color(0xFF1F477D);
+    const brightGold = Color(0xFFF0B84D);
+    const darkerGold = Color(0xFFA3834D);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Application Status'),
-        automaticallyImplyLeading: false,
-      ),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.errorContainer,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: Icon(
-                      Icons.error_outline,
-                      size: 56,
-                      color: theme.colorScheme.onErrorContainer,
+        child: LayoutBuilder(builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 760;
+          return Stack(
+            children: [
+              Positioned(
+                top: -constraints.maxWidth * 0.25,
+                left: -constraints.maxWidth * 0.18,
+                child: Container(
+                  width: constraints.maxWidth * 0.9,
+                  height: constraints.maxWidth * 0.9,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        darkBlue.withOpacity(0.96),
+                        darkBlue.withOpacity(0.6)
+                      ],
+                      center: Alignment.topLeft,
+                      radius: 0.8,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Application not approved',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: theme.colorScheme.error,
+                ),
+              ),
+              Positioned(
+                top: -constraints.maxWidth * 0.12,
+                right: -constraints.maxWidth * 0.22,
+                child: Container(
+                  width: constraints.maxWidth * 0.68,
+                  height: constraints.maxWidth * 0.68,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        brightGold.withOpacity(1.0),
+                        brightGold.withOpacity(0.85)
+                      ],
+                      center: Alignment.topRight,
+                      radius: 0.9,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Our compliance team has reviewed your submission. Unfortunately, we cannot approve your account at this time.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.errorContainer.withAlpha(3),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: theme.colorScheme.error.withAlpha(5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: darkerGold.withOpacity(0.22),
+                        blurRadius: 40,
+                        spreadRadius: 8,
                       ),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Reason',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.error,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          rejectionReason,
-                          style: theme.textTheme.bodyMedium,
-                        ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -constraints.maxWidth * 0.22,
+                left: -constraints.maxWidth * 0.18,
+                child: Container(
+                  width: constraints.maxWidth * 1.2,
+                  height: constraints.maxWidth * 0.9,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(constraints.maxWidth),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        darkerGold.withOpacity(0.18),
+                        Colors.transparent
                       ],
                     ),
                   ),
-                  const SizedBox(height: 28),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'What can you do?',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
+                ),
+              ),
+
+              // Top-left title / no back
+              Positioned(
+                top: 12,
+                left: 12,
+                child: Text(
+                  'Application Status',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: darkBlue,
+                  ),
+                ),
+              ),
+
+              // Content
+              Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: isWide ? 720 : 520),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: isWide ? 28 : 16, vertical: 28),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.98),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.12),
+                            blurRadius: 24,
+                            offset: const Offset(0, 12),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 28, vertical: 28),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                      colors: [brightGold, darkerGold]),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: darkerGold.withOpacity(0.22),
+                                      blurRadius: 18,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.all(18),
+                                child: Icon(
+                                  Icons.error_outline,
+                                  size: 56,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                'Application not approved',
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: darkBlue,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Our compliance team has reviewed your submission. Unfortunately, we cannot approve your account at this time.',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.black54,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 20),
+                              Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border:
+                                      Border.all(color: Colors.grey.shade200),
+                                ),
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Reason',
+                                      style:
+                                          theme.textTheme.labelLarge?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: darkBlue,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      rejectionReason,
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 22),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  _ActionItem(
+                                    icon: Icons.edit_outlined,
+                                    title: 'Update your information',
+                                    description:
+                                        'Address the points mentioned above and contact our support team to resubmit your application.',
+                                  ),
+                                  SizedBox(height: 12),
+                                  _ActionItem(
+                                    icon: Icons.help_outline,
+                                    title: 'Contact support',
+                                    description:
+                                        'Reach out to our support team for clarification or assistance in resolving the issues.',
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 18),
+                              SizedBox(
+                                width: 220,
+                                height: 48,
+                                child: ElevatedButton(
+                                  onPressed: _signOut,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    side:
+                                        BorderSide(color: darkBlue, width: 1.5),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    elevation: 4,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.logout_outlined,
+                                          color: darkBlue),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Sign out',
+                                        style: theme.textTheme.labelLarge
+                                            ?.copyWith(
+                                          color: darkBlue,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      const _ActionItem(
-                        icon: Icons.edit_outlined,
-                        title: 'Update your information',
-                        description:
-                            'Address the points mentioned above and contact our support team to resubmit your application.',
-                      ),
-                      const SizedBox(height: 12),
-                      const _ActionItem(
-                        icon: Icons.help_outline,
-                        title: 'Contact support',
-                        description:
-                            'Reach out to our support team for clarification or assistance in resolving the issues.',
-                      ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 28),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: _signOut,
-                        child: const Text('Sign out'),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
+            ],
+          );
+        }),
       ),
     );
   }

@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/client_panel_stage.dart';
@@ -29,7 +28,8 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String? _selectedCategory;
-  final List<String> _categories = [
+
+  final List<String> _categories = const [
     'Grocery',
     'Supermarket',
     'Restaurant',
@@ -72,39 +72,9 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final auth = context.watch<AuthService>();
-    if (!auth.isLoggedIn) {
-      return;
-    }
-    if (auth.stage == ClientPanelStage.active) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(context).pushReplacementNamed(DashboardScreen.routeName);
-      });
-    } else if (auth.stage == ClientPanelStage.pendingApproval) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(
-          context,
-        ).pushReplacementNamed(PendingApprovalPage.routeName);
-      });
-    } else if (auth.stage == ClientPanelStage.rejected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(context).pushReplacementNamed(RejectionPage.routeName);
-      });
-    }
-  }
-
   Future<void> _handleSignup() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    final auth = context.read<AuthService>();
+    if (!_formKey.currentState!.validate()) return;
+    final auth = Provider.of<AuthService>(context, listen: false);
     try {
       await auth.registerClient(
         email: _emailController.text.trim(),
@@ -116,310 +86,584 @@ class _SignupScreenState extends State<SignupScreen> {
         location: _locationController.text.trim(),
         category: _selectedCategory ?? 'Other',
       );
-      if (!mounted) return;
-      // didChangeDependencies will route based on approval status
-      // Typically will go to PendingApprovalPage after signup
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account created. We will review and approve shortly.'),
-        ),
-      );
-    } on FirebaseAuthException catch (_) {
-      _showError(auth.errorMessage ?? 'Unable to create account.');
-    } catch (_) {
-      _showError(auth.errorMessage ?? 'Unable to create account.');
-    }
-  }
 
-  void _showError(String message) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(message)));
+      await auth.refreshProfile();
+
+      if (!mounted) return;
+
+      if (auth.stage == ClientPanelStage.pendingApproval) {
+        Navigator.of(context)
+            .pushReplacementNamed(PendingApprovalPage.routeName);
+      } else if (auth.stage == ClientPanelStage.active) {
+        Navigator.of(context).pushReplacementNamed(DashboardScreen.routeName);
+      } else {
+        Navigator.of(context).pushReplacementNamed(RejectionPage.routeName);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthService>();
     final theme = Theme.of(context);
+    final auth = Provider.of<AuthService>(context);
+
+    // Premium colors
+    const darkBlue = Color(0xFF1F477D);
+    const brightGold = Color(0xFFF0B84D);
+    const darkerGold = Color(0xFFA3834D);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth > 760;
-            return Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Card(
-                  margin: EdgeInsets.symmetric(
-                    horizontal: isWide ? 32 : 16,
-                    vertical: isWide ? 32 : 16,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 28,
-                      vertical: 32,
+        child: LayoutBuilder(builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 760;
+          return Stack(
+            children: [
+              Positioned(
+                top: -constraints.maxWidth * 0.25,
+                left: -constraints.maxWidth * 0.18,
+                child: Container(
+                  width: constraints.maxWidth * 0.9,
+                  height: constraints.maxWidth * 0.9,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        darkBlue.withOpacity(0.96),
+                        darkBlue.withOpacity(0.6)
+                      ],
+                      center: Alignment.topLeft,
+                      radius: 0.8,
                     ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Create your client workspace',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Submit your details to get access to Offora publishing tools. Our team will approve your account before offers go live.',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 28),
-                          Form(
-                            key: _formKey,
-                            child: Column(
-                              children: [
-                                TextFormField(
-                                  controller: _businessNameController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Business name',
-                                    prefixIcon: Icon(
-                                      Icons.store_mall_directory_outlined,
-                                    ),
-                                  ),
-                                  textInputAction: TextInputAction.next,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Business name is required';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 18),
-                                TextFormField(
-                                  controller: _locationController,
-                                  decoration: const InputDecoration(
-                                    labelText:
-                                        'Shop location (Area / Landmark)',
-                                    prefixIcon:
-                                        Icon(Icons.location_on_outlined),
-                                  ),
-                                  textInputAction: TextInputAction.next,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Shop location is required';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 18),
-                                TextFormField(
-                                  controller: _contactNameController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Primary contact person',
-                                    prefixIcon: Icon(Icons.person_outline),
-                                  ),
-                                  textInputAction: TextInputAction.next,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Contact name is required';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 18),
-                                TextFormField(
-                                  controller: _phoneController,
-                                  keyboardType: TextInputType.phone,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Phone number',
-                                    prefixIcon: Icon(Icons.phone_outlined),
-                                  ),
-                                  textInputAction: TextInputAction.next,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Phone number is required';
-                                    }
-                                    final digitsOnly = value.replaceAll(
-                                      RegExp(r'[^0-9+]'),
-                                      '',
-                                    );
-                                    if (digitsOnly.length < 7) {
-                                      return 'Enter a valid phone number';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 18),
-                                DropdownButtonFormField<String>(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Shop category',
-                                    prefixIcon: Icon(Icons.category_outlined),
-                                  ),
-                                  items: _categories
-                                      .map((c) => DropdownMenuItem(
-                                            value: c,
-                                            child: Text(c),
-                                          ))
-                                      .toList(),
-                                  initialValue: _selectedCategory,
-                                  onChanged: (v) => setState(() {
-                                    _selectedCategory = v;
-                                  }),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please select a category';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 18),
-                                TextFormField(
-                                  controller: _addressController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Complete address',
-                                    prefixIcon: Icon(Icons.home_outlined),
-                                  ),
-                                  maxLines: 3,
-                                  textInputAction: TextInputAction.newline,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Complete address is required';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 18),
-                                TextFormField(
-                                  controller: _emailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Work email',
-                                    prefixIcon: Icon(Icons.email_outlined),
-                                  ),
-                                  textInputAction: TextInputAction.next,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Email is required';
-                                    }
-                                    final emailRegex = RegExp(
-                                      r'^([\w\.-]+)@([\w-]+)\.([\w-]{2,})$',
-                                    );
-                                    if (!emailRegex.hasMatch(value.trim())) {
-                                      return 'Enter a valid email address';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 18),
-                                TextFormField(
-                                  controller: _passwordController,
-                                  obscureText: _obscurePassword,
-                                  decoration: InputDecoration(
-                                    labelText: 'Password',
-                                    prefixIcon: const Icon(Icons.lock_outline),
-                                    suffixIcon: IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          _obscurePassword = !_obscurePassword;
-                                        });
-                                      },
-                                      icon: Icon(
-                                        _obscurePassword
-                                            ? Icons.visibility_off
-                                            : Icons.visibility,
-                                      ),
-                                    ),
-                                  ),
-                                  textInputAction: TextInputAction.next,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Password is required';
-                                    }
-                                    if (value.trim().length < 6) {
-                                      return 'Password must be at least 6 characters';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 18),
-                                TextFormField(
-                                  controller: _confirmPasswordController,
-                                  obscureText: _obscureConfirmPassword,
-                                  decoration: InputDecoration(
-                                    labelText: 'Confirm password',
-                                    prefixIcon: const Icon(Icons.lock_outline),
-                                    suffixIcon: IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          _obscureConfirmPassword =
-                                              !_obscureConfirmPassword;
-                                        });
-                                      },
-                                      icon: Icon(
-                                        _obscureConfirmPassword
-                                            ? Icons.visibility_off
-                                            : Icons.visibility,
-                                      ),
-                                    ),
-                                  ),
-                                  textInputAction: TextInputAction.done,
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Please confirm your password';
-                                    }
-                                    if (value.trim() !=
-                                        _passwordController.text.trim()) {
-                                      return 'Passwords do not match';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 28),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed:
-                                        auth.isBusy ? null : _handleSignup,
-                                    child: auth.isBusy
-                                        ? const SizedBox(
-                                            height: 20,
-                                            width: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                        : const Text('Submit for approval'),
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: const Text(
-                                      'Already have an account? Sign in',
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: -constraints.maxWidth * 0.12,
+                right: -constraints.maxWidth * 0.22,
+                child: Container(
+                  width: constraints.maxWidth * 0.68,
+                  height: constraints.maxWidth * 0.68,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        brightGold.withOpacity(1.0),
+                        brightGold.withOpacity(0.85)
+                      ],
+                      center: Alignment.topRight,
+                      radius: 0.9,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: darkerGold.withOpacity(0.22),
+                        blurRadius: 40,
+                        spreadRadius: 8,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -constraints.maxWidth * 0.22,
+                left: -constraints.maxWidth * 0.18,
+                child: Container(
+                  width: constraints.maxWidth * 1.2,
+                  height: constraints.maxWidth * 0.9,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(constraints.maxWidth),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        darkerGold.withOpacity(0.18),
+                        Colors.transparent
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: isWide ? 720 : 560),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: isWide ? 28 : 16, vertical: 28),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.98),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.12),
+                            blurRadius: 24,
+                            offset: const Offset(0, 12),
                           ),
                         ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 28, vertical: 28),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Create your client workspace',
+                                          style: theme.textTheme.headlineSmall
+                                              ?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                            color: darkBlue,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          'Submit your details to get access to Offora publishing tools. Our team will approve your account before offers go live.',
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Container(
+                                      width: 90,
+                                      height: 90,
+                                      decoration: BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: darkerGold.withOpacity(0.22),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Image.asset(
+                                        'images/logo/original/Logo_without_text_without_background.png',
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              // Top-left back button
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: IconButton(
+                                  onPressed: () => Navigator.of(context)
+                                      .pushReplacementNamed('/role-selection'),
+                                  icon: const Icon(Icons.arrow_back),
+                                  tooltip: 'Back to role selection',
+                                ),
+                              ),
+                              Center(
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    children: [
+                                      _styledField(
+                                        controller: _businessNameController,
+                                        label: 'Business name',
+                                        icon:
+                                            Icons.store_mall_directory_outlined,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Business name is required';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 14),
+                                      _styledField(
+                                        controller: _locationController,
+                                        label:
+                                            'Shop location (Area / Landmark)',
+                                        icon: Icons.location_on_outlined,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Shop location is required';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 14),
+                                      _styledField(
+                                        controller: _contactNameController,
+                                        label: 'Primary contact person',
+                                        icon: Icons.person_outline,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Contact name is required';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 14),
+                                      _styledField(
+                                        controller: _phoneController,
+                                        label: 'Phone number',
+                                        icon: Icons.phone_outlined,
+                                        keyboardType: TextInputType.phone,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Phone number is required';
+                                          }
+                                          final digitsOnly = value.replaceAll(
+                                              RegExp(r'[^0-9+]'), '');
+                                          if (digitsOnly.length < 7) {
+                                            return 'Enter a valid phone number';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 14),
+                                      DropdownButtonFormField<String>(
+                                        decoration: InputDecoration(
+                                          labelText: 'Shop category',
+                                          labelStyle: const TextStyle(
+                                            color: Color(0xFF666666),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: const BorderSide(
+                                              color: Color(0xFFE0E0E0),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: const BorderSide(
+                                              color: Color(0xFF1F477D),
+                                              width: 2,
+                                            ),
+                                          ),
+                                        ),
+                                        style: const TextStyle(
+                                          color: Colors.black87,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        items: _categories
+                                            .map((c) => DropdownMenuItem(
+                                                value: c, child: Text(c)))
+                                            .toList(),
+                                        initialValue: _selectedCategory,
+                                        onChanged: (v) => setState(
+                                            () => _selectedCategory = v),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please select a category';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 14),
+                                      _styledField(
+                                        controller: _addressController,
+                                        label: 'Complete address',
+                                        icon: Icons.home_outlined,
+                                        maxLines: 3,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Complete address is required';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 14),
+                                      _styledField(
+                                        controller: _emailController,
+                                        label: 'Work email',
+                                        icon: Icons.email_outlined,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Email is required';
+                                          }
+                                          final emailRegex = RegExp(
+                                              r'^([\w\.-]+)@([\w-]+)\.([\w-]{2,})$');
+                                          if (!emailRegex
+                                              .hasMatch(value.trim())) {
+                                            return 'Enter a valid email address';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 14),
+                                      TextFormField(
+                                        controller: _passwordController,
+                                        obscureText: _obscurePassword,
+                                        style: const TextStyle(
+                                          color: Colors.black87,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        cursorColor: const Color(0xFF1F477D),
+                                        decoration: InputDecoration(
+                                          labelText: 'Password',
+                                          labelStyle: const TextStyle(
+                                            color: Color(0xFF666666),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          prefixIcon: const Icon(
+                                              Icons.lock_outline,
+                                              color: Color(0xFF1F477D)),
+                                          suffixIcon: IconButton(
+                                            onPressed: () => setState(() =>
+                                                _obscurePassword =
+                                                    !_obscurePassword),
+                                            icon: Icon(
+                                              _obscurePassword
+                                                  ? Icons
+                                                      .visibility_off_outlined
+                                                  : Icons.visibility_outlined,
+                                              color: const Color(0xFF1F477D),
+                                            ),
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: const BorderSide(
+                                              color: Color(0xFFE0E0E0),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: const BorderSide(
+                                              color: Color(0xFF1F477D),
+                                              width: 2,
+                                            ),
+                                          ),
+                                        ),
+                                        textInputAction: TextInputAction.next,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Password is required';
+                                          }
+                                          if (value.trim().length < 6) {
+                                            return 'Password must be at least 6 characters';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 14),
+                                      TextFormField(
+                                        controller: _confirmPasswordController,
+                                        obscureText: _obscureConfirmPassword,
+                                        style: const TextStyle(
+                                          color: Colors.black87,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        cursorColor: const Color(0xFF1F477D),
+                                        decoration: InputDecoration(
+                                          labelText: 'Confirm password',
+                                          labelStyle: const TextStyle(
+                                            color: Color(0xFF666666),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          prefixIcon: const Icon(
+                                              Icons.lock_outline,
+                                              color: Color(0xFF1F477D)),
+                                          suffixIcon: IconButton(
+                                            onPressed: () => setState(() =>
+                                                _obscureConfirmPassword =
+                                                    !_obscureConfirmPassword),
+                                            icon: Icon(
+                                              _obscureConfirmPassword
+                                                  ? Icons
+                                                      .visibility_off_outlined
+                                                  : Icons.visibility_outlined,
+                                              color: const Color(0xFF1F477D),
+                                            ),
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: const BorderSide(
+                                              color: Color(0xFFE0E0E0),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: const BorderSide(
+                                              color: Color(0xFF1F477D),
+                                              width: 2,
+                                            ),
+                                          ),
+                                        ),
+                                        textInputAction: TextInputAction.done,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Please confirm your password';
+                                          }
+                                          if (value.trim() !=
+                                              _passwordController.text.trim()) {
+                                            return 'Passwords do not match';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 22),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        height: 54,
+                                        child: ElevatedButton(
+                                          onPressed: auth.isBusy
+                                              ? null
+                                              : _handleSignup,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: darkBlue,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12)),
+                                            elevation: 6,
+                                          ),
+                                          child: auth.isBusy
+                                              ? const SizedBox(
+                                                  height: 20,
+                                                  width: 20,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          color: Colors.white))
+                                              : Text('Submit for approval',
+                                                  style: theme
+                                                      .textTheme.labelLarge
+                                                      ?.copyWith(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.w700)),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Align(
+                                        alignment: Alignment.center,
+                                        child: TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(),
+                                          child: const Text(
+                                              'Already have an account? Sign in'),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            );
-          },
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  // Small helper to keep input styling consistent
+  Widget _styledField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: maxLines > 1 ? TextInputType.multiline : keyboardType,
+      maxLines: maxLines,
+      style: const TextStyle(
+        color: Colors.black87,
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+      ),
+      cursorColor: const Color(0xFF1F477D),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(
+          color: Color(0xFF666666),
+          fontWeight: FontWeight.w500,
+        ),
+        prefixIcon: const Icon(null),
+        prefixIconConstraints: const BoxConstraints(),
+        prefixText: '  ',
+        prefixStyle: const TextStyle(fontSize: 0),
+        filled: true,
+        fillColor: Colors.white,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFFE0E0E0),
+            width: 1.5,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFF1F477D),
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 1.5,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 2,
+          ),
         ),
       ),
+      validator: validator,
+      textInputAction:
+          maxLines > 1 ? TextInputAction.newline : TextInputAction.next,
     );
   }
 }
