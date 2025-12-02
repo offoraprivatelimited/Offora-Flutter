@@ -101,7 +101,7 @@ class RoleSelectionScreen extends StatelessWidget {
                           height: 90,
                           child: Image.asset(
                             // NOTE: Ensure this image path is correct in your project
-                            'images/logo/original/Logo_without_text_without_background.png',
+                            'assets/images/logo/original/Logo_without_text_without_background.png',
                             fit: BoxFit.contain,
                           ),
                         ),

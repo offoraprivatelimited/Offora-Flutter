@@ -96,7 +96,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ],
                         ),
                         child: Image.asset(
-                          'images/logo/original/Logo_without_text_without_background.png',
+                          'assets/images/logo/original/Logo_without_text_without_background.png',
                           fit: BoxFit.contain,
                         ),
                       ),

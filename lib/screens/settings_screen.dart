@@ -208,7 +208,7 @@ class SettingsScreen extends StatelessWidget {
                             applicationName: 'Offora',
                             applicationVersion: '1.0.0',
                             applicationIcon: Image.asset(
-                              'images/logo/original/Logo_without_text_without_background.png',
+                              'assets/images/logo/original/Logo_without_text_without_background.png',
                               width: 48,
                               height: 48,
                             ),
