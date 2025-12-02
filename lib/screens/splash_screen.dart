@@ -47,7 +47,7 @@ class _UserSplashScreenState extends State<UserSplashScreen>
 
       if (authService.isLoggedIn && authService.currentUser != null) {
         final user = authService.currentUser!;
-        if (user.address.isEmpty || user.gender.isEmpty || user.dob.isEmpty) {
+        if (!user.isProfileComplete) {
           Navigator.pushReplacementNamed(
               context, ProfileCompleteScreen.routeName);
         } else {

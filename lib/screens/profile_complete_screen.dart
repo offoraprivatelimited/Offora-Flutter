@@ -14,16 +14,18 @@ class ProfileCompleteScreen extends StatefulWidget {
 class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _ageController = TextEditingController();
-  final _cityController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _genderController = TextEditingController();
+  final _dobController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
     _nameController.dispose();
-    _ageController.dispose();
-    _cityController.dispose();
+    _addressController.dispose();
+    _genderController.dispose();
+    _dobController.dispose();
     _phoneController.dispose();
     super.dispose();
   }
@@ -42,11 +44,20 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
       }
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'uid': user.uid,
         'name': _nameController.text.trim(),
-        'age': int.parse(_ageController.text.trim()),
-        'city': _cityController.text.trim(),
+        'address': _addressController.text.trim(),
+        'gender': _genderController.text.trim(),
+        'dob': _dobController.text.trim(),
         'phone': _phoneController.text.trim(),
         'email': user.email,
+        'role': 'user',
+        'approvalStatus': 'approved',
+        'rejectionReason': null,
+        'photoUrl': user.photoURL,
+        'businessName': '',
+        'contactPerson': '',
+        'phoneNumber': _phoneController.text.trim(),
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -96,33 +107,44 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _ageController,
+                controller: _addressController,
                 decoration: const InputDecoration(
-                  labelText: 'Age',
+                  labelText: 'Address',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter your age';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Please enter a valid age';
+                    return 'Please enter your address';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _cityController,
+                controller: _genderController,
                 decoration: const InputDecoration(
-                  labelText: 'City',
+                  labelText: 'Gender',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter your city';
+                    return 'Please enter your gender';
                   }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _dobController,
+                decoration: const InputDecoration(
+                  labelText: 'Date of Birth (YYYY-MM-DD)',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter your date of birth';
+                  }
+                  // Optionally add more validation for date format
                   return null;
                 },
               ),

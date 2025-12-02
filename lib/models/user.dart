@@ -1,4 +1,14 @@
 class AppUser {
+  // Returns true if all required profile fields are filled (for onboarding/profile completion logic)
+  bool get isProfileComplete {
+    return name.trim().isNotEmpty &&
+        email.trim().isNotEmpty &&
+        phone.trim().isNotEmpty &&
+        address.trim().isNotEmpty &&
+        gender.trim().isNotEmpty &&
+        dob.trim().isNotEmpty;
+  }
+
   final String uid;
   final String name;
   final String email;
