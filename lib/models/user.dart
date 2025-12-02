@@ -9,6 +9,7 @@ class AppUser {
   final String role; // 'user' or 'shopowner'
   final String approvalStatus; // 'approved', 'pending', 'rejected'
   final String? rejectionReason;
+  final String? photoUrl;
   final String businessName;
   final String contactPerson;
   final String phoneNumber;
@@ -24,6 +25,7 @@ class AppUser {
     required this.role,
     required this.approvalStatus,
     this.rejectionReason,
+    this.photoUrl,
     required this.businessName,
     required this.contactPerson,
     required this.phoneNumber,
@@ -50,6 +52,7 @@ class AppUser {
       'role': role,
       'approvalStatus': approvalStatus,
       'rejectionReason': rejectionReason,
+      'photoUrl': photoUrl,
       'businessName': businessName,
       'contactPerson': contactPerson,
       'phoneNumber': phoneNumber,
@@ -68,6 +71,7 @@ class AppUser {
       role: map['role'] ?? 'user',
       approvalStatus: map['approvalStatus'] ?? 'pending',
       rejectionReason: map['rejectionReason'],
+      photoUrl: map['photoUrl'],
       businessName: map['businessName'] ?? '',
       contactPerson: map['contactPerson'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',

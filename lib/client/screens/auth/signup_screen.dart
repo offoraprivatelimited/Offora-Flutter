@@ -264,22 +264,20 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                   ),
                                   Container(
-                                    child: Container(
-                                      width: 90,
-                                      height: 90,
-                                      decoration: BoxDecoration(
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: darkerGold.withAlpha(56),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 6),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Image.asset(
-                                        'images/logo/original/Logo_without_text_without_background.png',
-                                        fit: BoxFit.contain,
-                                      ),
+                                    width: 90,
+                                    height: 90,
+                                    decoration: BoxDecoration(
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: darkerGold.withAlpha(56),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 6),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Image.asset(
+                                      'images/logo/original/Logo_without_text_without_background.png',
+                                      fit: BoxFit.contain,
                                     ),
                                   ),
                                 ],

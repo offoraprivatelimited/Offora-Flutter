@@ -1,92 +1,145 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../theme/colors.dart';
+import '../services/auth_service.dart';
+import '../services/saved_offers_service.dart';
+import '../widgets/offer_card.dart';
+import '../widgets/empty_state.dart';
+import '../client/models/offer.dart';
+import 'offer_details_screen.dart';
 
 class SavedScreen extends StatelessWidget {
   const SavedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const darkBlue = Color(0xFF1F477D);
+    final auth = context.watch<AuthService>();
+    final user = auth.currentUser;
+
+    if (user == null) {
+      return const Scaffold(
+        body: SafeArea(
+          child: EmptyState(
+            icon: Icons.bookmark_border,
+            title: 'Sign in required',
+            message: 'Please sign in to view your saved offers',
+          ),
+        ),
+      );
+    }
 
     return SafeArea(
       child: CustomScrollView(
         slivers: [
-          // Premium header
-          SliverAppBar(
-            expandedHeight: 120,
-            floating: false,
-            pinned: true,
-            backgroundColor: Colors.white,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      darkBlue,
-                      darkBlue.withAlpha(217),
-                    ],
+          SliverToBoxAdapter(
+            child: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 1,
+              toolbarHeight: 44,
+              automaticallyImplyLeading: false,
+              title: Row(
+                children: [
+                  SizedBox(
+                    height: 28,
+                    child: Image.asset(
+                      'images/logo/original/Text_without_logo_without_background.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Saved',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: AppColors.darkBlue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ),
+          ),
+          FutureBuilder<List<Offer>>(
+            future: context.read<SavedOffersService>().getSavedOffers(user.uid),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SliverFillRemaining(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.darkBlue,
+                    ),
+                  ),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return const SliverFillRemaining(
+                  child: EmptyState(
+                    icon: Icons.error_outline,
+                    title: 'Oops!',
+                    message: 'Could not load saved offers. Please try again.',
+                  ),
+                );
+              }
+
+              final savedOffers = snapshot.data ?? [];
+
+              if (savedOffers.isEmpty) {
+                return const SliverFillRemaining(
+                  child: EmptyState(
+                    icon: Icons.bookmark_border,
+                    title: 'No saved offers yet',
+                    message:
+                        'Start saving your favorite offers to find them here',
+                  ),
+                );
+              }
+
+              return SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.78,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final offer = savedOffers[index];
+                      final offerMap = <String, dynamic>{
+                        'title': offer.title,
+                        'store':
+                            offer.client?['businessName'] ?? offer.clientId,
+                        'image': offer.imageUrls?.isNotEmpty == true
+                            ? offer.imageUrls![0]
+                            : 'assets/images/placeholder.png',
+                        'discount':
+                            '${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}%',
+                      };
+                      return OfferCard(
+                        offer: offerMap,
+                        offerData: offer,
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          OfferDetailsScreen.routeName,
+                          arguments: offer,
+                        ),
+                      );
+                    },
+                    childCount: savedOffers.length,
                   ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 40,
-                      child: Image.asset(
-                        'images/logo/original/Text_without_logo_without_background.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Saved Offers',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white70,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+              );
+            },
           ),
-          // Empty state
-          SliverFillRemaining(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.bookmark_border,
-                      size: 72,
-                      color: darkBlue.withAlpha(44),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No saved offers yet',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: darkBlue,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Bookmark offers to save them for later',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );

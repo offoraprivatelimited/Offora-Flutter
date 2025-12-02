@@ -189,4 +189,94 @@ class OfferService {
       rejectionReason: reason,
     );
   }
+
+  /// Update an existing offer (client-side edit). It updates the pending document
+  /// and uploads any new images, preserving existing image URLs if provided.
+  Future<void> updateOffer({
+    required String offerId,
+    required String title,
+    required String description,
+    required double originalPrice,
+    required double discountPrice,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? terms,
+    List<XFile>? newImages,
+    List<String>? existingImageUrls,
+  }) async {
+    try {
+      // Get current offer to determine its status
+      final pendingDoc = await _statusCollection('pending').doc(offerId).get();
+
+      if (!pendingDoc.exists) {
+        throw Exception('Offer not found');
+      }
+
+      // Upload new images if any
+      List<String> allImageUrls =
+          existingImageUrls != null ? List.from(existingImageUrls) : [];
+      if (newImages != null && newImages.isNotEmpty) {
+        final storage = FirebaseStorage.instance;
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+        for (var i = 0; i < newImages.length; i++) {
+          final file = File(newImages[i].path);
+          final ref = storage.ref().child(
+                'offers/${pendingDoc.data()?['clientId']}/${timestamp}_$i.jpg',
+              );
+          final uploadTask = await ref.putFile(file);
+          final downloadUrl = await uploadTask.ref.getDownloadURL();
+          allImageUrls.add(downloadUrl);
+        }
+      }
+
+      // Update the offer document in pending collection
+      await _statusCollection('pending').doc(offerId).update({
+        'title': title,
+        'description': description,
+        'originalPrice': originalPrice,
+        'discountPrice': discountPrice,
+        'startDate': startDate,
+        'endDate': endDate,
+        'terms': terms,
+        'imageUrls': allImageUrls,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to update offer: $e');
+    }
+  }
+
+  /// Delete an offer and its images (searches through pending/approved/rejected)
+  Future<void> deleteOffer(String offerId) async {
+    try {
+      final statuses = ['pending', 'approved', 'rejected'];
+
+      for (final status in statuses) {
+        final doc = await _statusCollection(status).doc(offerId).get();
+        if (doc.exists) {
+          final data = doc.data();
+          final imageUrls = data?['imageUrls'] as List?;
+          if (imageUrls != null && imageUrls.isNotEmpty) {
+            final storage = FirebaseStorage.instance;
+            for (final url in imageUrls) {
+              try {
+                final ref = storage.refFromURL(url.toString());
+                await ref.delete();
+              } catch (e) {
+                // Continue even if image deletion fails
+              }
+            }
+          }
+
+          await _statusCollection(status).doc(offerId).delete();
+          return;
+        }
+      }
+
+      throw Exception('Offer not found');
+    } catch (e) {
+      throw Exception('Failed to delete offer: $e');
+    }
+  }
 }

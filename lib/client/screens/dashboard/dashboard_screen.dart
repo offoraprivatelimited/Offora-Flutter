@@ -57,12 +57,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final result =
         await Navigator.of(context).pushNamed(OfferFormScreen.routeName);
+    if (!mounted) return; // guard against using context across async gaps
     if (result == true) {
       if (user.isApproved) {
         _showMessage('Offer submitted for moderator approval.');
       } else {
         _showMessage(
             'Offer saved as a draft. It will be submitted when your account is approved.');
+      }
+    }
+  }
+
+  Future<void> _editOffer(Offer offer) async {
+    final result = await Navigator.of(context).pushNamed(
+      OfferFormScreen.routeName,
+      arguments: offer,
+    );
+    if (!mounted) return; // ensure widget still mounted before using context
+    if (result == true) {
+      _showMessage('Offer updated successfully.');
+    }
+  }
+
+  Future<void> _deleteOffer(Offer offer) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Offer'),
+        content: Text('Are you sure you want to delete "${offer.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      try {
+        // Avoid using context across async gap without mounted guard
+        final service = context.read<OfferService>();
+        await service.deleteOffer(offer.id);
+        if (!mounted) return;
+        _showMessage('Offer deleted successfully.');
+      } catch (e) {
+        if (!mounted) return;
+        _showMessage('Failed to delete offer: $e');
       }
     }
   }
@@ -248,6 +295,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // Allow creating offers (drafts) for signed-in users
                       canCreateOffers: true,
                       onCreateOffer: _createOffer,
+                      onEditOffer: _editOffer,
+                      onDeleteOffer: _deleteOffer,
                       darkBlue: darkBlue,
                       brightGold: brightGold,
                       darkerGold: darkerGold,
@@ -266,6 +315,8 @@ class _OffersSection extends StatelessWidget {
     required this.userId,
     required this.canCreateOffers,
     required this.onCreateOffer,
+    required this.onEditOffer,
+    required this.onDeleteOffer,
     required this.darkBlue,
     required this.brightGold,
     required this.darkerGold,
@@ -275,6 +326,8 @@ class _OffersSection extends StatelessWidget {
   final String userId;
   final bool canCreateOffers;
   final VoidCallback onCreateOffer;
+  final Function(Offer) onEditOffer;
+  final Function(Offer) onDeleteOffer;
   final Color darkBlue;
   final Color brightGold;
   final Color darkerGold;
@@ -505,6 +558,40 @@ class _OffersSection extends StatelessWidget {
                               ),
                             ),
                           ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Action buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => onEditOffer(offer),
+                          icon: const Icon(Icons.edit, size: 16),
+                          label: const Text('Edit'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: darkBlue,
+                            side: BorderSide(color: darkBlue),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          onPressed: () => onDeleteOffer(offer),
+                          icon: const Icon(Icons.delete, size: 16),
+                          label: const Text('Delete'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
                         ),
                       ],
                     ),

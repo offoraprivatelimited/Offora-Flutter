@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../services/auth_service.dart';
+import '../../models/offer.dart';
 import '../../services/offer_service.dart';
 
 class OfferFormScreen extends StatefulWidget {
@@ -25,7 +26,9 @@ class _OfferFormScreenState extends State<OfferFormScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
   bool _isSubmitting = false;
+  bool _isEditing = false;
   final List<XFile> _images = [];
+  List<String> _existingImageUrls = [];
 
   Future<void> _pickImages() async {
     final picker = ImagePicker();
@@ -48,6 +51,35 @@ class _OfferFormScreenState extends State<OfferFormScreen> {
     _discountPriceController.dispose();
     _termsController.dispose();
     super.dispose();
+  }
+
+  bool _didInitDependencies = false;
+  Offer? _editingOffer;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_didInitDependencies) return;
+
+    // Read any Offer passed via route arguments and pre-fill fields for editing
+    final maybeOffer = ModalRoute.of(context)?.settings.arguments;
+    if (maybeOffer is Offer) {
+      _editingOffer = maybeOffer;
+      _titleController.text = maybeOffer.title;
+      _descriptionController.text = maybeOffer.description;
+      _originalPriceController.text = maybeOffer.originalPrice.toString();
+      _discountPriceController.text = maybeOffer.discountPrice.toString();
+      _termsController.text = maybeOffer.terms ?? '';
+      _startDate = maybeOffer.startDate;
+      _endDate = maybeOffer.endDate;
+      if (maybeOffer.imageUrls != null) {
+        _existingImageUrls = List.from(maybeOffer.imageUrls!);
+      }
+      _isEditing = true;
+    }
+
+    _didInitDependencies = true;
   }
 
   Future<void> _pickDate({required bool isStart}) async {
@@ -98,24 +130,42 @@ class _OfferFormScreenState extends State<OfferFormScreen> {
 
     setState(() => _isSubmitting = true);
     try {
-      await offerService.submitOffer(
-        clientId: user.uid,
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
-        originalPrice: double.parse(_originalPriceController.text.trim()),
-        discountPrice: double.parse(_discountPriceController.text.trim()),
-        startDate: _startDate,
-        endDate: _endDate,
-        terms: _termsController.text.trim().isEmpty
-            ? null
-            : _termsController.text.trim(),
-        images: _images.isEmpty ? null : _images,
-        client: user.toJson(),
-      );
+      if (_isEditing) {
+        await offerService.updateOffer(
+          offerId: _editingOffer!.id,
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          originalPrice: double.parse(_originalPriceController.text.trim()),
+          discountPrice: double.parse(_discountPriceController.text.trim()),
+          startDate: _startDate,
+          endDate: _endDate,
+          terms: _termsController.text.trim().isEmpty
+              ? null
+              : _termsController.text.trim(),
+          newImages: _images.isEmpty ? null : _images,
+          existingImageUrls: _existingImageUrls,
+        );
+      } else {
+        await offerService.submitOffer(
+          clientId: user.uid,
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          originalPrice: double.parse(_originalPriceController.text.trim()),
+          discountPrice: double.parse(_discountPriceController.text.trim()),
+          startDate: _startDate,
+          endDate: _endDate,
+          terms: _termsController.text.trim().isEmpty
+              ? null
+              : _termsController.text.trim(),
+          images: _images.isEmpty ? null : _images,
+          client: user.toJson(),
+        );
+      }
+
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (error) {
-      _showError('Could not submit offer: $error');
+      _showError('Could not ${_isEditing ? 'update' : 'submit'} offer: $error');
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -152,7 +202,7 @@ class _OfferFormScreenState extends State<OfferFormScreen> {
     final dateFormat = DateFormat('EEE, d MMM yyyy');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('New offer')),
+      appBar: AppBar(title: Text(_isEditing ? 'Edit offer' : 'New offer')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -365,9 +415,13 @@ class _OfferFormScreenState extends State<OfferFormScreen> {
                             width: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.send_outlined),
+                        : Icon(_isEditing
+                            ? Icons.save_outlined
+                            : Icons.send_outlined),
                     label: Text(
-                      _isSubmitting ? 'Submitting...' : 'Submit for review',
+                      _isSubmitting
+                          ? (_isEditing ? 'Updating...' : 'Submitting...')
+                          : (_isEditing ? 'Update offer' : 'Submit for review'),
                     ),
                   ),
                 ),

@@ -6,6 +6,8 @@ import 'firebase_options.dart';
 
 import 'theme/app_theme.dart';
 import 'services/auth_service.dart';
+import 'services/saved_offers_service.dart';
+import 'services/compare_service.dart';
 import 'client/services/offer_service.dart';
 import 'screens/splash_screen.dart' as user;
 import 'screens/onboarding_screen.dart';
@@ -37,7 +39,9 @@ class OfforaApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => CompareService()),
         Provider(create: (_) => OfferService()),
+        Provider(create: (_) => SavedOffersService()),
       ],
       child: MaterialApp(
         title: 'Offora',

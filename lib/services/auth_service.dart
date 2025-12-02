@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../core/exceptions.dart';
 import '../models/user.dart';
 import '../models/client_panel_stage.dart';
@@ -431,45 +433,99 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  Future<void> updateProfile({
-    required String name,
-    required String phone,
-    required String address,
-    required String gender,
-    required String dob,
+  /// Update profile. All fields are optional — only provided values will be updated.
+  /// Supports uploading a profile image (File) — the url is stored under `photoUrl`.
+  /// Returns `true` when an email verification for a new address was sent
+  /// (the auth user will still have the old email until verification completes),
+  /// otherwise returns `false` when no email change was requested.
+  Future<bool> updateProfile({
+    String? name,
+    String? email,
+    File? profileImage,
+    String? phone,
+    String? address,
+    String? gender,
+    String? dob,
   }) async {
     final user = _auth.currentUser;
     if (user == null || _currentUser == null) {
       throw AuthException('Not logged in');
     }
 
-    if (name != user.displayName) {
+    // Update Firebase Auth properties selectively
+    if (name != null && name != user.displayName) {
       await user.updateDisplayName(name);
     }
 
-    final updatedUser = AppUser(
+    var verificationSent = false;
+    if (email != null && email != user.email) {
+      // Use the newer API which sends a verification link to the new address
+      // and only updates the auth email after the user clicks the link.
+      // Store the pending email in Firestore so the app can show an appropriate
+      // status to the user until they verify.
+      await user.verifyBeforeUpdateEmail(email);
+      verificationSent = true;
+      // Do not overwrite the stored/active auth email yet — instead save as pending
+    }
+
+    // Upload profile image if provided
+    String? uploadedPhotoUrl;
+    if (profileImage != null) {
+      final storageRef = FirebaseStorage.instance.ref().child(
+          'users/${user.uid}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final uploadTask = await storageRef.putFile(profileImage);
+      uploadedPhotoUrl = await uploadTask.ref.getDownloadURL();
+    }
+
+    // Prepare firestore update map — only include provided fields
+    final updateData = <String, dynamic>{};
+    if (name != null) updateData['name'] = name;
+    if (email != null) {
+      // Store as a pending email if a verification link was sent. The
+      // auth user's active email will remain unchanged until verification.
+      if (verificationSent) {
+        updateData['pendingEmail'] = email;
+      } else {
+        updateData['email'] = email;
+      }
+    }
+    if (phone != null) updateData['phone'] = phone;
+    if (address != null) updateData['address'] = address;
+    if (gender != null) updateData['gender'] = gender;
+    if (dob != null) updateData['dob'] = dob;
+    if (uploadedPhotoUrl != null) updateData['photoUrl'] = uploadedPhotoUrl;
+
+    if (updateData.isNotEmpty) {
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .set(updateData, SetOptions(merge: true));
+    }
+
+    // Build new AppUser by merging existing values with updated fields
+    _currentUser = AppUser(
       uid: user.uid,
-      name: name,
-      email: _currentUser!.email,
-      phone: phone,
-      address: address,
-      gender: gender,
-      dob: dob,
+      name: name ?? _currentUser!.name,
+      // Keep current active email until the user verifies a pending change.
+      email: verificationSent
+          ? _currentUser!.email
+          : (email ?? _currentUser!.email),
+      phone: phone ?? _currentUser!.phone,
+      address: address ?? _currentUser!.address,
+      gender: gender ?? _currentUser!.gender,
+      dob: dob ?? _currentUser!.dob,
       role: _currentUser!.role,
       approvalStatus: _currentUser!.approvalStatus,
       rejectionReason: _currentUser!.rejectionReason,
       businessName: _currentUser!.businessName,
       contactPerson: _currentUser!.contactPerson,
-      phoneNumber: phone,
+      phoneNumber: _currentUser!.phoneNumber,
+      photoUrl: uploadedPhotoUrl ?? _currentUser!.photoUrl,
     );
 
-    await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .set(updatedUser.toMap(), SetOptions(merge: true));
-
-    _currentUser = updatedUser;
     notifyListeners();
+
+    return verificationSent;
   }
 
   String _getFirebaseErrorMessage(String code) {

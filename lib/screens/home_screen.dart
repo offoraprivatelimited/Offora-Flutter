@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../theme/colors.dart';
+
 import '../client/models/offer.dart';
 import '../client/services/offer_service.dart';
 import '../widgets/offer_card.dart';
 import '../widgets/search_bar.dart';
 import 'offer_details_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -17,44 +24,36 @@ class HomeScreen extends StatelessWidget {
     return SafeArea(
       child: CustomScrollView(
         slivers: [
-          // Premium header (smaller)
-          SliverAppBar(
-            expandedHeight: 96,
-            floating: false,
-            pinned: true,
-            backgroundColor: Colors.white,
-            elevation: 1,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.darkBlue,
-                      AppColors.darkBlue.withAlpha(200),
-                    ],
+          SliverToBoxAdapter(
+            child: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 1,
+              toolbarHeight: 44,
+              automaticallyImplyLeading: false,
+              title: Row(
+                children: [
+                  SizedBox(
+                    height: 28,
+                    child: Image.asset(
+                      'images/logo/original/Text_without_logo_without_background.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 36,
-                      child: Image.asset(
-                        'images/logo/original/Text_without_logo_without_background.png',
-                        fit: BoxFit.contain,
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Home',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: darkBlue,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Find amazing deals near you',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white70,
-                          ),
-                    ),
-                  ],
                 ),
               ),
             ),
@@ -64,7 +63,11 @@ class HomeScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: AppSearchBar(
-                onChanged: (v) {},
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
                 onTapFilter: () {},
               ),
             ),
@@ -117,20 +120,36 @@ class HomeScreen extends StatelessWidget {
 
                   final offers = snapshot.data ?? [];
 
-                  if (offers.isEmpty) {
+                  // Apply search filter
+                  final filteredOffers = offers.where((offer) {
+                    if (_searchQuery.isEmpty) return true;
+                    final title = offer.title.toLowerCase();
+                    final businessName =
+                        (offer.client?['businessName'] ?? offer.clientId)
+                            .toString()
+                            .toLowerCase();
+                    return title.contains(_searchQuery) ||
+                        businessName.contains(_searchQuery);
+                  }).toList();
+
+                  if (filteredOffers.isEmpty) {
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 48),
                         child: Column(
                           children: [
                             Icon(
-                              Icons.shopping_bag_outlined,
+                              _searchQuery.isEmpty
+                                  ? Icons.shopping_bag_outlined
+                                  : Icons.search_off,
                               size: 64,
                               color: darkBlue.withAlpha(51),
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No offers available yet',
+                              _searchQuery.isEmpty
+                                  ? 'No offers available yet'
+                                  : 'No offers found',
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -138,7 +157,9 @@ class HomeScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Check back soon for amazing deals!',
+                              _searchQuery.isEmpty
+                                  ? 'Check back soon for amazing deals!'
+                                  : 'Try a different search term',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
@@ -160,9 +181,9 @@ class HomeScreen extends StatelessWidget {
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
-                    itemCount: offers.length,
+                    itemCount: filteredOffers.length,
                     itemBuilder: (context, i) {
-                      final offer = offers[i];
+                      final offer = filteredOffers[i];
                       final offerMap = <String, dynamic>{
                         'title': offer.title,
                         'store':
@@ -175,6 +196,7 @@ class HomeScreen extends StatelessWidget {
                       };
                       return OfferCard(
                         offer: offerMap,
+                        offerData: offer,
                         onTap: () => Navigator.pushNamed(
                           context,
                           OfferDetailsScreen.routeName,

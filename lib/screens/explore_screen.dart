@@ -1,148 +1,330 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../widgets/search_bar.dart';
+import '../theme/colors.dart';
 import '../widgets/offer_card.dart';
+import '../widgets/empty_state.dart';
 import '../client/models/offer.dart';
 import '../client/services/offer_service.dart';
 import 'offer_details_screen.dart';
 
-class ExploreScreen extends StatelessWidget {
+class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const darkBlue = Color(0xFF1F477D);
+  State<ExploreScreen> createState() => _ExploreScreenState();
+}
 
+class _ExploreScreenState extends State<ExploreScreen> {
+  String _searchQuery = '';
+  String? _selectedCategory;
+  String _sortBy = 'newest'; // newest, discount, price
+
+  final List<String> _categories = [
+    'All',
+    'Grocery',
+    'Restaurant',
+    'Fashion',
+    'Electronics',
+    'Beauty',
+    'Home & Garden',
+    'Sports',
+    'Books',
+    'Other',
+  ];
+
+  List<Offer> _filterOffers(List<Offer> offers) {
+    var filtered = offers;
+
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((offer) {
+        return offer.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            offer.description
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()) ||
+            (offer.client?['businessName'] ?? '')
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase());
+      }).toList();
+    }
+
+    if (_selectedCategory != null && _selectedCategory != 'All') {
+      filtered = filtered.where((offer) {
+        final businessCategory = offer.client?['businessCategory'] as String?;
+        return businessCategory?.toLowerCase() ==
+            _selectedCategory!.toLowerCase();
+      }).toList();
+    }
+
+    switch (_sortBy) {
+      case 'discount':
+        filtered.sort((a, b) {
+          final discountA = (1 - (a.discountPrice / a.originalPrice)) * 100;
+          final discountB = (1 - (b.discountPrice / b.originalPrice)) * 100;
+          return discountB.compareTo(discountA);
+        });
+        break;
+      case 'price':
+        filtered.sort((a, b) => a.discountPrice.compareTo(b.discountPrice));
+        break;
+      case 'newest':
+      default:
+        filtered.sort((a, b) {
+          if (a.createdAt == null || b.createdAt == null) return 0;
+          return b.createdAt!.compareTo(a.createdAt!);
+        });
+    }
+
+    return filtered;
+  }
+
+  void _showSortOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sort By',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.darkBlue,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  _SortOption(
+                    title: 'Newest First',
+                    value: 'newest',
+                    groupValue: _sortBy,
+                    onChanged: (value) {
+                      setState(() => _sortBy = value!);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _SortOption(
+                    title: 'Highest Discount',
+                    value: 'discount',
+                    groupValue: _sortBy,
+                    onChanged: (value) {
+                      setState(() => _sortBy = value!);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  _SortOption(
+                    title: 'Lowest Price',
+                    value: 'price',
+                    groupValue: _sortBy,
+                    onChanged: (value) {
+                      setState(() => _sortBy = value!);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
       child: CustomScrollView(
         slivers: [
-          // Premium header
-          SliverAppBar(
-            expandedHeight: 120,
-            floating: false,
-            pinned: true,
-            backgroundColor: Colors.white,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      darkBlue,
-                      darkBlue.withAlpha(85),
-                    ],
+          SliverToBoxAdapter(
+            child: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 1,
+              toolbarHeight: 44,
+              automaticallyImplyLeading: false,
+              title: Row(
+                children: [
+                  SizedBox(
+                    height: 28,
+                    child: Image.asset(
+                      'images/logo/original/Text_without_logo_without_background.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 40,
-                      child: Image.asset(
-                        'images/logo/original/Text_without_logo_without_background.png',
-                        fit: BoxFit.contain,
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Explore',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: AppColors.darkBlue,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Explore all offers',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white70,
-                          ),
-                    ),
-                  ],
                 ),
               ),
             ),
           ),
-          // Search bar
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: AppSearchBar(onChanged: (v) {}, onTapFilter: () {}),
-            ),
-          ),
-          // Offers grid
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverFillRemaining(
-              child: StreamBuilder<List<Offer>>(
-                stream: context.read<OfferService>().watchApprovedOffers(),
-                builder: (context, snapshot) {
-                  // Show loading state
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: darkBlue,
+              child: Column(
+                children: [
+                  TextField(
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                    decoration: InputDecoration(
+                      hintText: 'Search offers, stores...',
+                      prefixIcon:
+                          const Icon(Icons.search, color: AppColors.darkBlue),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () =>
+                                  setState(() => _searchQuery = ''),
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
-                    );
-                  }
-
-                  // Handle errors
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text('Error loading offers: ${snapshot.error}'),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
                       ),
-                    );
-                  }
-
-                  // Get offers list
-                  final offers = snapshot.data ?? [];
-
-                  // Show empty state if no offers
-                  if (offers.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.shopping_bag_outlined,
-                                size: 64, color: darkBlue.withAlpha(20)),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No offers available yet',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: darkBlue,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Check back soon for amazing deals!',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(color: Colors.grey),
-                            ),
-                          ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: _showSortOptions,
+                        icon: const Icon(Icons.sort, size: 18),
+                        label: Text(_getSortLabel()),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.darkBlue,
+                          side: const BorderSide(color: AppColors.darkBlue),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
-                    );
-                  }
-
-                  // Display offers in grid
-                  return GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.78,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 50,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _categories.length,
+                itemBuilder: (context, index) {
+                  final category = _categories[index];
+                  final isSelected = _selectedCategory == category ||
+                      (_selectedCategory == null && category == 'All');
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(category),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedCategory =
+                              category == 'All' ? null : category;
+                        });
+                      },
+                      selectedColor: AppColors.brightGold,
+                      backgroundColor: Colors.grey.shade200,
+                      labelStyle: TextStyle(
+                        color: isSelected
+                            ? AppColors.darkBlue
+                            : Colors.grey.shade700,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                      ),
                     ),
-                    itemCount: offers.length,
-                    itemBuilder: (context, i) {
-                      final offer = offers[i];
-                      // Convert Offer to Map for OfferCard compatibility
+                  );
+                },
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          StreamBuilder<List<Offer>>(
+            stream: context.read<OfferService>().watchApprovedOffers(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SliverFillRemaining(
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.darkBlue),
+                  ),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return const SliverFillRemaining(
+                  child: EmptyState(
+                    icon: Icons.error_outline,
+                    title: 'Oops!',
+                    message: 'Something went wrong. Please try again.',
+                  ),
+                );
+              }
+
+              final allOffers = snapshot.data ?? [];
+              final filteredOffers = _filterOffers(allOffers);
+
+              if (filteredOffers.isEmpty) {
+                return SliverFillRemaining(
+                  child: EmptyState(
+                    icon: Icons.search_off,
+                    title: 'No offers found',
+                    message: _searchQuery.isNotEmpty
+                        ? 'Try adjusting your search or filters'
+                        : 'Check back soon for new deals!',
+                  ),
+                );
+              }
+
+              return SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.78,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final offer = filteredOffers[index];
                       final offerMap = <String, dynamic>{
                         'title': offer.title,
                         'store':
@@ -155,6 +337,7 @@ class ExploreScreen extends StatelessWidget {
                       };
                       return OfferCard(
                         offer: offerMap,
+                        offerData: offer,
                         onTap: () => Navigator.pushNamed(
                           context,
                           OfferDetailsScreen.routeName,
@@ -162,13 +345,78 @@ class ExploreScreen extends StatelessWidget {
                         ),
                       );
                     },
-                  );
-                },
-              ),
-            ),
+                    childCount: filteredOffers.length,
+                  ),
+                ),
+              );
+            },
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
+    );
+  }
+
+  String _getSortLabel() {
+    switch (_sortBy) {
+      case 'discount':
+        return 'Highest Discount';
+      case 'price':
+        return 'Lowest Price';
+      case 'newest':
+      default:
+        return 'Newest First';
+    }
+  }
+}
+
+class _SortOption extends StatelessWidget {
+  final String title;
+  final String value;
+  final String groupValue;
+  final void Function(String?) onChanged;
+
+  const _SortOption({
+    required this.title,
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Newer Flutter versions deprecate `groupValue`/`onChanged` on RadioListTile
+    // in favor of a RadioGroup ancestor. Rather than introduce a new ancestor
+    // type here we render a simple selectable ListTile that avoids the
+    // deprecated members and keeps behavior identical for our small local use.
+    final selected = value == groupValue;
+
+    return ListTile(
+      onTap: () => onChanged(value),
+      leading: Container(
+        width: 20,
+        height: 20,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: selected ? AppColors.darkBlue : Colors.transparent,
+          border: Border.all(
+            color: selected ? AppColors.darkBlue : Colors.grey.shade400,
+            width: 1.4,
+          ),
+        ),
+        child: selected
+            ? const Icon(
+                Icons.check,
+                size: 12,
+                color: Colors.white,
+              )
+            : null,
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      contentPadding: EdgeInsets.zero,
     );
   }
 }

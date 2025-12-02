@@ -9,7 +9,7 @@ class AppColors {
   static const Color primary = darkBlue;
   static const Color accent = brightGold;
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [darkBlue, Color(0xFF375E9A)],
+    colors: [Colors.white, Colors.white],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
