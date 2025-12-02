@@ -5,9 +5,7 @@ import '../../models/offer.dart';
 import '../../../services/auth_service.dart';
 import '../../services/offer_service.dart';
 import '../auth/login_screen.dart';
-import '../offers/offer_form_screen.dart';
-// removed unused import
-import '../../../theme/colors.dart';
+import '../offers/new_offer_form_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -56,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     final result =
-        await Navigator.of(context).pushNamed(OfferFormScreen.routeName);
+        await Navigator.of(context).pushNamed(NewOfferFormScreen.routeName);
     if (!mounted) return; // guard against using context across async gaps
     if (result == true) {
       if (user.isApproved) {
@@ -70,7 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _editOffer(Offer offer) async {
     final result = await Navigator.of(context).pushNamed(
-      OfferFormScreen.routeName,
+      NewOfferFormScreen.routeName,
       arguments: offer,
     );
     if (!mounted) return; // ensure widget still mounted before using context
@@ -120,12 +118,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _signOut() async {
-    await context.read<AuthService>().signOut();
-    if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
-  }
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
@@ -137,58 +129,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
               slivers: [
-                // Modern premium header with logo (smaller)
-                SliverAppBar(
-                  expandedHeight: 96,
-                  floating: false,
-                  pinned: true,
-                  backgroundColor: Colors.white,
-                  elevation: 1,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.darkBlue,
-                            AppColors.darkBlue.withAlpha(200)
-                          ],
+                // Header matching HomeScreen style
+                SliverToBoxAdapter(
+                  child: AppBar(
+                    backgroundColor: Colors.white,
+                    elevation: 1,
+                    toolbarHeight: 44,
+                    automaticallyImplyLeading: false,
+                    title: Row(
+                      children: [
+                        SizedBox(
+                          height: 28,
+                          child: Image.asset(
+                            'images/logo/original/Text_without_logo_without_background.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              SizedBox(
-                                height: 36,
-                                child: Image.asset(
-                                  'images/logo/original/Text_without_logo_without_background.png',
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Manage your offers',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: Colors.white70,
-                                    ),
-                              ),
-                            ],
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.logout_outlined,
-                                color: Colors.white),
-                            onPressed: _signOut,
-                            tooltip: 'Sign out',
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
                 ),

@@ -100,6 +100,19 @@ class _LoginScreenState extends State<LoginScreen> {
           final isWide = constraints.maxWidth > 760;
           return Stack(
             children: [
+              // Back button
+              Positioned(
+                top: 0,
+                left: 0,
+                child: SafeArea(
+                  child: IconButton(
+                    onPressed: () => Navigator.of(context)
+                        .pushReplacementNamed('/role-selection'),
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    tooltip: 'Back to role selection',
+                  ),
+                ),
+              ),
               // Decorative background shapes
               Positioned(
                 top: -constraints.maxWidth * 0.25,

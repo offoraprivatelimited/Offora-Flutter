@@ -2,6 +2,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum OfferApprovalStatus { pending, approved, rejected }
 
+enum OfferType {
+  percentageDiscount, // X% off
+  flatDiscount, // ₹X off
+  buyXGetYPercentOff, // Buy X Get Y% off
+  buyXGetYRupeesOff, // Buy X Get ₹Y off
+  bogo, // Buy One Get One
+  productSpecific, // Discount on specific product
+  serviceSpecific, // Discount on specific service
+  bundleDeal, // Multiple items together
+}
+
+enum OfferCategory {
+  product,
+  service,
+  both,
+}
+
 class Offer {
   Offer({
     required this.id,
@@ -11,6 +28,8 @@ class Offer {
     required this.originalPrice,
     required this.discountPrice,
     required this.status,
+    this.offerType = OfferType.percentageDiscount,
+    this.offerCategory = OfferCategory.product,
     this.imageUrls,
     this.client,
     this.terms,
@@ -19,6 +38,14 @@ class Offer {
     this.createdAt,
     this.updatedAt,
     this.rejectionReason,
+    this.buyQuantity,
+    this.getQuantity,
+    this.percentageOff,
+    this.flatDiscountAmount,
+    this.applicableProducts,
+    this.applicableServices,
+    this.minimumPurchase,
+    this.maxUsagePerCustomer,
   });
 
   final String id;
@@ -28,6 +55,8 @@ class Offer {
   final double originalPrice;
   final double discountPrice;
   final OfferApprovalStatus status;
+  final OfferType offerType;
+  final OfferCategory offerCategory;
   final List<String>? imageUrls;
   final Map<String, dynamic>? client;
   final String? terms;
@@ -36,6 +65,18 @@ class Offer {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? rejectionReason;
+
+  // New fields for advanced offer types
+  final int? buyQuantity; // For BOGO and Buy X Get Y offers
+  final int? getQuantity; // For BOGO and Buy X Get Y offers
+  final double? percentageOff; // For percentage-based discounts
+  final double? flatDiscountAmount; // For flat rupee discounts
+  final List<String>?
+      applicableProducts; // Specific products this offer applies to
+  final List<String>?
+      applicableServices; // Specific services this offer applies to
+  final double? minimumPurchase; // Minimum purchase amount required
+  final int? maxUsagePerCustomer; // Maximum times a customer can use this offer
 
   bool get isPending => status == OfferApprovalStatus.pending;
   bool get isApproved => status == OfferApprovalStatus.approved;
@@ -49,6 +90,8 @@ class Offer {
       'originalPrice': originalPrice,
       'discountPrice': discountPrice,
       'status': status.name,
+      'offerType': offerType.name,
+      'offerCategory': offerCategory.name,
       if (imageUrls != null) 'imageUrls': imageUrls,
       if (client != null) 'client': client,
       if (terms != null) 'terms': terms,
@@ -59,6 +102,15 @@ class Offer {
           : FieldValue.serverTimestamp(),
       if (updatedAt != null) 'updatedAt': Timestamp.fromDate(updatedAt!),
       if (rejectionReason != null) 'rejectionReason': rejectionReason,
+      if (buyQuantity != null) 'buyQuantity': buyQuantity,
+      if (getQuantity != null) 'getQuantity': getQuantity,
+      if (percentageOff != null) 'percentageOff': percentageOff,
+      if (flatDiscountAmount != null) 'flatDiscountAmount': flatDiscountAmount,
+      if (applicableProducts != null) 'applicableProducts': applicableProducts,
+      if (applicableServices != null) 'applicableServices': applicableServices,
+      if (minimumPurchase != null) 'minimumPurchase': minimumPurchase,
+      if (maxUsagePerCustomer != null)
+        'maxUsagePerCustomer': maxUsagePerCustomer,
     };
   }
 
@@ -66,6 +118,11 @@ class Offer {
     final data = doc.data() ?? <String, dynamic>{};
     final statusRaw =
         data['status'] as String? ?? OfferApprovalStatus.pending.name;
+    final offerTypeRaw =
+        data['offerType'] as String? ?? OfferType.percentageDiscount.name;
+    final offerCategoryRaw =
+        data['offerCategory'] as String? ?? OfferCategory.product.name;
+
     return Offer(
       id: doc.id,
       clientId: data['clientId'] as String? ?? '',
@@ -77,6 +134,14 @@ class Offer {
         (state) => state.name == statusRaw,
         orElse: () => OfferApprovalStatus.pending,
       ),
+      offerType: OfferType.values.firstWhere(
+        (type) => type.name == offerTypeRaw,
+        orElse: () => OfferType.percentageDiscount,
+      ),
+      offerCategory: OfferCategory.values.firstWhere(
+        (cat) => cat.name == offerCategoryRaw,
+        orElse: () => OfferCategory.product,
+      ),
       imageUrls: (data['imageUrls'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -87,6 +152,18 @@ class Offer {
       createdAt: _timestampToDate(data['createdAt']),
       updatedAt: _timestampToDate(data['updatedAt']),
       rejectionReason: data['rejectionReason'] as String?,
+      buyQuantity: data['buyQuantity'] as int?,
+      getQuantity: data['getQuantity'] as int?,
+      percentageOff: (data['percentageOff'] as num?)?.toDouble(),
+      flatDiscountAmount: (data['flatDiscountAmount'] as num?)?.toDouble(),
+      applicableProducts: (data['applicableProducts'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      applicableServices: (data['applicableServices'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      minimumPurchase: (data['minimumPurchase'] as num?)?.toDouble(),
+      maxUsagePerCustomer: data['maxUsagePerCustomer'] as int?,
     );
   }
 

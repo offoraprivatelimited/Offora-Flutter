@@ -21,8 +21,9 @@ import 'client/screens/auth/signup_screen.dart' as client;
 import 'client/screens/auth/pending_approval_page.dart' as client;
 import 'client/screens/auth/rejection_page.dart' as client;
 import 'client/screens/dashboard/dashboard_screen.dart' as client;
+import 'client/screens/main/client_main_screen.dart' as client;
 import 'screens/user_login_screen.dart';
-import 'client/screens/offers/offer_form_screen.dart' as client;
+import 'client/screens/offers/new_offer_form_screen.dart' as client;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,9 +68,9 @@ class OfforaApp extends StatelessWidget {
               const client.PendingApprovalPage(),
           client.RejectionPage.routeName: (_) => const client.RejectionPage(),
           client.DashboardScreen.routeName: (_) =>
-              const client.DashboardScreen(),
-          client.OfferFormScreen.routeName: (_) =>
-              const client.OfferFormScreen(),
+              const client.ClientMainScreen(),
+          client.NewOfferFormScreen.routeName: (_) =>
+              const client.NewOfferFormScreen(),
           UserLoginScreen.routeName: (context) => const UserLoginScreen(),
         },
       ),

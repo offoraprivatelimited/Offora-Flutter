@@ -23,6 +23,11 @@ class AppUser {
   final String businessName;
   final String contactPerson;
   final String phoneNumber;
+  final String location;
+  final String category;
+  final String? gstNumber;
+  final String? shopLicenseNumber;
+  final String? businessRegistrationNumber;
 
   AppUser({
     required this.uid,
@@ -39,6 +44,11 @@ class AppUser {
     required this.businessName,
     required this.contactPerson,
     required this.phoneNumber,
+    required this.location,
+    required this.category,
+    this.gstNumber,
+    this.shopLicenseNumber,
+    this.businessRegistrationNumber,
   });
 
   Map<String, dynamic> toJson() => toMap();
@@ -66,6 +76,11 @@ class AppUser {
       'businessName': businessName,
       'contactPerson': contactPerson,
       'phoneNumber': phoneNumber,
+      'location': location,
+      'category': category,
+      'gstNumber': gstNumber,
+      'shopLicenseNumber': shopLicenseNumber,
+      'businessRegistrationNumber': businessRegistrationNumber,
     };
   }
 
@@ -85,6 +100,11 @@ class AppUser {
       businessName: map['businessName'] ?? '',
       contactPerson: map['contactPerson'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
+      location: map['location'] ?? '',
+      category: map['category'] ?? '',
+      gstNumber: map['gstNumber'],
+      shopLicenseNumber: map['shopLicenseNumber'],
+      businessRegistrationNumber: map['businessRegistrationNumber'],
     );
   }
 }

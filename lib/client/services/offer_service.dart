@@ -135,6 +135,59 @@ class OfferService {
     return docRef.id;
   }
 
+  /// Advanced submit supporting extended Offer fields
+  Future<String> submitOfferAdvanced({
+    required Offer offer,
+    List<XFile>? images,
+  }) async {
+    final createdAt = DateTime.now();
+
+    List<String>? imageUrls;
+    if (images != null && images.isNotEmpty) {
+      final storage = FirebaseStorage.instance;
+      imageUrls = [];
+      for (var i = 0; i < images.length; i++) {
+        final file = File(images[i].path);
+        final ref = storage.ref().child(
+            'offers/${offer.clientId}/${createdAt.millisecondsSinceEpoch}_$i.jpg');
+        final uploadTask = await ref.putFile(file);
+        final downloadUrl = await uploadTask.ref.getDownloadURL();
+        imageUrls.add(downloadUrl);
+      }
+    }
+
+    final toSave = Offer(
+      id: '',
+      clientId: offer.clientId,
+      title: offer.title,
+      description: offer.description,
+      originalPrice: offer.originalPrice,
+      discountPrice: offer.discountPrice,
+      status: OfferApprovalStatus.pending,
+      offerType: offer.offerType,
+      offerCategory: offer.offerCategory,
+      imageUrls: imageUrls ?? offer.imageUrls,
+      client: offer.client,
+      terms: offer.terms,
+      startDate: offer.startDate,
+      endDate: offer.endDate,
+      createdAt: createdAt,
+      updatedAt: null,
+      rejectionReason: null,
+      buyQuantity: offer.buyQuantity,
+      getQuantity: offer.getQuantity,
+      percentageOff: offer.percentageOff,
+      flatDiscountAmount: offer.flatDiscountAmount,
+      applicableProducts: offer.applicableProducts,
+      applicableServices: offer.applicableServices,
+      minimumPurchase: offer.minimumPurchase,
+      maxUsagePerCustomer: offer.maxUsagePerCustomer,
+    );
+
+    final docRef = await _statusCollection('pending').add(toSave.toJson());
+    return docRef.id;
+  }
+
   /// Move an offer from one status to another (used by admin)
   /// For example: pending → approved, or pending → rejected
   Future<void> updateOfferStatus({
@@ -242,6 +295,67 @@ class OfferService {
         'imageUrls': allImageUrls,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+    } catch (e) {
+      throw Exception('Failed to update offer: $e');
+    }
+  }
+
+  /// Advanced update supporting extended Offer fields
+  Future<void> updateOfferAdvanced({
+    required Offer offer,
+    List<XFile>? newImages,
+  }) async {
+    try {
+      final pendingDoc = await _statusCollection('pending').doc(offer.id).get();
+      if (!pendingDoc.exists) {
+        throw Exception('Offer not found');
+      }
+
+      List<String> allImageUrls =
+          offer.imageUrls != null ? List.from(offer.imageUrls!) : <String>[];
+      if (newImages != null && newImages.isNotEmpty) {
+        final storage = FirebaseStorage.instance;
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        for (var i = 0; i < newImages.length; i++) {
+          final file = File(newImages[i].path);
+          final ref = storage
+              .ref()
+              .child('offers/${offer.clientId}/${timestamp}_$i.jpg');
+          final uploadTask = await ref.putFile(file);
+          final downloadUrl = await uploadTask.ref.getDownloadURL();
+          allImageUrls.add(downloadUrl);
+        }
+      }
+
+      final updated = Offer(
+        id: offer.id,
+        clientId: offer.clientId,
+        title: offer.title,
+        description: offer.description,
+        originalPrice: offer.originalPrice,
+        discountPrice: offer.discountPrice,
+        status: OfferApprovalStatus.pending,
+        offerType: offer.offerType,
+        offerCategory: offer.offerCategory,
+        imageUrls: allImageUrls,
+        client: offer.client,
+        terms: offer.terms,
+        startDate: offer.startDate,
+        endDate: offer.endDate,
+        createdAt: offer.createdAt,
+        updatedAt: DateTime.now(),
+        rejectionReason: offer.rejectionReason,
+        buyQuantity: offer.buyQuantity,
+        getQuantity: offer.getQuantity,
+        percentageOff: offer.percentageOff,
+        flatDiscountAmount: offer.flatDiscountAmount,
+        applicableProducts: offer.applicableProducts,
+        applicableServices: offer.applicableServices,
+        minimumPurchase: offer.minimumPurchase,
+        maxUsagePerCustomer: offer.maxUsagePerCustomer,
+      );
+
+      await _statusCollection('pending').doc(offer.id).update(updated.toJson());
     } catch (e) {
       throw Exception('Failed to update offer: $e');
     }

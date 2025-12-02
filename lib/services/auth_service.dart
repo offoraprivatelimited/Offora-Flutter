@@ -282,6 +282,11 @@ class AuthService extends ChangeNotifier {
             businessName: '',
             contactPerson: '',
             phoneNumber: phone,
+            location: '',
+            category: '',
+            gstNumber: null,
+            shopLicenseNumber: null,
+            businessRegistrationNumber: null,
           );
           await _firestore
               .collection('users')
@@ -365,6 +370,11 @@ class AuthService extends ChangeNotifier {
             businessName: '',
             contactPerson: '',
             phoneNumber: user.phoneNumber ?? '',
+            location: '',
+            category: '',
+            gstNumber: null,
+            shopLicenseNumber: null,
+            businessRegistrationNumber: null,
           );
           await _firestore
               .collection('users')
@@ -520,6 +530,11 @@ class AuthService extends ChangeNotifier {
       businessName: _currentUser!.businessName,
       contactPerson: _currentUser!.contactPerson,
       phoneNumber: _currentUser!.phoneNumber,
+      location: _currentUser!.location,
+      category: _currentUser!.category,
+      gstNumber: _currentUser!.gstNumber,
+      shopLicenseNumber: _currentUser!.shopLicenseNumber,
+      businessRegistrationNumber: _currentUser!.businessRegistrationNumber,
       photoUrl: uploadedPhotoUrl ?? _currentUser!.photoUrl,
     );
 
