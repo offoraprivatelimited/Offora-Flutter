@@ -10,106 +10,169 @@ class RoleSelectionScreen extends StatelessWidget {
     // Define the colors used in the design
     const darkBlue = Color(0xFF1F477D);
     const brightGold = Color(0xFFF0B84D);
-    // const darkerGold = Color(0xFFA3834D); // darkerGold not used in the new structure
+    const darkerGold = Color(0xFFA3834D);
 
     return Scaffold(
       backgroundColor: Colors.white,
-      // Wrap the content in a LayoutBuilder for better understanding of available space
-      // although the use of Spacers will handle most responsiveness.
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              // Use Column to arrange all elements vertically
-              child: Column(
-                // Use MainAxisAlignment.center to vertically center the whole block
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                // Do not use MainAxisSize.min as we want the Column to fill the screen
-                // to allow Spacers to work correctly for non-scrollable layout.
-                children: [
-                  // --- Dynamic Spacing for Responsiveness (Top) ---
-                  const Spacer(flex: 2),
-
-                  // ## Header Section
-                  // Logo
-                  SizedBox(
-                    width: 90,
-                    height: 90,
-                    child: Image.asset(
-                      // NOTE: Ensure this image path is correct in your project
-                      'images/logo/original/Logo_without_text_without_background.png',
-                      fit: BoxFit.contain,
+        child: LayoutBuilder(builder: (context, constraints) {
+          return Stack(
+            children: [
+              // Decorative background shapes
+              Positioned(
+                top: -constraints.maxWidth * 0.25,
+                left: -constraints.maxWidth * 0.2,
+                child: Container(
+                  width: constraints.maxWidth * 0.9,
+                  height: constraints.maxWidth * 0.9,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        darkBlue.withAlpha(242),
+                        darkBlue.withAlpha(153)
+                      ],
+                      center: Alignment.topLeft,
+                      radius: 0.8,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Welcome to Offora',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: darkBlue,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Select how you want to use Offora:',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black54,
-                    ),
-                  ),
-
-                  // --- Dynamic Spacing for Responsiveness (Between Header and User Role) ---
-                  const Spacer(flex: 1),
-
-                  // ## User Role (Dominant Card)
-                  _SimpleRoleCard(
-                    icon: Icons.shopping_bag_outlined,
-                    title: 'Shop for Offers',
-                    description:
-                        'Discover and save the best local deals. Sign in as a user to start exploring.',
-                    buttonText: 'Continue as User',
-                    accentColor: darkBlue,
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(
-                        context,
-                        '/user-login',
-                      );
-                    },
-                  ),
-
-                  // --- Dynamic Spacing for Responsiveness (Between Roles) ---
-                  const Spacer(flex: 1),
-
-                  // ## Shop Owner Role (Smaller, Subdued)
-                  // The previous Divider is removed for cleaner separation in the new layout
-                  // and to better subordinate the secondary role.
-
-                  // Custom widget for the smaller, less dominant role
-                  _SubduedRoleButton(
-                    title: 'Business Owner',
-                    buttonText: 'Continue as Shop Owner',
-                    accentColor: brightGold,
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(
-                        context,
-                        '/login',
-                      );
-                    },
-                  ),
-
-                  // --- Dynamic Spacing for Responsiveness (Bottom) ---
-                  const Spacer(flex: 2),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
+              Positioned(
+                top: -constraints.maxWidth * 0.15,
+                right: -constraints.maxWidth * 0.25,
+                child: Container(
+                  width: constraints.maxWidth * 0.7,
+                  height: constraints.maxWidth * 0.7,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        brightGold.withAlpha(255),
+                        brightGold.withAlpha(217)
+                      ],
+                      center: Alignment.topRight,
+                      radius: 0.9,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: darkerGold.withAlpha(56),
+                        blurRadius: 40,
+                        spreadRadius: 8,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -constraints.maxWidth * 0.25,
+                left: -constraints.maxWidth * 0.2,
+                child: Container(
+                  width: constraints.maxWidth * 1.2,
+                  height: constraints.maxWidth * 0.9,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(constraints.maxWidth),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [darkerGold.withAlpha(46), Colors.transparent],
+                    ),
+                  ),
+                ),
+              ),
+              // Main content
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // --- Dynamic Spacing for Responsiveness (Top) ---
+                        const Spacer(flex: 2),
+
+                        // ## Header Section
+                        // Logo
+                        SizedBox(
+                          width: 90,
+                          height: 90,
+                          child: Image.asset(
+                            // NOTE: Ensure this image path is correct in your project
+                            'images/logo/original/Logo_without_text_without_background.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Welcome to Offora',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            color: darkBlue,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Select how you want to use Offora:',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black54,
+                          ),
+                        ),
+
+                        // --- Dynamic Spacing for Responsiveness (Between Header and User Role) ---
+                        const Spacer(flex: 1),
+
+                        // ## User Role (Dominant Card)
+                        _SimpleRoleCard(
+                          icon: Icons.shopping_bag_outlined,
+                          title: 'Shop for Offers',
+                          description:
+                              'Discover and save the best local deals. Sign in as a user to start exploring.',
+                          buttonText: 'Continue as User',
+                          accentColor: darkBlue,
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/user-login',
+                            );
+                          },
+                        ),
+
+                        // --- Dynamic Spacing for Responsiveness (Between Roles) ---
+                        const Spacer(flex: 1),
+
+                        // ## Shop Owner Role (Smaller, Subdued)
+                        // The previous Divider is removed for cleaner separation in the new layout
+                        // and to better subordinate the secondary role.
+
+                        // Custom widget for the smaller, less dominant role
+                        _SubduedRoleButton(
+                          title: 'Business Owner',
+                          buttonText: 'Continue as Shop Owner',
+                          accentColor: brightGold,
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/login',
+                            );
+                          },
+                        ),
+
+                        // --- Dynamic Spacing for Responsiveness (Bottom) ---
+                        const Spacer(flex: 2),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
