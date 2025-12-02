@@ -204,12 +204,12 @@ class _SignupScreenState extends State<SignupScreen> {
                 top: 0,
                 left: 0,
                 child: SafeArea(
-                  child: IconButton(
-                    onPressed: () => Navigator.of(context)
-                        .pushReplacementNamed('/role-selection'),
-                    icon: const Icon(Icons.arrow_back),
-                    tooltip: 'Back to role selection',
-                  ),
+                child: IconButton(
+                  onPressed: () => Navigator.of(context)
+                      .pushReplacementNamed('/role-selection'),
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  tooltip: 'Back to role selection',
+                ),
                 ),
               ),
               Center(

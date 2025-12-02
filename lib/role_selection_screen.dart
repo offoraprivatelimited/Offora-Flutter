@@ -83,7 +83,8 @@ class RoleSelectionScreen extends StatelessWidget {
               // Main content
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
                     child: Column(
