@@ -101,8 +101,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Logout'),
-                        content: const Text('Are you sure you want to logout?'),
+                        title: const Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 0, 0, 0), // darkBlue
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                          ),
+                        ),
+                        content: const Text(
+                          'Are you sure you want to logout?',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 0, 0, 0), // darkBlue
+                            fontSize: 16,
+                          ),
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),

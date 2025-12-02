@@ -176,7 +176,10 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                   child: IconButton(
                     onPressed: () => Navigator.pushReplacementNamed(
                         context, '/role-selection'),
-                    icon: const Icon(Icons.arrow_back),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Color.fromARGB(255, 0, 0, 0), // darkBlue
+                    ),
                     tooltip: 'Back to role selection',
                   ),
                 ),

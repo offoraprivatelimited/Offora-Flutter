@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'client/screens/auth/login_screen.dart' as client;
 
 class RoleSelectionScreen extends StatelessWidget {
   static const String routeName = '/role-selection';
@@ -8,294 +7,240 @@ class RoleSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Define the colors used in the design
     const darkBlue = Color(0xFF1F477D);
     const brightGold = Color(0xFFF0B84D);
-    const darkerGold = Color(0xFFA3834D);
+    // const darkerGold = Color(0xFFA3834D); // darkerGold not used in the new structure
 
     return Scaffold(
       backgroundColor: Colors.white,
+      // Wrap the content in a LayoutBuilder for better understanding of available space
+      // although the use of Spacers will handle most responsiveness.
       body: SafeArea(
-        child: LayoutBuilder(builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 760;
-          return Stack(
-            children: [
-              // Decorative background - modified style
-              Positioned(
-                top: -constraints.maxWidth * 0.15,
-                right: -constraints.maxWidth * 0.25,
-                child: Container(
-                  width: constraints.maxWidth * 0.7,
-                  height: constraints.maxWidth * 0.7,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        brightGold.withAlpha(230),
-                        brightGold.withAlpha(102)
-                      ],
-                      center: Alignment.topRight,
-                      radius: 0.9,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              // Use Column to arrange all elements vertically
+              child: Column(
+                // Use MainAxisAlignment.center to vertically center the whole block
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                // Do not use MainAxisSize.min as we want the Column to fill the screen
+                // to allow Spacers to work correctly for non-scrollable layout.
+                children: [
+                  // --- Dynamic Spacing for Responsiveness (Top) ---
+                  const Spacer(flex: 2),
+
+                  // ## Header Section
+                  // Logo
+                  SizedBox(
+                    width: 90,
+                    height: 90,
+                    child: Image.asset(
+                      // NOTE: Ensure this image path is correct in your project
+                      'images/logo/original/Logo_without_text_without_background.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
-                ),
-              ),
-              Positioned(
-                bottom: -constraints.maxWidth * 0.2,
-                left: -constraints.maxWidth * 0.15,
-                child: Container(
-                  width: constraints.maxWidth * 0.8,
-                  height: constraints.maxWidth * 0.8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [darkBlue.withAlpha(204), darkBlue.withAlpha(77)],
-                      center: Alignment.bottomLeft,
-                      radius: 0.9,
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Welcome to Offora',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: darkBlue,
                     ),
                   ),
-                ),
-              ),
-              // Main content
-              Center(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: isWide ? 40 : 24, vertical: 40),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Header section
-                        Column(
-                          children: [
-                            Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: darkerGold.withAlpha(77),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: Image.asset(
-                                'images/logo/original/Logo_without_text_without_background.png',
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                            const SizedBox(height: 28),
-                            const Text(
-                              'Welcome to Offora',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                color: darkBlue,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Choose how you want to use Offora',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 48),
-                        // Role cards
-                        Column(
-                          children: [
-                            // User card
-                            _RoleCard(
-                              icon: Icons.shopping_bag_outlined,
-                              title: 'Browse & Shop',
-                              description:
-                                  'Discover amazing offers from local businesses',
-                              onPressed: () {
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  '/user-login',
-                                );
-                              },
-                              accentColor: brightGold,
-                              isFirst: true,
-                            ),
-                            const SizedBox(height: 20),
-                            // Shopowner card
-                            _RoleCard(
-                              icon: Icons.store_outlined,
-                              title: 'Publish & Manage',
-                              description:
-                                  'Create offers and manage your business',
-                              onPressed: () {
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  client.LoginScreen.routeName,
-                                  arguments: {'role': 'shopowner'},
-                                );
-                              },
-                              accentColor: darkBlue,
-                              isFirst: false,
-                            ),
-                          ],
-                        ),
-                      ],
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Select how you want to use Offora:',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black54,
                     ),
                   ),
-                ),
+
+                  // --- Dynamic Spacing for Responsiveness (Between Header and User Role) ---
+                  const Spacer(flex: 1),
+
+                  // ## User Role (Dominant Card)
+                  _SimpleRoleCard(
+                    icon: Icons.shopping_bag_outlined,
+                    title: 'Shop for Offers',
+                    description:
+                        'Discover and save the best local deals. Sign in as a user to start exploring.',
+                    buttonText: 'Continue as User',
+                    accentColor: darkBlue,
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(
+                        context,
+                        '/user-login',
+                      );
+                    },
+                  ),
+
+                  // --- Dynamic Spacing for Responsiveness (Between Roles) ---
+                  const Spacer(flex: 1),
+
+                  // ## Shop Owner Role (Smaller, Subdued)
+                  // The previous Divider is removed for cleaner separation in the new layout
+                  // and to better subordinate the secondary role.
+
+                  // Custom widget for the smaller, less dominant role
+                  _SubduedRoleButton(
+                    title: 'Business Owner',
+                    buttonText: 'Continue as Shop Owner',
+                    accentColor: brightGold,
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(
+                        context,
+                        '/login',
+                      );
+                    },
+                  ),
+
+                  // --- Dynamic Spacing for Responsiveness (Bottom) ---
+                  const Spacer(flex: 2),
+                ],
               ),
-            ],
-          );
-        }),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _RoleCard extends StatefulWidget {
+// ----------------------------------------------------
+// Large, Dominant Role Card (For the User Role)
+// ----------------------------------------------------
+class _SimpleRoleCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String description;
-  final VoidCallback onPressed;
+  final String buttonText;
   final Color accentColor;
-  final bool isFirst;
+  final VoidCallback onPressed;
 
-  const _RoleCard({
+  const _SimpleRoleCard({
     required this.icon,
     required this.title,
     required this.description,
-    required this.onPressed,
+    required this.buttonText,
     required this.accentColor,
-    required this.isFirst,
+    required this.onPressed,
   });
 
   @override
-  State<_RoleCard> createState() => _RoleCardState();
+  Widget build(BuildContext context) {
+    // Keep the large Card structure to maintain dominance
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: accentColor.withAlpha(38),
+              child: Icon(icon, color: accentColor, size: 32),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: accentColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: accentColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  elevation: 2,
+                ),
+                onPressed: onPressed,
+                child: Text(
+                  buttonText,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _RoleCardState extends State<_RoleCard> {
-  bool _isHovered = false;
+// ----------------------------------------------------
+// Small, Subdued Role Button (For the Shop Owner Role)
+// ----------------------------------------------------
+class _SubduedRoleButton extends StatelessWidget {
+  final String title;
+  final String buttonText;
+  final Color accentColor;
+  final VoidCallback onPressed;
+
+  const _SubduedRoleButton({
+    required this.title,
+    required this.buttonText,
+    required this.accentColor,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-          transform: Matrix4.translationValues(0, _isHovered ? -8 : 0, 0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Colors.white.withAlpha(230),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: widget.accentColor.withAlpha(_isHovered ? 77 : 38),
-                blurRadius: _isHovered ? 24 : 12,
-                spreadRadius: _isHovered ? 2 : 0,
-                offset: Offset(0, _isHovered ? 12 : 8),
-              ),
-            ],
-            border: Border.all(
-              color: widget.accentColor.withAlpha(51),
-              width: 2,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        widget.accentColor,
-                        widget.accentColor.withAlpha(179),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      widget.icon,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1F477D),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.description,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black54,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        widget.accentColor,
-                        widget.accentColor.withAlpha(204),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.accentColor.withAlpha(77),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+    // A smaller, simpler container to make it visually subordinate
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: accentColor,
+        side: BorderSide(color: accentColor, width: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
         ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      ),
+      onPressed: onPressed,
+      child: Row(
+        mainAxisSize: MainAxisSize.min, // Keep the button size minimal
+        children: [
+          const Icon(Icons.store_outlined, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            buttonText,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+            ),
+          ),
+        ],
       ),
     );
   }
