@@ -90,7 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(
                   height: 32,
                   child: Image.asset(
-                    'images/logo/original/Text_without_logo_without_background.png',
+                    'assets/images/logo/original/Text_without_logo_without_background.png',
                     fit: BoxFit.contain,
                   ),
                 ),

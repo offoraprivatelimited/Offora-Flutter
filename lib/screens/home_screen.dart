@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     height: 28,
                     child: Image.asset(
-                      'images/logo/original/Text_without_logo_without_background.png',
+                      'assets/images/logo/original/Text_without_logo_without_background.png',
                       fit: BoxFit.contain,
                     ),
                   ),

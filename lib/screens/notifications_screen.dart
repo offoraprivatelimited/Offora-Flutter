@@ -42,7 +42,7 @@ class NotificationsScreen extends StatelessWidget {
                     SizedBox(
                       height: 36,
                       child: Image.asset(
-                        'images/logo/original/Text_without_logo_without_background.png',
+                        'assets/images/logo/original/Text_without_logo_without_background.png',
                         fit: BoxFit.contain,
                       ),
                     ),
