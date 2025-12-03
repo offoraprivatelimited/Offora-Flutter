@@ -117,22 +117,22 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           ((1 - (widget.offer.discountPrice / widget.offer.originalPrice)) *
                   100)
               .toStringAsFixed(0);
-      final text = '''
-🎉 Check out this amazing offer!
+      final text = 'Check out this amazing offer!\n\n'
+          '${widget.offer.title}\n\n'
+          'Offer Price: ₹${widget.offer.discountPrice.toStringAsFixed(0)}\n'
+          'Original Price: ₹${widget.offer.originalPrice.toStringAsFixed(0)}\n'
+          'Save $discount%!\n\n'
+          '${widget.offer.description}\n\n'
+          'Download Offora app to get this offer!';
 
-${widget.offer.title}
-
-💰 Offer Price: ₹${widget.offer.discountPrice.toStringAsFixed(0)}
-🏷️ Original Price: ₹${widget.offer.originalPrice.toStringAsFixed(0)}
-✨ Save $discount%!
-
-${widget.offer.description}
-
-Download Offora app to get this offer!
-''';
-      await Share.share(text, subject: widget.offer.title);
+      final result = await Share.share(text, subject: widget.offer.title);
+      if (result.status == ShareResultStatus.success) {
+        _showMessage('Offer shared successfully!');
+      }
     } catch (e) {
-      _showMessage('Failed to share offer');
+      if (mounted) {
+        _showMessage('Unable to share: ${e.toString()}');
+      }
     }
   }
 
@@ -426,7 +426,7 @@ Download Offora app to get this offer!
               ),
             ],
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 100),
           ],
         ),
       ),

@@ -167,32 +167,90 @@ class _OfferCardState extends State<OfferCard> {
 
                       const Spacer(),
 
-                      // Price section
+                      // Price section with compare button
                       if (originalPrice != null && discountPrice != null) ...[
                         const Divider(
                             height: 16, thickness: 1, color: Color(0xFFE5E7EB)),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(
-                              '₹${discountPrice.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w900,
-                                color: Color(0xFF1F477D),
-                                letterSpacing: -0.5,
+                            // Price column
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '₹${discountPrice.toStringAsFixed(0)}',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF1F477D),
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '₹${originalPrice.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey[500],
+                                      decoration: TextDecoration.lineThrough,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '₹${originalPrice.toStringAsFixed(0)}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[500],
-                                decoration: TextDecoration.lineThrough,
-                                fontWeight: FontWeight.w600,
+                            // Compare button
+                            if (widget.offerData != null)
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: isInCompare
+                                      ? const Color(0xFF1F477D)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(0xFF1F477D),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withAlpha(15),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    isInCompare
+                                        ? Icons.done
+                                        : Icons.compare_arrows_outlined,
+                                    color: isInCompare
+                                        ? Colors.white
+                                        : const Color(0xFF1F477D),
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    if (!compareService.isFull || isInCompare) {
+                                      compareService
+                                          .toggleCompare(widget.offerData!);
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'You can compare up to 4 offers'),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  padding: const EdgeInsets.all(8),
+                                  constraints: const BoxConstraints(),
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ],
@@ -200,79 +258,35 @@ class _OfferCardState extends State<OfferCard> {
                   ),
                 ),
 
-                // Overlay action buttons (only if offerData provided)
+                // Save button at top right (only if offerData provided)
                 if (widget.offerData != null)
                   Positioned(
                     top: 12,
                     right: 12,
-                    child: Column(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha(20),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(20),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
-                          child: IconButton(
-                            icon: Icon(
-                              _isSaved ? Icons.favorite : Icons.favorite_border,
-                              color: _isSaved
-                                  ? const Color(0xFFF0B84D)
-                                  : Colors.grey[600],
-                              size: 20,
-                            ),
-                            onPressed: _toggleSaveStatus,
-                            padding: const EdgeInsets.all(8),
-                            constraints: const BoxConstraints(),
-                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          _isSaved ? Icons.favorite : Icons.favorite_border,
+                          color: _isSaved
+                              ? const Color(0xFFF0B84D)
+                              : Colors.grey[600],
+                          size: 20,
                         ),
-                        const SizedBox(height: 8),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha(20),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              isInCompare
-                                  ? Icons.compare_arrows
-                                  : Icons.compare_arrows_outlined,
-                              color: isInCompare
-                                  ? const Color(0xFF1F477D)
-                                  : Colors.grey[600],
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              if (!compareService.isFull || isInCompare) {
-                                compareService.toggleCompare(widget.offerData!);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content:
-                                        Text('You can compare up to 4 offers'),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            },
-                            padding: const EdgeInsets.all(8),
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ],
+                        onPressed: _toggleSaveStatus,
+                        padding: const EdgeInsets.all(8),
+                        constraints: const BoxConstraints(),
+                      ),
                     ),
                   ),
               ],
