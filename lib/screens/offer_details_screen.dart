@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:url_launcher/url_launcher.dart';
 import '../theme/colors.dart';
 import '../services/auth_service.dart';
 import '../services/saved_offers_service.dart';
@@ -18,7 +18,34 @@ class OfferDetailsScreen extends StatefulWidget {
 }
 
 class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
-  int _currentImageIndex = 0;
+  @override
+  Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is! Offer) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Offer Details')),
+        body: const Center(child: Text('Offer not found')),
+      );
+    }
+
+    return Scaffold(
+      body: OfferDetailsContent(offer: args),
+    );
+  }
+}
+
+// Extracted content for reuse in MainScreen inline display
+class OfferDetailsContent extends StatefulWidget {
+  final Offer offer;
+
+  const OfferDetailsContent({super.key, required this.offer});
+
+  @override
+  State<OfferDetailsContent> createState() => _OfferDetailsContentState();
+}
+
+class _OfferDetailsContentState extends State<OfferDetailsContent> {
+  // Removed unused _currentImageIndex
   bool _isSaved = false;
   bool _isInCompare = false;
 
@@ -30,38 +57,23 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
   }
 
   Future<void> _checkSavedStatus() async {
-    final offer = _getOffer();
-    if (offer == null) return;
-
     final auth = context.read<AuthService>();
     if (auth.currentUser == null) return;
 
     final savedService = context.read<SavedOffersService>();
     final isSaved =
-        await savedService.isOfferSaved(auth.currentUser!.uid, offer.id);
+        await savedService.isOfferSaved(auth.currentUser!.uid, widget.offer.id);
     if (mounted) {
       setState(() => _isSaved = isSaved);
     }
   }
 
   void _checkCompareStatus() {
-    final offer = _getOffer();
-    if (offer == null) return;
-
     final compareService = context.read<CompareService>();
-    setState(() => _isInCompare = compareService.isInCompare(offer.id));
-  }
-
-  Offer? _getOffer() {
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args is Offer) return args;
-    return null;
+    setState(() => _isInCompare = compareService.isInCompare(widget.offer.id));
   }
 
   Future<void> _toggleSave() async {
-    final offer = _getOffer();
-    if (offer == null) return;
-
     final auth = context.read<AuthService>();
     if (auth.currentUser == null) {
       _showMessage('Please sign in to save offers');
@@ -70,8 +82,8 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
 
     try {
       final savedService = context.read<SavedOffersService>();
-      final newStatus =
-          await savedService.toggleSaveOffer(auth.currentUser!.uid, offer);
+      final newStatus = await savedService.toggleSaveOffer(
+          auth.currentUser!.uid, widget.offer);
       setState(() => _isSaved = newStatus);
       _showMessage(newStatus ? 'Offer saved!' : 'Offer removed from saved');
     } catch (e) {
@@ -80,9 +92,6 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
   }
 
   void _toggleCompare() {
-    final offer = _getOffer();
-    if (offer == null) return;
-
     final compareService = context.read<CompareService>();
 
     if (compareService.isFull && !_isInCompare) {
@@ -91,7 +100,7 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
     }
 
     try {
-      compareService.toggleCompare(offer);
+      compareService.toggleCompare(widget.offer);
       setState(() => _isInCompare = !_isInCompare);
       _showMessage(_isInCompare
           ? 'Added to comparison (${compareService.count}/4)'
@@ -101,38 +110,10 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
     }
   }
 
-  void _shareOffer() {
-    final offer = _getOffer();
-    if (offer == null) return;
-
-    Clipboard.setData(ClipboardData(
-      text: '${offer.title}\n'
-          'Get ${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}% off at ${offer.client?['businessName'] ?? 'this store'}!\n'
-          'Download Offora app to claim this offer.',
-    ));
-    _showMessage('Offer details copied to clipboard!');
-  }
-
-  Future<void> _openMap() async {
-    final offer = _getOffer();
-    if (offer == null) return;
-
-    final location = offer.client?['location'] as String? ?? '';
-    if (location.isEmpty) {
-      _showMessage('Location not available');
-      return;
-    }
-
-    final url =
-        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(location)}';
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    } else {
-      _showMessage('Could not open maps');
-    }
-  }
+  // Removed unused _shareOffer, _openMap, _callBusiness, _emailBusiness
 
   void _showMessage(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
@@ -140,203 +121,28 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final offer = _getOffer();
+    final offer = widget.offer;
+    final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+    // Removed unused discount variable
 
-    if (offer == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Offer Details')),
-        body: const Center(child: Text('Offer not found')),
-      );
-    }
-
-    final currency = NumberFormat.currency(symbol: '₹');
-    final discount = ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
-        .toStringAsFixed(0);
-
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // Image Gallery AppBar
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            backgroundColor: AppColors.darkBlue,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  _isSaved ? Icons.bookmark : Icons.bookmark_border,
-                  color: Colors.white,
-                ),
-                onPressed: _toggleSave,
-              ),
-              IconButton(
-                icon: const Icon(Icons.share, color: Colors.white),
-                onPressed: _shareOffer,
-              ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (offer.imageUrls?.isNotEmpty == true)
-                    PageView.builder(
-                      itemCount: offer.imageUrls!.length,
-                      onPageChanged: (index) {
-                        setState(() => _currentImageIndex = index);
-                      },
-                      itemBuilder: (context, index) {
-                        return Image.network(
-                          offer.imageUrls![index],
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                        );
-                      },
-                    )
-                  else
-                    _buildPlaceholder(),
-
-                  // Gradient overlay
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      height: 120,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withAlpha(179),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Discount badge
-                  Positioned(
-                    top: 60,
-                    left: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.brightGold, AppColors.darkerGold],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(77),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        '$discount% OFF',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Image indicators
-                  if (offer.imageUrls != null && offer.imageUrls!.length > 1)
-                    Positioned(
-                      bottom: 80,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          offer.imageUrls!.length,
-                          (index) => Container(
-                            width: 8,
-                            height: 8,
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _currentImageIndex == index
-                                  ? Colors.white
-                                  : Colors.white.withAlpha(128),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-
-          // Content
-          SliverToBoxAdapter(
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 80),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title and store info
+                // Title
                 Container(
                   color: Colors.white,
                   padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        offer.title,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.darkBlue,
-                                ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          const Icon(Icons.store,
-                              size: 20, color: AppColors.darkerGold),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              offer.client?['businessName'] ?? 'Store',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey.shade700,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (offer.client?['location'] != null) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on,
-                                size: 20, color: AppColors.darkerGold),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                offer.client!['location'],
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ),
-                          ],
+                  child: Text(
+                    offer.title,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.darkBlue,
                         ),
-                      ],
-                    ],
                   ),
                 ),
 
@@ -420,7 +226,7 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Validity',
+                          'Offer Validity',
                           style:
                               Theme.of(context).textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.w800,
@@ -435,8 +241,9 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
                                   size: 16, color: Colors.grey.shade600),
                               const SizedBox(width: 8),
                               Text(
-                                'From: ${DateFormat('MMM d, yyyy').format(offer.startDate!)}',
-                                style: TextStyle(color: Colors.grey.shade700),
+                                'Start: ${DateFormat('MMM d, yyyy').format(offer.startDate!)}',
+                                style: TextStyle(
+                                    color: Colors.grey.shade700, fontSize: 15),
                               ),
                             ],
                           ),
@@ -448,8 +255,9 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
                                   size: 16, color: Colors.grey.shade600),
                               const SizedBox(width: 8),
                               Text(
-                                'Until: ${DateFormat('MMM d, yyyy').format(offer.endDate!)}',
-                                style: TextStyle(color: Colors.grey.shade700),
+                                'Ends: ${DateFormat('MMM d, yyyy').format(offer.endDate!)}',
+                                style: TextStyle(
+                                    color: Colors.grey.shade700, fontSize: 15),
                               ),
                             ],
                           ),
@@ -490,83 +298,75 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
                   ),
                 ],
 
-                const SizedBox(height: 100),
+                const SizedBox(height: 24),
+
+                // Save and Compare buttons below content
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _toggleSave,
+                          icon: Icon(
+                            _isSaved ? Icons.favorite : Icons.favorite_border,
+                            color: _isSaved
+                                ? AppColors.brightGold
+                                : AppColors.darkBlue,
+                          ),
+                          label: Text(_isSaved ? 'Saved' : 'Add to Saved'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.darkBlue,
+                            side: const BorderSide(
+                                color: AppColors.darkBlue, width: 2),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _toggleCompare,
+                          icon: Icon(
+                            _isInCompare ? Icons.done : Icons.compare_arrows,
+                            color: AppColors.darkBlue,
+                          ),
+                          label: Text(_isInCompare ? 'In Compare' : 'Compare'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.darkBlue,
+                            side: const BorderSide(
+                                color: AppColors.darkBlue, width: 2),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 32),
               ],
             ),
           ),
-        ],
-      ),
+        ),
 
-      // Action buttons
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(26),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _toggleCompare,
-                  icon: Icon(
-                    _isInCompare ? Icons.done : Icons.compare_arrows,
-                    size: 20,
-                  ),
-                  label: Text(_isInCompare ? 'In Compare' : 'Compare'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.darkBlue,
-                    side: const BorderSide(color: AppColors.darkBlue, width: 2),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton.icon(
-                  onPressed: _openMap,
-                  icon: const Icon(Icons.directions, size: 20),
-                  label: const Text('Get Directions'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brightGold,
-                    foregroundColor: AppColors.darkBlue,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+        // ...no bottom action bar...
+      ],
     );
   }
 
-  Widget _buildPlaceholder() {
-    return Container(
-      color: Colors.grey.shade300,
-      child: Icon(
-        Icons.image,
-        size: 100,
-        color: Colors.grey.shade500,
-      ),
-    );
-  }
+  // Removed unused _buildActionButton and _buildPlaceholder
 }
+
+// Removed unused _InfoRow class
 
 class _PriceRow extends StatelessWidget {
   final String label;

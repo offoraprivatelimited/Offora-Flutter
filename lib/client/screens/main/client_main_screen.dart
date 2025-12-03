@@ -5,6 +5,7 @@ import '../dashboard/enquiries_screen.dart';
 import '../dashboard/client_profile_screen.dart';
 import '../offers/new_offer_form_screen.dart';
 import 'add_offer_entry_screen.dart';
+import '../../../widgets/app_drawer.dart';
 
 class ClientMainScreen extends StatefulWidget {
   const ClientMainScreen({super.key});
@@ -18,6 +19,7 @@ class ClientMainScreen extends StatefulWidget {
 class _ClientMainScreenState extends State<ClientMainScreen> {
   // Keep index in sync with BottomNavigationBar items (0..3)
   int _currentIndex = 1; // default to Manage
+  Widget? _infoPage;
 
   final List<Widget> _screens = const [
     AddOfferEntryScreen(),
@@ -25,6 +27,19 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
     EnquiriesScreen(),
     ClientProfileScreen(),
   ];
+
+  void showInfoPage(Widget page) {
+    setState(() {
+      _infoPage = page;
+    });
+    Navigator.of(context).pop(); // Close drawer
+  }
+
+  void clearInfoPage() {
+    setState(() {
+      _infoPage = null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,44 +52,63 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
         elevation: 1,
         toolbarHeight: 44,
         automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            SizedBox(
-              height: 28,
-              child: Image.asset(
-                'assets/images/logo/original/Text_without_logo_without_background.png',
-                fit: BoxFit.contain,
+        title: Builder(
+          builder: (ctx) => Row(
+            children: [
+              IconButton(
+                icon: _infoPage != null
+                    ? const Icon(Icons.arrow_back, color: Color(0xFF1F477D))
+                    : const Icon(Icons.menu, color: Color(0xFF1F477D)),
+                onPressed: () {
+                  if (_infoPage != null) {
+                    clearInfoPage();
+                  } else {
+                    Scaffold.of(ctx).openDrawer();
+                  }
+                },
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 28,
+                child: Image.asset(
+                  'assets/images/logo/original/Text_without_logo_without_background.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ],
+          ),
         ),
         iconTheme: const IconThemeData(color: Color(0xFF1F477D)),
       ),
-      body: Column(
-        children: [
-          // Title row placed below the stable AppBar
-          Container(
-            width: double.infinity,
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Text(
-              titles[_currentIndex],
-              style: const TextStyle(
-                color: Color(0xFF1F477D),
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+      drawer: const AppDrawer(),
+      body: _infoPage != null
+          ? _infoPage!
+          : Column(
+              children: [
+                // Title row placed below the stable AppBar
+                Container(
+                  width: double.infinity,
+                  color: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Text(
+                    titles[_currentIndex],
+                    style: const TextStyle(
+                      color: Color(0xFF1F477D),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: IndexedStack(
+                    index: _currentIndex,
+                    children: _screens,
+                  ),
+                ),
+              ],
             ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: IndexedStack(
-              index: _currentIndex,
-              children: _screens,
-            ),
-          ),
-        ],
-      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -97,6 +131,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
             }
             setState(() {
               _currentIndex = index;
+              _infoPage = null; // Clear info page when switching tabs
             });
           },
           type: BottomNavigationBarType.fixed,

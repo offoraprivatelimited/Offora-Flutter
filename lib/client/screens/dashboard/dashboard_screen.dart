@@ -6,6 +6,7 @@ import '../../../services/auth_service.dart';
 import '../../services/offer_service.dart';
 import '../auth/login_screen.dart';
 import '../offers/new_offer_form_screen.dart';
+import '../../../widgets/app_drawer.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -125,6 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      drawer: const AppDrawer(),
       body: user == null
           ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
@@ -136,16 +138,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     elevation: 1,
                     toolbarHeight: 44,
                     automaticallyImplyLeading: false,
-                    title: Row(
-                      children: [
-                        SizedBox(
-                          height: 28,
-                          child: Image.asset(
-                            'assets/images/logo/original/Text_without_logo_without_background.png',
-                            fit: BoxFit.contain,
+                    title: Builder(
+                      builder: (ctx) => Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.menu,
+                                color: Color(0xFF1F477D)),
+                            onPressed: () {
+                              Scaffold.of(ctx).openDrawer();
+                            },
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            height: 28,
+                            child: Image.asset(
+                              'assets/images/logo/original/Text_without_logo_without_background.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

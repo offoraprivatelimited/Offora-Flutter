@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/exceptions.dart';
 import '../models/user.dart';
 import '../models/client_panel_stage.dart';
@@ -37,9 +38,31 @@ class AuthService extends ChangeNotifier {
   final _auth = FirebaseAuth.instance;
   final _googleSignIn = GoogleSignIn();
 
+  // Expose firestore for role checking in login screens
+  FirebaseFirestore get firestore => _firestore;
+
   AuthService() {
     // Listen to Firebase Auth state changes
     _auth.authStateChanges().listen(_handleAuthStateChanged);
+    // Check for persistent login on app start
+    _checkPersistentLogin();
+  }
+
+  Future<void> _checkPersistentLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    if (isLoggedIn && _auth.currentUser != null) {
+      // User is already authenticated, load profile
+      await _loadUserFromFirestore(_auth.currentUser!.uid);
+      _loggedIn = true;
+      await _determineStage(_auth.currentUser!.uid);
+      notifyListeners();
+    }
+  }
+
+  Future<void> _savePersistentLogin(bool isLoggedIn) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', isLoggedIn);
   }
 
   Future<void> _handleAuthStateChanged(User? user) async {
@@ -80,6 +103,7 @@ class AuthService extends ChangeNotifier {
         await _loadUserFromFirestore(user.uid);
         _loggedIn = true;
         await _determineStage(user.uid);
+        await _savePersistentLogin(true);
         notifyListeners();
       } else {
         throw AuthException('No user found after sign-in.');
@@ -214,6 +238,7 @@ class AuthService extends ChangeNotifier {
         await _loadUserFromFirestore(user.uid);
         _loggedIn = true;
         await _determineStage(user.uid);
+        await _savePersistentLogin(true);
         notifyListeners();
       } else {
         throw AuthException('No user found after sign-up.');
@@ -238,10 +263,10 @@ class AuthService extends ChangeNotifier {
     required String email,
     required String password,
     required String phone,
-    required String address,
-    required String gender,
-    required String dob,
     required String role, // 'user' or 'shopowner'
+    String? address,
+    String? gender,
+    String? dob,
   }) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
@@ -254,15 +279,12 @@ class AuthService extends ChangeNotifier {
         await user.updateDisplayName(name);
 
         if (role == 'user') {
-          // Only store user fields
+          // Only store essential user fields
           await _firestore.collection('users').doc(user.uid).set({
             'uid': user.uid,
             'name': name,
             'email': email,
             'phone': phone,
-            'address': address,
-            'gender': gender,
-            'dob': dob,
             'role': role,
             'createdAt': FieldValue.serverTimestamp(),
           });
@@ -273,9 +295,9 @@ class AuthService extends ChangeNotifier {
             name: name,
             email: email,
             phone: phone,
-            address: address,
-            gender: gender,
-            dob: dob,
+            address: address ?? '',
+            gender: gender ?? '',
+            dob: dob ?? '',
             role: role,
             approvalStatus: 'pending',
             rejectionReason: null,
@@ -355,35 +377,41 @@ class AuthService extends ChangeNotifier {
           // Use existing Firestore profile data (Casting for type safety)
           _currentUser = AppUser.fromMap(doc.data() as Map<String, dynamic>);
         } else {
-          // Create new profile with Google data
-          final appUser = AppUser(
-            uid: user.uid,
-            name: user.displayName ?? '',
-            email: user.email ?? '',
-            phone: user.phoneNumber ?? '',
-            address: '',
-            gender: '',
-            dob: '',
-            role: role,
-            approvalStatus: 'pending',
-            rejectionReason: null,
-            businessName: '',
-            contactPerson: '',
-            phoneNumber: user.phoneNumber ?? '',
-            location: '',
-            category: '',
-            gstNumber: null,
-            shopLicenseNumber: null,
-            businessRegistrationNumber: null,
-          );
-          await _firestore
-              .collection('users')
-              .doc(user.uid)
-              .set(appUser.toMap());
-          _currentUser = appUser;
+          // Create new profile with Google data - only essential fields
+          if (role == 'user') {
+            await _firestore.collection('users').doc(user.uid).set({
+              'uid': user.uid,
+              'name': user.displayName ?? '',
+              'email': user.email ?? '',
+              'phone': user.phoneNumber ?? '',
+              'role': role,
+              'createdAt': FieldValue.serverTimestamp(),
+            });
+            _currentUser = AppUser(
+              uid: user.uid,
+              name: user.displayName ?? '',
+              email: user.email ?? '',
+              phone: user.phoneNumber ?? '',
+              address: '',
+              gender: '',
+              dob: '',
+              role: role,
+              approvalStatus: 'pending',
+              rejectionReason: null,
+              businessName: '',
+              contactPerson: '',
+              phoneNumber: user.phoneNumber ?? '',
+              location: '',
+              category: '',
+              gstNumber: null,
+              shopLicenseNumber: null,
+              businessRegistrationNumber: null,
+            );
+          }
         }
 
         _loggedIn = true;
+        await _savePersistentLogin(true);
         notifyListeners();
       } else {
         throw AuthException(
@@ -437,6 +465,7 @@ class AuthService extends ChangeNotifier {
       await _auth.signOut();
       _currentUser = null;
       _loggedIn = false;
+      await _savePersistentLogin(false);
       notifyListeners();
     } catch (e) {
       throw AuthException('Sign out failed');

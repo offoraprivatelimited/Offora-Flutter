@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../widgets/app_drawer.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -77,71 +78,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const darkBlue = Color(0xFF1F477D);
     const brightGold = Color(0xFFF0B84D);
 
-    return SafeArea(
-      child: Column(
-        children: [
-          // Reduced height, white background header (logo and logout only)
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            height: 44,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  height: 28,
-                  child: Image.asset(
-                    'assets/images/logo/original/Text_without_logo_without_background.png',
-                    fit: BoxFit.contain,
-                  ),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        toolbarHeight: 44,
+        automaticallyImplyLeading: false,
+        title: Builder(
+          builder: (ctx) => Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.menu, color: Color(0xFF1F477D)),
+                onPressed: () {
+                  Scaffold.of(ctx).openDrawer();
+                },
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 28,
+                child: Image.asset(
+                  'assets/images/logo/original/Text_without_logo_without_background.png',
+                  fit: BoxFit.contain,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.logout, color: Color(0xFF1F477D)),
-                  tooltip: 'Logout',
-                  onPressed: () async {
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text(
-                          'Logout',
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 0, 0, 0), // darkBlue
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                          ),
-                        ),
-                        content: const Text(
-                          'Are you sure you want to logout?',
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 0, 0, 0), // darkBlue
-                            fontSize: 16,
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            style: TextButton.styleFrom(
-                                foregroundColor: Colors.red),
-                            child: const Text('Logout'),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (confirmed == true && context.mounted) {
-                      await context.read<AuthService>().signOut();
-                      if (context.mounted) {
-                        Navigator.pushReplacementNamed(context, '/user-login');
-                      }
-                    }
-                  },
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFF1F477D)),
+      ),
+      drawer: const AppDrawer(),
+      body: Column(
+        children: [
           // Heading below the header
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
@@ -171,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             : (_initialPhotoUrl != null
                                     ? NetworkImage(_initialPhotoUrl!)
                                     : const AssetImage(
-                                        'images/default_avatar.png'))
+                                        'assets/images/logo/original/Logo_without_text_with_background.jpg'))
                                 as ImageProvider,
                         child: _profileImage == null
                             ? const Icon(Icons.camera_alt,

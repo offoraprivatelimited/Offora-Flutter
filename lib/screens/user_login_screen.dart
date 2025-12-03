@@ -60,8 +60,28 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, MainScreen.routeName);
+      // Role check: Only allow if UID is in users, not clients
+      final uid = authService.currentUser?.uid;
+      final firestore = authService.firestore;
+      if (uid != null) {
+        final userDoc = await firestore.collection('users').doc(uid).get();
+        final clientDoc = await firestore.collection('clients').doc(uid).get();
+        if (userDoc.exists) {
+          // Allowed: user login
+          if (!mounted) return;
+          Navigator.pushReplacementNamed(context, MainScreen.routeName);
+        } else if (clientDoc.exists) {
+          // Block: shop owner trying to log in as user
+          await authService.signOut();
+          _showError(
+              'This account is registered as a shop owner. Please use the shop owner login.');
+        } else {
+          // Not found in either collection
+          await authService.signOut();
+          _showError(
+              'No user record found. Please sign up or contact support.');
+        }
+      }
     } catch (e) {
       _showError('Login failed: ${e.toString()}');
     }
@@ -76,9 +96,6 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         phone: _phoneController.text.trim(),
-        address: _cityController.text.trim(),
-        gender: '',
-        dob: '',
         role: 'user',
       );
       if (!mounted) return;

@@ -6,7 +6,7 @@ import '../services/saved_offers_service.dart';
 import '../widgets/offer_card.dart';
 import '../widgets/empty_state.dart';
 import '../client/models/offer.dart';
-import 'offer_details_screen.dart';
+import 'main_screen.dart';
 
 class SavedScreen extends StatelessWidget {
   const SavedScreen({super.key});
@@ -37,6 +37,12 @@ class SavedScreen extends StatelessWidget {
               elevation: 1,
               toolbarHeight: 44,
               automaticallyImplyLeading: false,
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.black87),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
               title: Row(
                 children: [
                   SizedBox(
@@ -119,18 +125,21 @@ class SavedScreen extends StatelessWidget {
                             offer.client?['businessName'] ?? offer.clientId,
                         'image': offer.imageUrls?.isNotEmpty == true
                             ? offer.imageUrls![0]
-                            : 'assets/images/placeholder.png',
+                            : 'assets/images/logo/original/Logo_without_text_with_background.jpg',
                         'discount':
-                            '${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}%',
+                            '${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF',
                       };
                       return OfferCard(
                         offer: offerMap,
                         offerData: offer,
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          OfferDetailsScreen.routeName,
-                          arguments: offer,
-                        ),
+                        onTap: () {
+                          // Find MainScreen ancestor and show offer details inline
+                          final mainScreenState = context
+                              .findAncestorStateOfType<MainScreenState>();
+                          if (mainScreenState != null) {
+                            mainScreenState.showOfferDetails(offer);
+                          }
+                        },
                       );
                     },
                     childCount: savedOffers.length,

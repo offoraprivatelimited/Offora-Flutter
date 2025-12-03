@@ -1,3 +1,8 @@
+import 'screens/about_us_page.dart';
+import 'screens/contact_us_page.dart';
+import 'screens/terms_and_conditions_page.dart';
+import 'screens/privacy_policy_page.dart';
+import 'screens/auth_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -52,8 +57,10 @@ class OfforaApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
-        initialRoute: user.UserSplashScreen.routeName,
+        initialRoute: AuthGate.routeName,
         routes: {
+          // Auth gate - checks persistent login
+          AuthGate.routeName: (_) => const AuthGate(),
           // Entry point
           RoleSelectionScreen.routeName: (_) => const RoleSelectionScreen(),
           // User flow
@@ -74,6 +81,10 @@ class OfforaApp extends StatelessWidget {
           client.NewOfferFormScreen.routeName: (_) =>
               const client.NewOfferFormScreen(),
           UserLoginScreen.routeName: (context) => const UserLoginScreen(),
+          '/about-us': (_) => const AboutUsPage(),
+          '/contact-us': (_) => const ContactUsPage(),
+          '/terms-and-conditions': (_) => const TermsAndConditionsPage(),
+          '/privacy-policy': (_) => const PrivacyPolicyPage(),
         },
       ),
     );

@@ -42,6 +42,7 @@ dependencies:
   firebase_storage: ^12.2.0
   flutter_launcher_icons: ^0.14.4
   url_strategy: ^0.3.0
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:

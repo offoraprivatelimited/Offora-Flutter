@@ -23,6 +23,12 @@ class CompareScreen extends StatelessWidget {
               elevation: 1,
               toolbarHeight: 44,
               automaticallyImplyLeading: false,
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.black87),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
               title: Row(
                 children: [
                   SizedBox(

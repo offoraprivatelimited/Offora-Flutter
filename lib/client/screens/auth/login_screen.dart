@@ -69,7 +69,27 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // The didChangeDependencies will handle routing based on approval status
+      // Role check: Only allow if UID is in clients, not users
+      final uid = auth.currentUser?.uid;
+      final firestore = auth.firestore;
+      if (uid != null) {
+        final clientDoc = await firestore.collection('clients').doc(uid).get();
+        final userDoc = await firestore.collection('users').doc(uid).get();
+        if (clientDoc.exists) {
+          // Allowed: shop owner login
+          // didChangeDependencies will handle routing
+        } else if (userDoc.exists) {
+          // Block: user trying to log in as shop owner
+          await auth.signOut();
+          _showError(
+              'This account is registered as a user. Please use the user login.');
+        } else {
+          // Not found in either collection
+          await auth.signOut();
+          _showError(
+              'No shop owner record found. Please sign up or contact support.');
+        }
+      }
     } on FirebaseAuthException catch (_) {
       _showError(auth.errorMessage ?? 'Unable to sign in. Please try again.');
     } catch (_) {

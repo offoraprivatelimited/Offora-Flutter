@@ -138,6 +138,10 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
                         }
 
                         if (snapshot.hasError) {
+                          // Print error to console for debugging
+                          // ignore: avoid_print
+                          print(
+                              'ManageOffersScreen error: \\n${snapshot.error}');
                           return Center(
                             child: Text(
                               'Error: ${snapshot.error}',
