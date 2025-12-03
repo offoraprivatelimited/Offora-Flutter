@@ -214,7 +214,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
             ),
           ),
-          
+
           // Search bar
           SliverToBoxAdapter(
             child: Padding(
@@ -255,7 +255,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
             ),
           ),
-          
+
           // Category chips
           SliverToBoxAdapter(
             child: SizedBox(
@@ -327,7 +327,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.78,
+                    childAspectRatio: 0.68,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
-// import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/colors.dart';
 import '../services/auth_service.dart';
 import '../services/saved_offers_service.dart';
@@ -112,54 +113,162 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
   }
 
   Future<void> _shareOffer() async {
-    try {
-      final discount =
-          ((1 - (widget.offer.discountPrice / widget.offer.originalPrice)) *
-                  100)
-              .toStringAsFixed(0);
-      final text = 'Check out this amazing offer!\n\n'
-          '${widget.offer.title}\n\n'
-          'Offer Price: ₹${widget.offer.discountPrice.toStringAsFixed(0)}\n'
-          'Original Price: ₹${widget.offer.originalPrice.toStringAsFixed(0)}\n'
-          'Save $discount%!\n\n'
-          '${widget.offer.description}\n\n'
-          'Download Offora app to get this offer!';
+    final discount =
+        ((1 - (widget.offer.discountPrice / widget.offer.originalPrice)) * 100)
+            .toStringAsFixed(0);
+    final text = 'Check out this amazing offer!\n\n'
+        '${widget.offer.title}\n\n'
+        'Offer Price: ₹${widget.offer.discountPrice.toStringAsFixed(0)}\n'
+        'Original Price: ₹${widget.offer.originalPrice.toStringAsFixed(0)}\n'
+        'Save $discount%!\n\n'
+        '${widget.offer.description}\n\n'
+        'Get this offer now: https://offora.com/offers/${widget.offer.id}\n\n'
+        'Download Offora app: https://offora.com';
 
-      // Try to share, if it fails (e.g., on web), copy to clipboard instead
+    if (kIsWeb) {
+      // On web, show share options dialog
+      _showWebShareDialog(text);
+    } else {
+      // On mobile (Android/iOS), use native share sheet
       try {
-        await Share.share(text, subject: widget.offer.title);
-        if (mounted) {
-          _showMessage('Share dialog opened');
-        }
-      } on MissingPluginException {
-        // Fallback for web or unsupported platforms
-        await Clipboard.setData(ClipboardData(text: text));
-        if (mounted) {
-          _showMessage('Offer details copied to clipboard!');
-        }
-      }
-    } catch (e) {
-      // Last resort fallback - copy to clipboard
-      try {
-        final discount =
-            ((1 - (widget.offer.discountPrice / widget.offer.originalPrice)) *
-                    100)
-                .toStringAsFixed(0);
-        final text = 'Check out this amazing offer!\n\n'
-            '${widget.offer.title}\n\n'
-            'Offer Price: ₹${widget.offer.discountPrice.toStringAsFixed(0)}\n'
-            'Original Price: ₹${widget.offer.originalPrice.toStringAsFixed(0)}\n'
-            'Save $discount%!\n\n'
-            '${widget.offer.description}\n\n'
-            'Download Offora app to get this offer!';
-        await Clipboard.setData(ClipboardData(text: text));
-        if (mounted) {
-          _showMessage('Copied to clipboard!');
-        }
-      } catch (clipboardError) {
+        await Share.share(
+          text,
+          subject: widget.offer.title,
+        );
+      } catch (e) {
         if (mounted) {
           _showMessage('Unable to share at this time');
         }
+      }
+    }
+  }
+
+  void _showWebShareDialog(String text) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Share Offer',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.darkBlue,
+                        ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // WhatsApp
+                  _ShareOption(
+                    icon: Icons.phone,
+                    label: 'WhatsApp',
+                    color: const Color(0xFF25D366),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _shareToWhatsApp(text);
+                    },
+                  ),
+
+                  // Facebook
+                  _ShareOption(
+                    icon: Icons.facebook,
+                    label: 'Facebook',
+                    color: const Color(0xFF1877F2),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _shareToFacebook();
+                    },
+                  ),
+
+                  // Twitter/X
+                  _ShareOption(
+                    icon: Icons.close,
+                    label: 'Twitter',
+                    color: Colors.black,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _shareToTwitter(text);
+                    },
+                  ),
+
+                  // Copy to clipboard
+                  _ShareOption(
+                    icon: Icons.content_copy,
+                    label: 'Copy to Clipboard',
+                    color: Colors.grey.shade700,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Clipboard.setData(ClipboardData(text: text));
+                      _showMessage('Copied to clipboard!');
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _shareToWhatsApp(String text) async {
+    final encodedText = Uri.encodeComponent(text);
+    final url = Uri.parse('https://wa.me/?text=$encodedText');
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        _showMessage('Could not open WhatsApp');
+      }
+    }
+  }
+
+  Future<void> _shareToFacebook() async {
+    // Facebook doesn't support pre-filled text, so just open Facebook
+    final url = Uri.parse(
+        'https://www.facebook.com/sharer/sharer.php?u=https://offora.com');
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        _showMessage('Could not open Facebook');
+      }
+    }
+  }
+
+  Future<void> _shareToTwitter(String text) async {
+    final encodedText = Uri.encodeComponent(text);
+    final url = Uri.parse('https://twitter.com/intent/tweet?text=$encodedText');
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        _showMessage('Could not open Twitter');
       }
     }
   }
@@ -516,6 +625,47 @@ class _ActionButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// Share option widget for web share dialog
+class _ShareOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ShareOption({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: color.withAlpha(25),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: color, size: 22),
+      ),
+      title: Text(
+        label,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
+        ),
+      ),
+      trailing:
+          Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+      contentPadding: const EdgeInsets.symmetric(vertical: 4),
     );
   }
 }
