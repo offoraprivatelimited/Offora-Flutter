@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 // import 'package:url_launcher/url_launcher.dart';
 import '../theme/colors.dart';
 import '../services/auth_service.dart';
@@ -110,7 +111,30 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
     }
   }
 
-  // Removed unused _shareOffer, _openMap, _callBusiness, _emailBusiness
+  Future<void> _shareOffer() async {
+    try {
+      final discount =
+          ((1 - (widget.offer.discountPrice / widget.offer.originalPrice)) *
+                  100)
+              .toStringAsFixed(0);
+      final text = '''
+🎉 Check out this amazing offer!
+
+${widget.offer.title}
+
+💰 Offer Price: ₹${widget.offer.discountPrice.toStringAsFixed(0)}
+🏷️ Original Price: ₹${widget.offer.originalPrice.toStringAsFixed(0)}
+✨ Save $discount%!
+
+${widget.offer.description}
+
+Download Offora app to get this offer!
+''';
+      await Share.share(text, subject: widget.offer.title);
+    } catch (e) {
+      _showMessage('Failed to share offer');
+    }
+  }
 
   void _showMessage(String message) {
     if (!mounted) return;
@@ -123,289 +147,347 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
   Widget build(BuildContext context) {
     final offer = widget.offer;
     final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-    // Removed unused discount variable
+    final discount = ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
+        .toStringAsFixed(0);
 
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 80),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(20),
-                  child: Text(
+    return Container(
+      color: const Color(0xFFF8F9FA),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Premium header with title and action buttons
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
                     offer.title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
                           color: AppColors.darkBlue,
+                          letterSpacing: -0.5,
+                          height: 1.2,
                         ),
                   ),
-                ),
+                  const SizedBox(height: 20),
 
-                const Divider(height: 1),
-
-                // Price details
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Price Details',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.darkBlue,
-                            ),
-                      ),
-                      const SizedBox(height: 16),
-                      _PriceRow(
-                        label: 'Original Price',
-                        value: currency.format(offer.originalPrice),
-                        isStrikethrough: true,
-                      ),
-                      const SizedBox(height: 12),
-                      _PriceRow(
-                        label: 'Offer Price',
-                        value: currency.format(offer.discountPrice),
-                        color: AppColors.brightGold,
-                        isBold: true,
-                      ),
-                      const SizedBox(height: 12),
-                      _PriceRow(
-                        label: 'You Save',
-                        value: currency
-                            .format(offer.originalPrice - offer.discountPrice),
-                        color: Colors.green.shade700,
-                        isBold: true,
-                      ),
-                    ],
-                  ),
-                ),
-
-                const Divider(height: 1),
-
-                // Description
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Description',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.darkBlue,
-                            ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        offer.description,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey.shade800,
-                          height: 1.6,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Validity
-                if (offer.startDate != null || offer.endDate != null) ...[
-                  const Divider(height: 1),
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Offer Validity',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.darkBlue,
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (offer.startDate != null)
-                          Row(
-                            children: [
-                              Icon(Icons.calendar_today,
-                                  size: 16, color: Colors.grey.shade600),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Start: ${DateFormat('MMM d, yyyy').format(offer.startDate!)}',
-                                style: TextStyle(
-                                    color: Colors.grey.shade700, fontSize: 15),
-                              ),
-                            ],
-                          ),
-                        if (offer.endDate != null) ...[
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(Icons.event,
-                                  size: 16, color: Colors.grey.shade600),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Ends: ${DateFormat('MMM d, yyyy').format(offer.endDate!)}',
-                                style: TextStyle(
-                                    color: Colors.grey.shade700, fontSize: 15),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-
-                // Terms
-                if (offer.terms != null && offer.terms!.isNotEmpty) ...[
-                  const Divider(height: 1),
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Terms & Conditions',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.darkBlue,
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          offer.terms!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade700,
-                            height: 1.6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 24),
-
-                // Save and Compare buttons below content
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
+                  // Action buttons row
+                  Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton.icon(
+                        child: _ActionButton(
+                          icon:
+                              _isSaved ? Icons.favorite : Icons.favorite_border,
+                          label: _isSaved ? 'Saved' : 'Save',
                           onPressed: _toggleSave,
-                          icon: Icon(
-                            _isSaved ? Icons.favorite : Icons.favorite_border,
-                            color: _isSaved
-                                ? AppColors.brightGold
-                                : AppColors.darkBlue,
-                          ),
-                          label: Text(_isSaved ? 'Saved' : 'Add to Saved'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.darkBlue,
-                            side: const BorderSide(
-                                color: AppColors.darkBlue, width: 2),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
+                          isActive: _isSaved,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: OutlinedButton.icon(
+                        child: _ActionButton(
+                          icon:
+                              _isInCompare ? Icons.done : Icons.compare_arrows,
+                          label: _isInCompare ? 'In Compare' : 'Compare',
                           onPressed: _toggleCompare,
-                          icon: Icon(
-                            _isInCompare ? Icons.done : Icons.compare_arrows,
-                            color: AppColors.darkBlue,
-                          ),
-                          label: Text(_isInCompare ? 'In Compare' : 'Compare'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.darkBlue,
-                            side: const BorderSide(
-                                color: AppColors.darkBlue, width: 2),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
+                          isActive: _isInCompare,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _ActionButton(
+                          icon: Icons.share_outlined,
+                          label: 'Share',
+                          onPressed: _shareOffer,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Price details with premium card
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Discount badge
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0B84D),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$discount% OFF',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Prices
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        currency.format(offer.discountPrice),
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.darkBlue,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Text(
+                          currency.format(offer.originalPrice),
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey.shade500,
+                            decoration: TextDecoration.lineThrough,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-
-                const SizedBox(height: 32),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    'You save ${currency.format(offer.originalPrice - offer.discountPrice)}',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.green.shade700,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
 
-        // ...no bottom action bar...
-      ],
+            const SizedBox(height: 16),
+
+            // Description
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Description',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.darkBlue,
+                          fontSize: 18,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    offer.description,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade700,
+                      height: 1.7,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Validity
+            if (offer.startDate != null || offer.endDate != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Offer Validity',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.darkBlue,
+                            fontSize: 18,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (offer.startDate != null)
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today,
+                              size: 18, color: AppColors.darkBlue),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Start: ${DateFormat('MMM d, yyyy').format(offer.startDate!)}',
+                            style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    if (offer.endDate != null) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Icon(Icons.event,
+                              size: 18, color: AppColors.darkBlue),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Ends: ${DateFormat('MMM d, yyyy').format(offer.endDate!)}',
+                            style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+
+            // Terms
+            if (offer.terms != null && offer.terms!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Terms & Conditions',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.darkBlue,
+                            fontSize: 18,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      offer.terms!,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                        height: 1.7,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
     );
   }
-
-  // Removed unused _buildActionButton and _buildPlaceholder
 }
 
-// Removed unused _InfoRow class
-
-class _PriceRow extends StatelessWidget {
+// Action button widget for save, compare, and share
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
   final String label;
-  final String value;
-  final Color? color;
-  final bool isBold;
-  final bool isStrikethrough;
+  final VoidCallback onPressed;
+  final bool isActive;
 
-  const _PriceRow({
+  const _ActionButton({
+    required this.icon,
     required this.label,
-    required this.value,
-    this.color,
-    this.isBold = false,
-    this.isStrikethrough = false,
+    required this.onPressed,
+    this.isActive = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 15,
-            color: Colors.grey.shade700,
-            fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+    return Material(
+      color: isActive ? const Color(0xFFF0B84D).withAlpha(25) : Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color:
+                  isActive ? const Color(0xFFF0B84D) : const Color(0xFFE5E7EB),
+              width: 1.5,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: isActive ? const Color(0xFFF0B84D) : AppColors.darkBlue,
+                size: 24,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  color:
+                      isActive ? const Color(0xFFF0B84D) : AppColors.darkBlue,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: isBold ? 18 : 15,
-            color: color ?? Colors.grey.shade800,
-            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
-            decoration: isStrikethrough ? TextDecoration.lineThrough : null,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

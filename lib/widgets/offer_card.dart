@@ -78,35 +78,28 @@ class _OfferCardState extends State<OfferCard> {
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFFF8F9FB),
-                const Color(0xFFE9EDF5),
-                const Color(0xFFF0B84D).withAlpha(10),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
             border: Border.all(
-              color: const Color(0xFFF0B84D).withAlpha(46),
-              width: 1.2,
+              color: const Color(0xFFE5E7EB),
+              width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha(20),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+                color: Colors.black.withAlpha(10),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
               ),
               BoxShadow(
-                color: const Color(0xFFF0B84D).withAlpha(20),
-                blurRadius: 12,
-                offset: const Offset(0, 2),
+                color: const Color(0xFF1F477D).withAlpha(15),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+                spreadRadius: -5,
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
             child: Stack(
               children: [
                 Padding(
@@ -120,24 +113,15 @@ class _OfferCardState extends State<OfferCard> {
                           .isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFF0B84D), Color(0xFFE5A037)],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFF0B84D).withAlpha(56),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                            color: const Color(0xFFF0B84D),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             widget.offer['discount'] ?? '',
                             style: const TextStyle(
-                              color: Color(0xFF1F477D),
+                              color: Colors.white,
                               fontWeight: FontWeight.w900,
                               fontSize: 13,
                               letterSpacing: 0.5,
@@ -185,63 +169,28 @@ class _OfferCardState extends State<OfferCard> {
 
                       // Price section
                       if (originalPrice != null && discountPrice != null) ...[
-                        Divider(
-                            height: 16,
-                            thickness: 1,
-                            color: const Color(0xFFF0B84D).withAlpha(13)),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                        const Divider(
+                            height: 16, thickness: 1, color: Color(0xFFE5E7EB)),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '₹${discountPrice.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF1F477D),
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    '₹${originalPrice.toStringAsFixed(0)}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                      decoration: TextDecoration.lineThrough,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                            Text(
+                              '₹${discountPrice.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF1F477D),
+                                letterSpacing: -0.5,
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.green.shade200,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  'Save ₹${(originalPrice - discountPrice).toStringAsFixed(0)}',
-                                  style: TextStyle(
-                                    color: Colors.green.shade700,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 11,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '₹${originalPrice.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[500],
+                                decoration: TextDecoration.lineThrough,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
