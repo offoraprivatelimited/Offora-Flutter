@@ -83,19 +83,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Reduced height, white background header (logo and logout only)
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            height: 44,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 SizedBox(
-                  height: 32,
+                  height: 28,
                   child: Image.asset(
                     'assets/images/logo/original/Text_without_logo_without_background.png',
                     fit: BoxFit.contain,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.logout, color: Colors.red),
+                  icon: const Icon(Icons.logout, color: Color(0xFF1F477D)),
                   tooltip: 'Logout',
                   onPressed: () async {
                     final confirmed = await showDialog<bool>(

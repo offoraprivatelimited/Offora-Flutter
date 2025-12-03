@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../client/models/offer.dart';
 import '../client/services/offer_service.dart';
 import '../widgets/offer_card.dart';
-import '../widgets/search_bar.dart';
+// import '../widgets/search_bar.dart';
 import 'offer_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _searchQuery = '';
+  // String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -58,20 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          // Search bar
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: AppSearchBar(
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value.toLowerCase();
-                  });
-                },
-                onTapFilter: () {},
-              ),
-            ),
-          ),
+          // Search bar removed
           // Approved offers section
           SliverToBoxAdapter(
             child: Padding(
@@ -120,17 +107,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   final offers = snapshot.data ?? [];
 
-                  // Apply search filter
-                  final filteredOffers = offers.where((offer) {
-                    if (_searchQuery.isEmpty) return true;
-                    final title = offer.title.toLowerCase();
-                    final businessName =
-                        (offer.client?['businessName'] ?? offer.clientId)
-                            .toString()
-                            .toLowerCase();
-                    return title.contains(_searchQuery) ||
-                        businessName.contains(_searchQuery);
-                  }).toList();
+                  // No search filter
+                  final filteredOffers = offers;
 
                   if (filteredOffers.isEmpty) {
                     return Center(
@@ -139,17 +117,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           children: [
                             Icon(
-                              _searchQuery.isEmpty
-                                  ? Icons.shopping_bag_outlined
-                                  : Icons.search_off,
+                              Icons.shopping_bag_outlined,
                               size: 64,
                               color: darkBlue.withAlpha(51),
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              _searchQuery.isEmpty
-                                  ? 'No offers available yet'
-                                  : 'No offers found',
+                              'No offers available yet',
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -157,9 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              _searchQuery.isEmpty
-                                  ? 'Check back soon for amazing deals!'
-                                  : 'Try a different search term',
+                              'Check back soon for amazing deals!',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall

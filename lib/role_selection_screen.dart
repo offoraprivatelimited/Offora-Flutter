@@ -18,9 +18,9 @@ class RoleSelectionScreen extends StatelessWidget {
         child: LayoutBuilder(builder: (context, constraints) {
           return Stack(
             children: [
-              // Decorative background shapes
+              // Decorative background shapes (rotated to bottom)
               Positioned(
-                top: -constraints.maxWidth * 0.25,
+                bottom: -constraints.maxWidth * 0.25,
                 left: -constraints.maxWidth * 0.2,
                 child: Container(
                   width: constraints.maxWidth * 0.9,
@@ -32,14 +32,14 @@ class RoleSelectionScreen extends StatelessWidget {
                         darkBlue.withAlpha(242),
                         darkBlue.withAlpha(153)
                       ],
-                      center: Alignment.topLeft,
+                      center: Alignment.bottomLeft,
                       radius: 0.8,
                     ),
                   ),
                 ),
               ),
               Positioned(
-                top: -constraints.maxWidth * 0.15,
+                bottom: -constraints.maxWidth * 0.15,
                 right: -constraints.maxWidth * 0.25,
                 child: Container(
                   width: constraints.maxWidth * 0.7,
@@ -51,7 +51,7 @@ class RoleSelectionScreen extends StatelessWidget {
                         brightGold.withAlpha(255),
                         brightGold.withAlpha(217)
                       ],
-                      center: Alignment.topRight,
+                      center: Alignment.bottomRight,
                       radius: 0.9,
                     ),
                     boxShadow: [
@@ -155,7 +155,7 @@ class RoleSelectionScreen extends StatelessWidget {
                         _SubduedRoleButton(
                           title: 'Business Owner',
                           buttonText: 'Continue as Shop Owner',
-                          accentColor: brightGold,
+                          accentColor: const Color.fromARGB(255, 255, 255, 255),
                           onPressed: () {
                             Navigator.pushReplacementNamed(
                               context,
@@ -250,8 +250,10 @@ class _SimpleRoleCard extends StatelessWidget {
                 child: Text(
                   buttonText,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 17,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ),
@@ -284,24 +286,29 @@ class _SubduedRoleButton extends StatelessWidget {
     // A smaller, simpler container to make it visually subordinate
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        foregroundColor: accentColor,
-        side: BorderSide(color: accentColor, width: 2),
+        foregroundColor: const Color.fromARGB(255, 252, 252, 252),
+        backgroundColor: Colors.white.withAlpha((0.85 * 255).toInt()),
+        side: const BorderSide(
+            color: Color.fromARGB(255, 255, 255, 255), width: 2),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+        elevation: 2,
       ),
       onPressed: onPressed,
       child: Row(
-        mainAxisSize: MainAxisSize.min, // Keep the button size minimal
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.store_outlined, size: 20),
-          const SizedBox(width: 8),
+          const Icon(Icons.store_outlined, size: 22, color: Colors.black),
+          const SizedBox(width: 10),
           Text(
             buttonText,
             style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
+              fontWeight: FontWeight.normal,
+              fontSize: 17,
+              color: Colors.black,
+              letterSpacing: 0.2,
             ),
           ),
         ],

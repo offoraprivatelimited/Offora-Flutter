@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../../../services/auth_service.dart';
 import '../../models/offer.dart';
 import '../../services/offer_service.dart';
@@ -17,6 +15,7 @@ class NewOfferFormScreen extends StatefulWidget {
 }
 
 class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
+  Offer? _editingOffer;
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -35,103 +34,15 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
   bool _isSubmitting = false;
-  bool _isEditing = false;
-  final List<XFile> _images = [];
-  List<String> _existingImageUrls = [];
+  final bool _isEditing = false;
+  final List<String> _existingImageUrls = [];
   OfferType _selectedOfferType = OfferType.percentageDiscount;
   OfferCategory _selectedCategory = OfferCategory.product;
-  List<String> _applicableProducts = [];
-  List<String> _applicableServices = [];
+  final List<String> _applicableProducts = [];
+  final List<String> _applicableServices = [];
 
   final darkBlue = const Color(0xFF1F477D);
   final brightGold = const Color(0xFFF0B84D);
-
-  Future<void> _pickImages() async {
-    final picker = ImagePicker();
-    try {
-      final results = await picker.pickMultiImage(imageQuality: 80);
-      if (results.isEmpty) return;
-      setState(() {
-        _images.addAll(results);
-      });
-    } catch (e) {
-      // ignore errors for now
-    }
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _originalPriceController.dispose();
-    _discountPriceController.dispose();
-    _termsController.dispose();
-    _buyQuantityController.dispose();
-    _getQuantityController.dispose();
-    _percentageOffController.dispose();
-    _flatDiscountController.dispose();
-    _minimumPurchaseController.dispose();
-    _maxUsageController.dispose();
-    _productController.dispose();
-    _serviceController.dispose();
-    super.dispose();
-  }
-
-  bool _didInitDependencies = false;
-  Offer? _editingOffer;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    if (_didInitDependencies) return;
-
-    final maybeOffer = ModalRoute.of(context)?.settings.arguments;
-    if (maybeOffer is Offer) {
-      _editingOffer = maybeOffer;
-      _titleController.text = maybeOffer.title;
-      _descriptionController.text = maybeOffer.description;
-      _originalPriceController.text = maybeOffer.originalPrice.toString();
-      _discountPriceController.text = maybeOffer.discountPrice.toString();
-      _termsController.text = maybeOffer.terms ?? '';
-      _startDate = maybeOffer.startDate;
-      _endDate = maybeOffer.endDate;
-      _selectedOfferType = maybeOffer.offerType;
-      _selectedCategory = maybeOffer.offerCategory;
-
-      if (maybeOffer.buyQuantity != null) {
-        _buyQuantityController.text = maybeOffer.buyQuantity.toString();
-      }
-      if (maybeOffer.getQuantity != null) {
-        _getQuantityController.text = maybeOffer.getQuantity.toString();
-      }
-      if (maybeOffer.percentageOff != null) {
-        _percentageOffController.text = maybeOffer.percentageOff.toString();
-      }
-      if (maybeOffer.flatDiscountAmount != null) {
-        _flatDiscountController.text = maybeOffer.flatDiscountAmount.toString();
-      }
-      if (maybeOffer.minimumPurchase != null) {
-        _minimumPurchaseController.text = maybeOffer.minimumPurchase.toString();
-      }
-      if (maybeOffer.maxUsagePerCustomer != null) {
-        _maxUsageController.text = maybeOffer.maxUsagePerCustomer.toString();
-      }
-      if (maybeOffer.applicableProducts != null) {
-        _applicableProducts = List.from(maybeOffer.applicableProducts!);
-      }
-      if (maybeOffer.applicableServices != null) {
-        _applicableServices = List.from(maybeOffer.applicableServices!);
-      }
-
-      if (maybeOffer.imageUrls != null) {
-        _existingImageUrls = List.from(maybeOffer.imageUrls!);
-      }
-      _isEditing = true;
-    }
-
-    _didInitDependencies = true;
-  }
 
   Future<void> _pickDate({required bool isStart}) async {
     final initialDate = isStart
@@ -242,9 +153,12 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           createdAt: _editingOffer?.createdAt,
         );
 
+        debugPrint('[DEBUG] Submitting edited offer (no images):');
+        debugPrint(offer.toJson().toString());
+
         await offerService.updateOfferAdvanced(
           offer: offer,
-          newImages: _images.isEmpty ? null : _images,
+          newImages: null, // Remove image upload
         );
       } else {
         final offer = Offer(
@@ -288,15 +202,74 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           createdAt: DateTime.now(),
         );
 
+        debugPrint('[DEBUG] Submitting new offer (no images):');
+        debugPrint(offer.toJson().toString());
+
         await offerService.submitOfferAdvanced(
           offer: offer,
-          images: _images.isEmpty ? null : _images,
+          images: null, // Remove image upload
         );
       }
 
       if (!mounted) return;
-      Navigator.of(context).pop(true);
-    } catch (error) {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Dialog(
+          backgroundColor: Colors.white,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.celebration, color: brightGold, size: 56),
+                const SizedBox(height: 16),
+                Text(
+                  'Offer Submitted!',
+                  style: TextStyle(
+                    color: darkBlue,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Your offer has been submitted for review and is now pending approval.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: darkBlue, fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: brightGold,
+                    foregroundColor: darkBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 14),
+                  ),
+                  icon: const Icon(Icons.arrow_forward),
+                  label: const Text('Go to My Offers'),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      if (mounted) {
+        // Replace with your actual manage offers page route and pass a param to show pending section
+        Navigator.of(context).pushReplacementNamed(
+          '/manage-offers',
+          arguments: {'section': 'pending'},
+        );
+      }
+    } catch (error, stack) {
+      debugPrint('[ERROR] Offer submit failed: $error');
+      debugPrint('[ERROR] Stack trace: $stack');
       _showError('Could not ${_isEditing ? 'update' : 'submit'} offer: $error');
     } finally {
       if (mounted) {
@@ -879,6 +852,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
             ),
           ],
         ),
+        automaticallyImplyLeading: false,
         iconTheme: IconThemeData(color: darkBlue),
       ),
       body: Column(
@@ -888,13 +862,23 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
             width: double.infinity,
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Text(
-              _isEditing ? 'Edit Offer' : 'Create New Offer',
-              style: TextStyle(
-                color: darkBlue,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_back, color: darkBlue),
+                  onPressed: () => Navigator.of(context).pop(),
+                  tooltip: 'Back',
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _isEditing ? 'Edit Offer' : 'Create New Offer',
+                  style: TextStyle(
+                    color: darkBlue,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ),
           const Divider(height: 1),
@@ -1027,103 +1011,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                             ),
                             const SizedBox(height: 18),
 
-                            // Image picker
-                            Text(
-                              'Offer Images',
-                              style: TextStyle(
-                                color: darkBlue,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  ..._images.map((img) {
-                                    return Padding(
-                                      padding:
-                                          const EdgeInsets.only(right: 12.0),
-                                      child: Stack(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            child: Image.file(
-                                              File(img.path),
-                                              width: 100,
-                                              height: 100,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                          Positioned(
-                                            top: 4,
-                                            right: 4,
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                setState(() {
-                                                  _images.remove(img);
-                                                });
-                                              },
-                                              child: Container(
-                                                decoration: const BoxDecoration(
-                                                  color: Colors.red,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                padding:
-                                                    const EdgeInsets.all(4),
-                                                child: const Icon(
-                                                  Icons.close,
-                                                  size: 16,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                                  InkWell(
-                                    onTap: _pickImages,
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Container(
-                                      width: 100,
-                                      height: 100,
-                                      decoration: BoxDecoration(
-                                        color:
-                                            brightGold.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: brightGold,
-                                          width: 2,
-                                          style: BorderStyle.solid,
-                                        ),
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.add_photo_alternate,
-                                              color: brightGold, size: 32),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Add Photos',
-                                            style: TextStyle(
-                                              color: brightGold,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 18),
+                            // ...existing code...
 
                             TextFormField(
                               controller: _descriptionController,

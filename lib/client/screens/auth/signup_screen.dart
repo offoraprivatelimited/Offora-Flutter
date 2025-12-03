@@ -201,14 +201,18 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
               Positioned(
-                top: 0,
-                left: 0,
-                child: SafeArea(
+                top: 32,
+                left: 16,
+                child: Material(
+                  color: Colors.transparent,
+                  elevation: 4,
+                  shape: const CircleBorder(),
                   child: IconButton(
-                    onPressed: () => Navigator.of(context)
-                        .pushReplacementNamed('/role-selection'),
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
-                    tooltip: 'Back to role selection',
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back,
+                        color: Color(0xFF1F477D), size: 28),
+                    tooltip: 'Back',
+                    padding: const EdgeInsets.all(8),
                   ),
                 ),
               ),
@@ -238,6 +242,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(
                                     child: Column(
@@ -263,22 +268,43 @@ class _SignupScreenState extends State<SignupScreen> {
                                       ],
                                     ),
                                   ),
-                                  Container(
-                                    width: 90,
-                                    height: 90,
-                                    decoration: BoxDecoration(
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: darkerGold.withAlpha(56),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 6),
+                                  Stack(
+                                    alignment: Alignment.topRight,
+                                    children: [
+                                      Container(
+                                        width: 90,
+                                        height: 90,
+                                        decoration: BoxDecoration(
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: darkerGold.withAlpha(56),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 6),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                    child: Image.asset(
-                                      'assets/images/logo/original/Logo_without_text_without_background.png',
-                                      fit: BoxFit.contain,
-                                    ),
+                                        child: Image.asset(
+                                          'assets/images/logo/original/Logo_without_text_without_background.png',
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 0,
+                                        right: 0,
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: IconButton(
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(),
+                                            icon: const Icon(Icons.arrow_back,
+                                                color: Color(0xFF1F477D),
+                                                size: 26),
+                                            tooltip: 'Back',
+                                            padding: const EdgeInsets.all(4),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

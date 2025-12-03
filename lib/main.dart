@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 import 'theme/app_theme.dart';
 import 'services/auth_service.dart';
@@ -27,6 +28,7 @@ import 'client/screens/offers/new_offer_form_screen.dart' as client;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  setPathUrlStrategy();
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const OfforaApp());

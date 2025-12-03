@@ -102,13 +102,15 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               // Back button
               Positioned(
-                top: 0,
-                left: 0,
-                child: SafeArea(
+                top: 16,
+                left: 16,
+                child: Material(
+                  color: Colors.transparent,
                   child: IconButton(
                     onPressed: () => Navigator.of(context)
                         .pushReplacementNamed('/role-selection'),
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    icon:
+                        const Icon(Icons.arrow_back, color: Color(0xFF1F477D)),
                     tooltip: 'Back to role selection',
                   ),
                 ),

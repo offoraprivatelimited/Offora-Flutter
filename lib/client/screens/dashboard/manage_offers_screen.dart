@@ -139,7 +139,15 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
 
                         if (snapshot.hasError) {
                           return Center(
-                            child: Text('Error: ${snapshot.error}'),
+                            child: Text(
+                              'Error: ${snapshot.error}',
+                              style: TextStyle(
+                                color: darkBlue,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           );
                         }
 

@@ -15,7 +15,7 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
-  String _searchQuery = '';
+  final String _searchQuery = '';
   String? _selectedCategory;
   String _sortBy = 'newest'; // newest, discount, price
 
@@ -175,70 +175,33 @@ class _ExploreScreenState extends State<ExploreScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Explore',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: AppColors.darkBlue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  TextField(
-                    onChanged: (value) => setState(() => _searchQuery = value),
-                    decoration: InputDecoration(
-                      hintText: 'Search offers, stores...',
-                      prefixIcon:
-                          const Icon(Icons.search, color: AppColors.darkBlue),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () =>
-                                  setState(() => _searchQuery = ''),
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
+                  Text(
+                    'Explore',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: AppColors.darkBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: _showSortOptions,
+                    icon: const Icon(Icons.sort, size: 18),
+                    label: Text(_getSortLabel()),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.darkBlue,
+                      side: const BorderSide(color: AppColors.darkBlue),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: _showSortOptions,
-                        icon: const Icon(Icons.sort, size: 18),
-                        label: Text(_getSortLabel()),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.darkBlue,
-                          side: const BorderSide(color: AppColors.darkBlue),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
             ),
           ),
+          // Search bar and sort button row removed; sort button moved to Explore title row
           SliverToBoxAdapter(
             child: SizedBox(
               height: 50,

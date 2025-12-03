@@ -225,18 +225,18 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                           children: [
                             TextButton(
                               onPressed: _cancelEditing,
-                              child: const Text('Cancel'),
                               style: TextButton.styleFrom(
                                   foregroundColor: darkBlue),
+                              child: const Text('Cancel'),
                             ),
                             const SizedBox(width: 8),
                             TextButton(
                               onPressed: _saveProfile,
-                              child: const Text('Save'),
                               style: TextButton.styleFrom(
                                   foregroundColor: darkBlue,
                                   textStyle: const TextStyle(
                                       fontWeight: FontWeight.w700)),
+                              child: const Text('Save'),
                             ),
                           ],
                         ),
@@ -416,11 +416,12 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                       (route) => false,
                     );
                   },
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Logout'),
+                  icon: const Icon(Icons.logout, color: Color(0xFF1F477D)),
+                  label: const Text('Logout',
+                      style: TextStyle(color: Color(0xFF1F477D))),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
+                    foregroundColor: const Color(0xFF1F477D),
+                    side: const BorderSide(color: Color(0xFF1F477D)),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),

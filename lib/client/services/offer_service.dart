@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -7,6 +7,29 @@ import 'package:image_picker/image_picker.dart';
 import '../models/offer.dart';
 
 class OfferService {
+  /// Fetch all offers uploaded by a client from their offers subcollection, with optional status filter
+  Stream<List<Offer>> watchClientOffersByStatus(String clientId,
+      {String? status}) {
+    final offersRef =
+        _firestore.collection('clients').doc(clientId).collection('offers');
+    return offersRef.snapshots().asyncMap((snapshot) async {
+      final offerIds = snapshot.docs.map((doc) => doc.id).toList();
+      if (offerIds.isEmpty) return <Offer>[];
+
+      // Fetch offer docs from all status collections
+      final statuses = ['pending', 'approved', 'rejected'];
+      final List<Offer> offers = [];
+      for (final s in statuses) {
+        if (status != null && s != status) continue;
+        final query = await _statusCollection(s)
+            .where(FieldPath.documentId, whereIn: offerIds)
+            .get();
+        offers.addAll(query.docs.map((doc) => Offer.fromFirestore(doc)));
+      }
+      return offers;
+    });
+  }
+
   OfferService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
@@ -104,11 +127,13 @@ class OfferService {
       final storage = FirebaseStorage.instance;
       imageUrls = [];
       for (var i = 0; i < images.length; i++) {
-        final file = File(images[i].path);
+        final Uint8List data = await images[i].readAsBytes();
         final ref = storage.ref().child(
-              'offers/$clientId/${createdAt.millisecondsSinceEpoch}_$i.jpg',
-            );
-        final uploadTask = await ref.putFile(file);
+            'offers/$clientId/${createdAt.millisecondsSinceEpoch}_$i.jpg');
+        final uploadTask = await ref.putData(
+          data,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
         final downloadUrl = await uploadTask.ref.getDownloadURL();
         imageUrls.add(downloadUrl);
       }
@@ -147,10 +172,13 @@ class OfferService {
       final storage = FirebaseStorage.instance;
       imageUrls = [];
       for (var i = 0; i < images.length; i++) {
-        final file = File(images[i].path);
+        final Uint8List data = await images[i].readAsBytes();
         final ref = storage.ref().child(
             'offers/${offer.clientId}/${createdAt.millisecondsSinceEpoch}_$i.jpg');
-        final uploadTask = await ref.putFile(file);
+        final uploadTask = await ref.putData(
+          data,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
         final downloadUrl = await uploadTask.ref.getDownloadURL();
         imageUrls.add(downloadUrl);
       }
@@ -185,6 +213,16 @@ class OfferService {
     );
 
     final docRef = await _statusCollection('pending').add(toSave.toJson());
+
+    // Also store the offer id in the client's offers subcollection
+    if (toSave.clientId.isNotEmpty) {
+      await _firestore
+          .collection('clients')
+          .doc(toSave.clientId)
+          .collection('offers')
+          .doc(docRef.id)
+          .set({'offerId': docRef.id, 'createdAt': createdAt});
+    }
     return docRef.id;
   }
 
@@ -273,11 +311,14 @@ class OfferService {
         final timestamp = DateTime.now().millisecondsSinceEpoch;
 
         for (var i = 0; i < newImages.length; i++) {
-          final file = File(newImages[i].path);
+          final Uint8List data = await newImages[i].readAsBytes();
           final ref = storage.ref().child(
                 'offers/${pendingDoc.data()?['clientId']}/${timestamp}_$i.jpg',
               );
-          final uploadTask = await ref.putFile(file);
+          final uploadTask = await ref.putData(
+            data,
+            SettableMetadata(contentType: 'image/jpeg'),
+          );
           final downloadUrl = await uploadTask.ref.getDownloadURL();
           allImageUrls.add(downloadUrl);
         }
@@ -317,11 +358,14 @@ class OfferService {
         final storage = FirebaseStorage.instance;
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         for (var i = 0; i < newImages.length; i++) {
-          final file = File(newImages[i].path);
+          final Uint8List data = await newImages[i].readAsBytes();
           final ref = storage
               .ref()
               .child('offers/${offer.clientId}/${timestamp}_$i.jpg');
-          final uploadTask = await ref.putFile(file);
+          final uploadTask = await ref.putData(
+            data,
+            SettableMetadata(contentType: 'image/jpeg'),
+          );
           final downloadUrl = await uploadTask.ref.getDownloadURL();
           allImageUrls.add(downloadUrl);
         }

@@ -376,6 +376,7 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    const darkBlue = Color(0xFF1F477D);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -391,6 +392,7 @@ class _DetailRow extends StatelessWidget {
             textAlign: TextAlign.end,
             style: theme.textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w600,
+              color: darkBlue,
             ),
           ),
         ),
