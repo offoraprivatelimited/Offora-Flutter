@@ -74,7 +74,7 @@ class _OfferCardState extends State<OfferCard> {
     return GestureDetector(
       onTap: widget.onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
@@ -110,10 +110,9 @@ class _OfferCardState extends State<OfferCard> {
             child: Stack(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // Discount badge
                       if ((widget.offer['discount'] ?? '')
@@ -121,16 +120,16 @@ class _OfferCardState extends State<OfferCard> {
                           .isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 7),
+                              horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [Color(0xFFF0B84D), Color(0xFFE5A037)],
                             ),
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(0xFFF0B84D).withAlpha(56),
-                                blurRadius: 10,
+                                blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
                             ],
@@ -140,39 +139,39 @@ class _OfferCardState extends State<OfferCard> {
                             style: const TextStyle(
                               color: Color(0xFF1F477D),
                               fontWeight: FontWeight.w900,
-                              fontSize: 15,
-                              letterSpacing: 0.6,
+                              fontSize: 13,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
 
                       // Title
                       Text(
                         widget.offer['title'] ?? '',
                         style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
                           color: Color(0xFF1F477D),
-                          height: 1.25,
+                          height: 1.2,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 6),
 
                       // Store name
                       Row(
                         children: [
                           Icon(Icons.store_outlined,
-                              size: 18, color: Colors.grey[600]),
-                          const SizedBox(width: 7),
+                              size: 14, color: Colors.grey[600]),
+                          const SizedBox(width: 5),
                           Expanded(
                             child: Text(
                               widget.offer['store'] ?? '',
                               style: TextStyle(
                                 color: Colors.grey[700],
-                                fontSize: 15,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
                               maxLines: 1,
@@ -182,26 +181,27 @@ class _OfferCardState extends State<OfferCard> {
                         ],
                       ),
 
-                      const SizedBox(height: 18),
+                      const Spacer(),
 
                       // Price section
                       if (originalPrice != null && discountPrice != null) ...[
                         Divider(
-                            height: 24,
-                            thickness: 1.1,
+                            height: 16,
+                            thickness: 1,
                             color: const Color(0xFFF0B84D).withAlpha(13)),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
                                     '₹${discountPrice.toStringAsFixed(0)}',
                                     style: const TextStyle(
-                                      fontSize: 22,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.w900,
                                       color: Color(0xFF1F477D),
                                     ),
@@ -210,7 +210,7 @@ class _OfferCardState extends State<OfferCard> {
                                   Text(
                                     '₹${originalPrice.toStringAsFixed(0)}',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 12,
                                       color: Colors.grey[600],
                                       decoration: TextDecoration.lineThrough,
                                       fontWeight: FontWeight.w600,
@@ -220,14 +220,14 @@ class _OfferCardState extends State<OfferCard> {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Flexible(
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 7),
+                                    horizontal: 8, vertical: 5),
                                 decoration: BoxDecoration(
                                   color: Colors.green.shade50,
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: Colors.green.shade200,
                                     width: 1,
@@ -238,7 +238,7 @@ class _OfferCardState extends State<OfferCard> {
                                   style: TextStyle(
                                     color: Colors.green.shade700,
                                     fontWeight: FontWeight.w800,
-                                    fontSize: 14,
+                                    fontSize: 11,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -254,8 +254,8 @@ class _OfferCardState extends State<OfferCard> {
                 // Overlay action buttons (only if offerData provided)
                 if (widget.offerData != null)
                   Positioned(
-                    top: 18,
-                    right: 18,
+                    top: 12,
+                    right: 12,
                     child: Column(
                       children: [
                         Container(
@@ -264,8 +264,8 @@ class _OfferCardState extends State<OfferCard> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withAlpha(25),
-                                blurRadius: 10,
+                                color: Colors.black.withAlpha(20),
+                                blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
                             ],
@@ -276,22 +276,22 @@ class _OfferCardState extends State<OfferCard> {
                               color: _isSaved
                                   ? const Color(0xFFF0B84D)
                                   : Colors.grey[600],
-                              size: 24,
+                              size: 20,
                             ),
                             onPressed: _toggleSaveStatus,
-                            padding: const EdgeInsets.all(10),
+                            padding: const EdgeInsets.all(8),
                             constraints: const BoxConstraints(),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withAlpha(25),
-                                blurRadius: 10,
+                                color: Colors.black.withAlpha(20),
+                                blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
                             ],
@@ -304,7 +304,7 @@ class _OfferCardState extends State<OfferCard> {
                               color: isInCompare
                                   ? const Color(0xFF1F477D)
                                   : Colors.grey[600],
-                              size: 24,
+                              size: 20,
                             ),
                             onPressed: () {
                               if (!compareService.isFull || isInCompare) {
@@ -319,7 +319,7 @@ class _OfferCardState extends State<OfferCard> {
                                 );
                               }
                             },
-                            padding: const EdgeInsets.all(10),
+                            padding: const EdgeInsets.all(8),
                             constraints: const BoxConstraints(),
                           ),
                         ),
