@@ -15,9 +15,10 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
-  final String _searchQuery = '';
+  String _searchQuery = '';
   String? _selectedCategory;
   String _sortBy = 'newest'; // newest, discount, price
+  final TextEditingController _searchController = TextEditingController();
 
   final List<String> _categories = [
     'All',
@@ -149,6 +150,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: CustomScrollView(
@@ -207,7 +214,49 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
             ),
           ),
-          // Search bar and sort button row removed; sort button moved to Explore title row
+          
+          // Search bar
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search offers...',
+                  hintStyle: TextStyle(color: Colors.grey.shade500),
+                  prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, color: Colors.grey.shade600),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
+          // Category chips
           SliverToBoxAdapter(
             child: SizedBox(
               height: 50,

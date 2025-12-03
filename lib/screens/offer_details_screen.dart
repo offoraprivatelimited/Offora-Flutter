@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
@@ -125,13 +125,41 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           '${widget.offer.description}\n\n'
           'Download Offora app to get this offer!';
 
-      final result = await Share.share(text, subject: widget.offer.title);
-      if (result.status == ShareResultStatus.success) {
-        _showMessage('Offer shared successfully!');
+      // Try to share, if it fails (e.g., on web), copy to clipboard instead
+      try {
+        await Share.share(text, subject: widget.offer.title);
+        if (mounted) {
+          _showMessage('Share dialog opened');
+        }
+      } on MissingPluginException {
+        // Fallback for web or unsupported platforms
+        await Clipboard.setData(ClipboardData(text: text));
+        if (mounted) {
+          _showMessage('Offer details copied to clipboard!');
+        }
       }
     } catch (e) {
-      if (mounted) {
-        _showMessage('Unable to share: ${e.toString()}');
+      // Last resort fallback - copy to clipboard
+      try {
+        final discount =
+            ((1 - (widget.offer.discountPrice / widget.offer.originalPrice)) *
+                    100)
+                .toStringAsFixed(0);
+        final text = 'Check out this amazing offer!\n\n'
+            '${widget.offer.title}\n\n'
+            'Offer Price: ₹${widget.offer.discountPrice.toStringAsFixed(0)}\n'
+            'Original Price: ₹${widget.offer.originalPrice.toStringAsFixed(0)}\n'
+            'Save $discount%!\n\n'
+            '${widget.offer.description}\n\n'
+            'Download Offora app to get this offer!';
+        await Clipboard.setData(ClipboardData(text: text));
+        if (mounted) {
+          _showMessage('Copied to clipboard!');
+        }
+      } catch (clipboardError) {
+        if (mounted) {
+          _showMessage('Unable to share at this time');
+        }
       }
     }
   }
