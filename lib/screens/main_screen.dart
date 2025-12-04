@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:offora/widgets/premium_app_bar.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/custom_bottom_navbar.dart';
 import 'home_screen.dart';
 import 'explore_screen.dart';
@@ -55,52 +57,12 @@ class MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
+      appBar: const PremiumAppBar(),
+      drawer: const AppDrawer(),
       body: _infoPage != null
-          ? Column(
-              children: [
-                AppBar(
-                  backgroundColor: Colors.white,
-                  elevation: 1,
-                  leading: IconButton(
-                    icon:
-                        const Icon(Icons.arrow_back, color: Color(0xFF1F477D)),
-                    onPressed: clearInfoPage,
-                  ),
-                  title: SizedBox(
-                    height: 28,
-                    child: Image.asset(
-                      'assets/images/logo/original/Text_without_logo_without_background.png',
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-                Expanded(child: _infoPage!),
-              ],
-            )
+          ? _infoPage!
           : _selectedOffer != null
-              ? Column(
-                  children: [
-                    AppBar(
-                      backgroundColor: Colors.white,
-                      elevation: 1,
-                      leading: IconButton(
-                        icon: const Icon(Icons.arrow_back,
-                            color: Color(0xFF1F477D)),
-                        onPressed: clearInfoPage,
-                      ),
-                      title: SizedBox(
-                        height: 28,
-                        child: Image.asset(
-                          'assets/images/logo/original/Text_without_logo_without_background.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: OfferDetailsContent(offer: _selectedOffer!),
-                    ),
-                  ],
-                )
+              ? OfferDetailsContent(offer: _selectedOffer!)
               : AnimatedSwitcher(
                   duration: const Duration(milliseconds: 350),
                   child: _tabs[_index],

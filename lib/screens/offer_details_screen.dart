@@ -24,9 +24,10 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is! Offer) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Offer Details')),
-        body: const Center(child: Text('Offer not found')),
+      return const Scaffold(
+        body: Center(
+          child: Text('Invalid offer data'),
+        ),
       );
     }
 

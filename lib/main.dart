@@ -78,6 +78,8 @@ class OfforaApp extends StatelessWidget {
           client.RejectionPage.routeName: (_) => const client.RejectionPage(),
           client.DashboardScreen.routeName: (_) =>
               const client.ClientMainScreen(),
+          client.ClientMainScreen.routeName: (_) =>
+              const client.ClientMainScreen(),
           client.NewOfferFormScreen.routeName: (_) =>
               const client.NewOfferFormScreen(),
           UserLoginScreen.routeName: (context) => const UserLoginScreen(),

@@ -31,46 +31,6 @@ class SavedScreen extends StatelessWidget {
     return SafeArea(
       child: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(
-            child: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 1,
-              toolbarHeight: 44,
-              automaticallyImplyLeading: false,
-              leading: Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu, color: Colors.black87),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                ),
-              ),
-              title: Row(
-                children: [
-                  SizedBox(
-                    height: 28,
-                    child: Image.asset(
-                      'assets/images/logo/original/Text_without_logo_without_background.png',
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Saved',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: AppColors.darkBlue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-            ),
-          ),
           FutureBuilder<List<Offer>>(
             future: context.read<SavedOffersService>().getSavedOffers(user.uid),
             builder: (context, snapshot) {

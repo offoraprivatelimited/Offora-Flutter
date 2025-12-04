@@ -42,12 +42,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDcBRA9Wtncwi14BkWuzXXUW3P3RPOpKo8',
-    appId: '1:266482313771:web:d36fa5e5afc224cd9b986e',
+    appId: '1:266482313771:web:1816917f7eb0ba3c9b986e',
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
     authDomain: 'offora-private-limited.firebaseapp.com',
     storageBucket: 'offora-private-limited.firebasestorage.app',
-    measurementId: 'G-LP3K1E5D96',
+    measurementId: 'G-LW1L9P3JVG',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -87,4 +87,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'offora-private-limited.firebasestorage.app',
     measurementId: 'G-LW1L9P3JVG',
   );
+
 }

@@ -1,4 +1,8 @@
+import 'dart:typed_data';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../services/auth_service.dart';
@@ -36,6 +40,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   bool _isSubmitting = false;
   final bool _isEditing = false;
   final List<String> _existingImageUrls = [];
+  final List<SelectedImage> _selectedImages = [];
   OfferType _selectedOfferType = OfferType.percentageDiscount;
   OfferCategory _selectedCategory = OfferCategory.product;
   final List<String> _applicableProducts = [];
@@ -43,6 +48,258 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
 
   final darkBlue = const Color(0xFF1F477D);
   final brightGold = const Color(0xFFF0B84D);
+  final ImagePicker _imagePicker = ImagePicker();
+
+  Future<SelectedImage> _toSelectedImage(XFile xFile) async {
+    final bytes = await xFile.readAsBytes();
+    final ext = _extensionFromName(xFile.name);
+
+    return SelectedImage(
+      bytes: bytes,
+      fileName: xFile.name.isNotEmpty
+          ? xFile.name
+          : 'image_${DateTime.now().millisecondsSinceEpoch}',
+      mimeType: _mimeTypeFromExtension(ext),
+    );
+  }
+
+  String _buildStorageFileName(SelectedImage image, int index) {
+    final ext = _extensionFromName(image.fileName) ?? 'jpg';
+    return 'offer_${DateTime.now().millisecondsSinceEpoch}_$index.$ext';
+  }
+
+  String? _extensionFromName(String name) {
+    final parts = name.split('.');
+    if (parts.length < 2) return null;
+    final ext = parts.last.toLowerCase();
+    const allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'];
+    return allowed.contains(ext) ? ext : null;
+  }
+
+  String? _mimeTypeFromExtension(String? ext) {
+    switch (ext) {
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      case 'heic':
+        return 'image/heic';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      default:
+        return null;
+    }
+  }
+
+  Future<void> _pickImages() async {
+    try {
+      final pickedFiles = await _imagePicker.pickMultiImage(
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+
+      if (pickedFiles.isNotEmpty) {
+        if (_selectedImages.length + pickedFiles.length > 5) {
+          _showError('Maximum 5 images allowed');
+          return;
+        }
+
+        final newImages = await Future.wait(
+          pickedFiles.map((xFile) => _toSelectedImage(xFile)),
+        );
+
+        setState(() {
+          _selectedImages.addAll(newImages);
+        });
+      }
+    } catch (e) {
+      _showError('Failed to pick images: $e');
+    }
+  }
+
+  Future<void> _captureImage() async {
+    try {
+      final pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        if (_selectedImages.length >= 5) {
+          _showError('Maximum 5 images allowed');
+          return;
+        }
+
+        final image = await _toSelectedImage(pickedFile);
+
+        setState(() {
+          _selectedImages.add(image);
+        });
+      }
+    } catch (e) {
+      _showError('Failed to capture image: $e');
+    }
+  }
+
+  Future<List<String>> _uploadImagesToFirebase(
+    String userId,
+    String offerId,
+  ) async {
+    if (_selectedImages.isEmpty) return [];
+
+    final storage = FirebaseStorage.instance;
+    final List<String> uploadedUrls = [];
+
+    try {
+      for (int i = 0; i < _selectedImages.length; i++) {
+        final image = _selectedImages[i];
+        final fileName = _buildStorageFileName(image, i);
+        final storagePath = 'offers/$userId/$offerId/$fileName';
+
+        final ref = storage.ref().child(storagePath);
+        final uploadTask = ref.putData(
+          image.bytes,
+          SettableMetadata(contentType: image.mimeType ?? 'image/jpeg'),
+        );
+
+        uploadTask.snapshotEvents.listen((snapshot) {
+          final progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          debugPrint('Upload progress: ${progress.toStringAsFixed(2)}%');
+        });
+
+        final snapshot = await uploadTask.whenComplete(() {});
+        final downloadUrl = await snapshot.ref.getDownloadURL();
+        uploadedUrls.add(downloadUrl);
+      }
+    } catch (e) {
+      debugPrint('Error uploading images: $e');
+      throw Exception('Failed to upload images: $e');
+    }
+
+    return uploadedUrls;
+  }
+
+  void _removeSelectedImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
+
+  void _removeExistingImage(int index) {
+    setState(() {
+      _existingImageUrls.removeAt(index);
+    });
+  }
+
+  Widget _buildImagePreview() {
+    final allImages = [
+      ..._existingImageUrls.map((url) => ImageItem(url: url, isExisting: true)),
+      ..._selectedImages
+          .map((image) => ImageItem(localImage: image, isExisting: false)),
+    ];
+
+    if (allImages.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.photo_library,
+                color: darkBlue.withValues(alpha: 0.5), size: 48),
+            const SizedBox(height: 12),
+            Text(
+              'No images added',
+              style: TextStyle(color: darkBlue.withValues(alpha: 0.7)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 1,
+      ),
+      itemCount: allImages.length,
+      itemBuilder: (context, index) {
+        final item = allImages[index];
+        return Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: item.isExisting
+                    ? CachedNetworkImage(
+                        imageUrl: item.url!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey.shade200,
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.broken_image),
+                        ),
+                      )
+                    : Image.memory(
+                        item.localImage!.bytes,
+                        fit: BoxFit.cover,
+                      ),
+              ),
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: () {
+                  if (item.isExisting) {
+                    _removeExistingImage(index);
+                  } else {
+                    final adjustedIndex = index - _existingImageUrls.length;
+                    _removeSelectedImage(adjustedIndex);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<void> _pickDate({required bool isStart}) async {
     final initialDate = isStart
@@ -153,14 +410,27 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           createdAt: _editingOffer?.createdAt,
         );
 
-        debugPrint('[DEBUG] Submitting edited offer (no images):');
+        List<String> newImageUrls = [];
+        if (_selectedImages.isNotEmpty) {
+          newImageUrls = await _uploadImagesToFirebase(user.uid, offer.id);
+        }
+
+        debugPrint('[DEBUG] Submitting edited offer with images:');
         debugPrint(offer.toJson().toString());
 
         await offerService.updateOfferAdvanced(
-          offer: offer,
-          newImages: null, // Remove image upload
+          offer: offer.copyWith(
+            imageUrls: [..._existingImageUrls, ...newImageUrls],
+          ),
         );
       } else {
+        final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+
+        List<String> imageUrls = [];
+        if (_selectedImages.isNotEmpty) {
+          imageUrls = await _uploadImagesToFirebase(user.uid, tempId);
+        }
+
         final offer = Offer(
           id: '',
           clientId: user.uid,
@@ -198,17 +468,15 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
               _applicableProducts.isEmpty ? null : _applicableProducts,
           applicableServices:
               _applicableServices.isEmpty ? null : _applicableServices,
+          imageUrls: imageUrls,
           client: user.toJson(),
           createdAt: DateTime.now(),
         );
 
-        debugPrint('[DEBUG] Submitting new offer (no images):');
+        debugPrint('[DEBUG] Submitting new offer with images:');
         debugPrint(offer.toJson().toString());
 
-        await offerService.submitOfferAdvanced(
-          offer: offer,
-          images: null, // Remove image upload
-        );
+        await offerService.submitOfferAdvanced(offer: offer);
       }
 
       if (!mounted) return;
@@ -791,9 +1059,13 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           title: Row(
             children: [
               SizedBox(
-                child: Image.asset(
-                  'assets/images/logo/original/Text_without_logo_without_background.png',
+                width: 160,
+                height: 28,
+                child: FittedBox(
                   fit: BoxFit.contain,
+                  child: Image.asset(
+                    'assets/images/logo/original/Text_without_logo_without_background.png',
+                  ),
                 ),
               ),
             ],
@@ -844,10 +1116,13 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         title: Row(
           children: [
             SizedBox(
+              width: 160,
               height: 28,
-              child: Image.asset(
-                'assets/images/logo/original/Text_without_logo_without_background.png',
+              child: FittedBox(
                 fit: BoxFit.contain,
+                child: Image.asset(
+                  'assets/images/logo/original/Text_without_logo_without_background.png',
+                ),
               ),
             ),
           ],
@@ -1055,6 +1330,96 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                                 }
                                 return null;
                               },
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Offer Images',
+                                    style: TextStyle(
+                                      color: darkBlue,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Add up to 5 images to showcase your offer',
+                                    style: TextStyle(
+                                      color: darkBlue.withValues(alpha: 0.7),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _buildImagePreview(),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed: _pickImages,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: brightGold
+                                                .withValues(alpha: 0.1),
+                                            foregroundColor: darkBlue,
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 16),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              side:
+                                                  BorderSide(color: brightGold),
+                                            ),
+                                          ),
+                                          icon: const Icon(Icons.photo_library),
+                                          label:
+                                              const Text('Choose from Gallery'),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      ElevatedButton.icon(
+                                        onPressed: _captureImage,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: brightGold,
+                                          foregroundColor: darkBlue,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 16, horizontal: 20),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                        ),
+                                        icon: const Icon(Icons.camera_alt),
+                                        label: const Text('Camera'),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Supported formats: JPG, PNG, WebP. Max size: 5MB per image.',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -1662,4 +2027,31 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
       ),
     );
   }
+}
+
+class SelectedImage {
+  SelectedImage({
+    required this.bytes,
+    required this.fileName,
+    this.mimeType,
+  });
+
+  final Uint8List bytes;
+  final String fileName;
+  final String? mimeType;
+}
+
+class ImageItem {
+  ImageItem({
+    this.url,
+    this.localImage,
+    required this.isExisting,
+  }) : assert(
+          (url != null && localImage == null) ||
+              (url == null && localImage != null),
+        );
+
+  final String? url;
+  final SelectedImage? localImage;
+  final bool isExisting;
 }

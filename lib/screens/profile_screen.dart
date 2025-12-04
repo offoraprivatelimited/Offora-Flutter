@@ -68,6 +68,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _confirmLogout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Logout',
+          style: TextStyle(color: Colors.black), // Title in black
+        ),
+        content: const Text(
+          'Are you sure you want to logout?',
+          style: TextStyle(color: Colors.black),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                  color: Colors.black), // Also making Cancel button text black
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await context.read<AuthService>().signOut();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/role-selection');
+      }
+    }
+  }
+
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
@@ -79,33 +117,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const brightGold = Color(0xFFF0B84D);
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        toolbarHeight: 44,
-        automaticallyImplyLeading: false,
-        title: Builder(
-          builder: (ctx) => Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.menu, color: Color(0xFF1F477D)),
-                onPressed: () {
-                  Scaffold.of(ctx).openDrawer();
-                },
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 28,
-                child: Image.asset(
-                  'assets/images/logo/original/Text_without_logo_without_background.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ],
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Color(0xFF1F477D)),
-      ),
       drawer: const AppDrawer(),
       body: Column(
         children: [
@@ -170,6 +181,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: _isSaving
                             ? const CircularProgressIndicator()
                             : const Text('Save Changes'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _confirmLogout,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                        ),
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Logout'),
                       ),
                     ),
                   ],

@@ -13,47 +13,6 @@ class SettingsScreen extends StatelessWidget {
       backgroundColor: Colors.grey.shade50,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: 96,
-            floating: false,
-            pinned: true,
-            backgroundColor: Colors.white,
-            elevation: 1,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.darkBlue,
-                      AppColors.darkBlue.withAlpha(200),
-                    ],
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 36,
-                      child: Image.asset(
-                        'assets/images/logo/original/Text_without_logo_without_background.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Settings',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white70,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16),

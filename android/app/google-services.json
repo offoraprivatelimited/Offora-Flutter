@@ -82,45 +82,6 @@
           ]
         }
       }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:266482313771:android:18dbc457f2bc0c299b986e",
-        "android_client_info": {
-          "package_name": "com.offora.clientpanel"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDch_sMeS2g9voe2gybDhyYepUB4cXENAg"
-        },
-        {
-          "current_key": "AIzaSyDirmQfCmNtSU-m-plqPBi3ymLoLKY2LSg"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "266482313771-dasdftc9uqta3hv60k90t0q1kqgbrp8i.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.offora.adminpanel"
-              }
-            }
-          ]
-        }
-      }
     }
   ],
   "configuration_version": "1"

@@ -5,127 +5,795 @@ class PrivacyPolicyPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const darkBlue = Color(0xFF1F477D);
-    const brightGold = Color(0xFFF0B84D);
+    const primaryDark = Color(0xFF0A1A3A);
+    const accentGold = Color(0xFFD4AF37);
+    const lightGold = Color(0xFFF8F0E3);
+    const mediumGold = Color(0xFFE8D9B0);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Privacy Policy',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: darkBlue,
-            ),
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white,
+              lightGold.withOpacity(0.05),
+              Colors.white,
+            ],
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Last Updated: December 4, 2025',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width > 600 ? 80 : 24,
+            vertical: 60,
           ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: brightGold.withAlpha(25),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: brightGold.withAlpha(77)),
-            ),
-            child: const Text(
-              'At Offora, we are committed to protecting your privacy and personal information. This Privacy Policy explains how we collect, use, and safeguard your data.',
-              style: TextStyle(
-                fontSize: 15,
-                height: 1.5,
-                color: Colors.black87,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          _buildSection(
-            '1. Information We Collect',
-            '1.1. Personal Information:\n• Name, email address, and phone number\n• Profile information and preferences\n• Authentication credentials\n\n1.2. Business Information (Shop Owners):\n• Business name and registration details\n• Contact information\n• Business location and category\n• Tax identification numbers (if provided)\n\n1.3. Usage Information:\n• Device information and IP address\n• App usage patterns and preferences\n• Location data (with your permission)\n• Saved offers and browsing history',
-          ),
-          _buildSection(
-            '2. How We Use Your Information',
-            '2.1. To provide and improve our services\n\n2.2. To authenticate and verify your identity\n\n2.3. To process and manage offers\n\n2.4. To communicate with you about offers, updates, and support\n\n2.5. To personalize your experience\n\n2.6. To analyze and improve our Platform\n\n2.7. To comply with legal obligations',
-          ),
-          _buildSection(
-            '3. Information Sharing',
-            'We do not sell your personal information. We may share your information only in the following circumstances:\n\n3.1. With Shop Owners when you interact with their offers\n\n3.2. With service providers who assist in operating our Platform (e.g., hosting, analytics)\n\n3.3. When required by law or to protect our legal rights\n\n3.4. With your explicit consent\n\n3.5. In connection with a business transfer or merger',
-          ),
-          _buildSection(
-            '4. Data Security',
-            '4.1. We implement industry-standard security measures to protect your data.\n\n4.2. All data transmission is encrypted using SSL/TLS protocols.\n\n4.3. We use Firebase Authentication and Firestore with security rules.\n\n4.4. Access to personal information is restricted to authorized personnel only.\n\n4.5. However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security.',
-          ),
-          _buildSection(
-            '5. Your Rights and Choices',
-            '5.1. Access: You can access your personal information through your account settings.\n\n5.2. Update: You can update your information at any time.\n\n5.3. Delete: You can request deletion of your account and associated data.\n\n5.4. Opt-out: You can opt-out of marketing communications.\n\n5.5. Data Portability: You can request a copy of your data.\n\n5.6. Location: You can disable location services in your device settings.',
-          ),
-          _buildSection(
-            '6. Cookies and Tracking',
-            '6.1. We use cookies and similar technologies to improve your experience.\n\n6.2. These help us remember your preferences and analyze usage patterns.\n\n6.3. You can control cookie settings through your browser.\n\n6.4. We use Google Analytics to understand how users interact with our Platform.',
-          ),
-          _buildSection(
-            '7. Third-Party Services',
-            '7.1. Our Platform integrates with third-party services:\n• Firebase (Google) for authentication and database\n• Google Maps for location services\n• Payment processors (if applicable)\n\n7.2. These services have their own privacy policies, which we encourage you to review.\n\n7.3. We are not responsible for third-party privacy practices.',
-          ),
-          _buildSection(
-            '8. Children\'s Privacy',
-            'Our Platform is not intended for users under 18 years of age. We do not knowingly collect personal information from children. If we discover that we have collected information from a child, we will delete it promptly.',
-          ),
-          _buildSection(
-            '9. Data Retention',
-            '9.1. We retain your personal information for as long as necessary to provide our services.\n\n9.2. Account information is retained until you request deletion.\n\n9.3. Some information may be retained longer for legal or business purposes.\n\n9.4. Deleted data may remain in backups for up to 90 days.',
-          ),
-          _buildSection(
-            '10. International Data Transfers',
-            'Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place to protect your data in accordance with this Privacy Policy.',
-          ),
-          _buildSection(
-            '11. Changes to This Policy',
-            'We may update this Privacy Policy from time to time. We will notify you of significant changes through the Platform or via email. Your continued use of the Platform after changes constitutes acceptance of the updated policy.',
-          ),
-          _buildSection(
-            '12. Contact Us',
-            'If you have questions or concerns about this Privacy Policy or our data practices, please contact us:\n\nEmail: privacy@offora.com\nPhone: +91 98765 43210\nAddress: 123, Business District, Chennai, Tamil Nadu, India - 600001',
-          ),
-          const SizedBox(height: 32),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: darkBlue.withAlpha(13),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: darkBlue.withAlpha(51)),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Premium Header
+              Container(
+                margin: const EdgeInsets.only(bottom: 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.security, color: darkBlue, size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'Your Privacy Matters',
+                    Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [accentGold, mediumGold],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Privacy Policy',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: darkBlue,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: primaryDark,
+                        letterSpacing: -0.5,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Last Updated: December 4, 2025',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: primaryDark.withOpacity(0.5),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
+              ),
+
+              // Premium Introduction Card
+              Container(
+                padding: const EdgeInsets.all(32),
+                margin: const EdgeInsets.only(bottom: 40),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      lightGold.withOpacity(0.3),
+                      Colors.white,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: mediumGold.withOpacity(0.3),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryDark.withOpacity(0.03),
+                      blurRadius: 30,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: accentGold.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: accentGold.withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.shield_outlined,
+                        color: accentGold,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Our Commitment to You',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: primaryDark,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'At Offora, we are deeply committed to protecting your privacy and personal information. This comprehensive policy explains how we collect, use, and safeguard your data with the highest standards of security and transparency.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: primaryDark.withOpacity(0.8),
+                              height: 1.7,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Policy Sections
+              _buildPremiumPolicySection(
+                number: '01',
+                title: 'Information We Collect',
+                icon: Icons.collections_outlined,
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildPolicySubsection(
+                      'Personal Information',
+                      [
+                        'Name, email address, and phone number',
+                        'Profile information and user preferences',
+                        'Authentication credentials and verification data',
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _buildPolicySubsection(
+                      'Business Information (Shop Owners)',
+                      [
+                        'Business name and registration details',
+                        'Contact information and operating hours',
+                        'Business location and category specifications',
+                        'Tax identification numbers (when provided)',
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _buildPolicySubsection(
+                      'Usage Information',
+                      [
+                        'Device information and IP address analytics',
+                        'App usage patterns and interaction data',
+                        'Location data (with explicit permission)',
+                        'Saved offers and browsing history insights',
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              _buildPremiumPolicySection(
+                number: '02',
+                title: 'How We Use Your Information',
+                icon: Icons.settings_outlined,
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildNumberedListItem(
+                        'To provide and improve our core services'),
+                    const SizedBox(height: 12),
+                    _buildNumberedListItem(
+                        'To authenticate and verify user identity'),
+                    const SizedBox(height: 12),
+                    _buildNumberedListItem(
+                        'To process and manage offer transactions'),
+                    const SizedBox(height: 12),
+                    _buildNumberedListItem(
+                        'To communicate updates and support'),
+                    const SizedBox(height: 12),
+                    _buildNumberedListItem(
+                        'To personalize your user experience'),
+                    const SizedBox(height: 12),
+                    _buildNumberedListItem(
+                        'To analyze and optimize our Platform'),
+                    const SizedBox(height: 12),
+                    _buildNumberedListItem('To comply with legal obligations'),
+                  ],
+                ),
+              ),
+
+              _buildPremiumPolicySection(
+                number: '03',
+                title: 'Information Sharing',
+                icon: Icons.share_outlined,
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'We do not sell your personal information. Data sharing occurs only under these specific circumstances:',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: primaryDark.withOpacity(0.8),
+                        height: 1.6,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildInfoCard(
+                      'With Shop Owners',
+                      'When you interact with their offers for fulfillment purposes',
+                      Icons.storefront_outlined,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoCard(
+                      'With Service Providers',
+                      'Trusted partners assisting in platform operations',
+                      Icons.handshake_outlined,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoCard(
+                      'Legal Compliance',
+                      'When required by law or to protect legal rights',
+                      Icons.gavel_outlined,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoCard(
+                      'With Consent',
+                      'Only with your explicit permission',
+                      Icons.check_circle_outlined,
+                    ),
+                  ],
+                ),
+              ),
+
+              _buildPremiumPolicySection(
+                number: '04',
+                title: 'Data Security',
+                icon: Icons.lock_outlined,
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSecurityFeature(
+                      'Industry-Standard Encryption',
+                      'All data transmission secured with SSL/TLS protocols',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSecurityFeature(
+                      'Firebase Security',
+                      'Authentication and Firestore with strict security rules',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSecurityFeature(
+                      'Restricted Access',
+                      'Limited to authorized personnel with need-to-know basis',
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.03),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.red.withOpacity(0.1),
+                        ),
+                      ),
+                      child: Text(
+                        'While we implement comprehensive security measures, no method of electronic transmission or storage is 100% secure. We continuously work to maintain the highest security standards.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.red.withOpacity(0.8),
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Rights Section in Grid
+              Container(
+                margin: const EdgeInsets.only(bottom: 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [accentGold, mediumGold],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.account_balance_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Text(
+                          '05. Your Rights & Choices',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: primaryDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount:
+                          MediaQuery.of(context).size.width > 600 ? 3 : 1,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: 1.5,
+                      children: [
+                        _buildRightCard(
+                          Icons.visibility_outlined,
+                          'Access Rights',
+                          'Review your personal information anytime',
+                          accentGold,
+                        ),
+                        _buildRightCard(
+                          Icons.edit_outlined,
+                          'Update Rights',
+                          'Modify your information at any time',
+                          primaryDark,
+                        ),
+                        _buildRightCard(
+                          Icons.delete_outlined,
+                          'Deletion Rights',
+                          'Request account and data deletion',
+                          accentGold,
+                        ),
+                        _buildRightCard(
+                          Icons.notifications_off_outlined,
+                          'Opt-Out Rights',
+                          'Control marketing communications',
+                          primaryDark,
+                        ),
+                        _buildRightCard(
+                          Icons.import_export_outlined,
+                          'Data Portability',
+                          'Request a copy of your data',
+                          accentGold,
+                        ),
+                        _buildRightCard(
+                          Icons.location_off_outlined,
+                          'Location Control',
+                          'Manage location services in settings',
+                          primaryDark,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Additional Sections (Brief)
+              _buildBriefPolicySection(
+                  '06', 'Cookies & Tracking', Icons.cookie_outlined),
+              _buildBriefPolicySection(
+                  '07', 'Third-Party Services', Icons.extension_outlined),
+              _buildBriefPolicySection(
+                  '08', 'Children\'s Privacy', Icons.child_care_outlined),
+              _buildBriefPolicySection(
+                  '09', 'Data Retention', Icons.history_outlined),
+              _buildBriefPolicySection(
+                  '10', 'International Transfers', Icons.language_outlined),
+              _buildBriefPolicySection(
+                  '11', 'Policy Updates', Icons.update_outlined),
+
+              // Contact Section
+              Container(
+                padding: const EdgeInsets.all(32),
+                margin: const EdgeInsets.only(bottom: 40),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      primaryDark.withOpacity(0.9),
+                      primaryDark,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryDark.withOpacity(0.3),
+                      blurRadius: 40,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 20),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: accentGold.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: accentGold.withOpacity(0.3),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.mail_outlined,
+                            color: accentGold,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        const Text(
+                          '12. Contact Us',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'For questions, concerns, or to exercise your privacy rights, please reach out to our dedicated privacy team:',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.9),
+                        height: 1.6,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildContactInfo(
+                      Icons.email_outlined,
+                      'privacy@offora.com',
+                      'Email Support',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildContactInfo(
+                      Icons.phone_outlined,
+                      '+91 98765 43210',
+                      'Phone Support',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildContactInfo(
+                      Icons.location_on_outlined,
+                      '123, Business District, Chennai, Tamil Nadu, India - 600001',
+                      'Registered Office',
+                    ),
+                  ],
+                ),
+              ),
+
+              // Premium Footer
+              Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      lightGold.withOpacity(0.2),
+                      Colors.white,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: mediumGold.withOpacity(0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: accentGold.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: accentGold.withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.verified_outlined,
+                        color: accentGold,
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Your Privacy Matters',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: primaryDark,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'We are fully committed to protecting your privacy and maintaining complete transparency about our data practices. Your trust is our highest priority.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: primaryDark.withOpacity(0.7),
+                        height: 1.6,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      height: 2,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [accentGold, mediumGold],
+                        ),
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumPolicySection({
+    required String number,
+    required String title,
+    required IconData icon,
+    required Widget content,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFD4AF37).withOpacity(0.1),
+                      const Color(0xFFF8F0E3).withOpacity(0.1)
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFFE8D9B0).withOpacity(0.5),
+                    width: 1.5,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    number,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0A1A3A),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          icon,
+                          color: const Color(0xFFD4AF37),
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0A1A3A),
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    content,
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPolicySubsection(String title, List<String> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0A1A3A),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...items.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 6),
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFD4AF37),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: const Color(0xFF0A1A3A).withOpacity(0.8),
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )),
+      ],
+    );
+  }
+
+  Widget _buildNumberedListItem(String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: const Color(0xFFD4AF37).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: const Color(0xFFD4AF37).withOpacity(0.3),
+            ),
+          ),
+          child: const Center(
+            child: Icon(
+              Icons.check,
+              size: 14,
+              color: Color(0xFFD4AF37),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 16,
+              color: const Color(0xFF0A1A3A).withOpacity(0.8),
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(String title, String description, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFE8D9B0).withOpacity(0.5),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 20,
+            spreadRadius: 0,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD4AF37).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              color: const Color(0xFFD4AF37),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  'We are committed to protecting your privacy and being transparent about how we use your data. If you have any concerns, please don\'t hesitate to reach out to us.',
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0A1A3A),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.black87,
+                    color: const Color(0xFF0A1A3A).withOpacity(0.6),
                   ),
                 ),
               ],
@@ -136,27 +804,200 @@ class PrivacyPolicyPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(String title, String content) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+  Widget _buildSecurityFeature(String title, String description) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.green.withOpacity(0.2),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.verified_outlined,
+            color: Colors.green,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0A1A3A),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: const Color(0xFF0A1A3A).withOpacity(0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRightCard(
+      IconData icon, String title, String description, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withOpacity(0.1),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 20,
+            spreadRadius: 0,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 16),
           Text(
             title,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1F477D),
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF0A1A3A),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            content,
-            style: const TextStyle(
-              fontSize: 15,
-              height: 1.6,
-              color: Colors.black87,
+            description,
+            style: TextStyle(
+              fontSize: 14,
+              color: const Color(0xFF0A1A3A).withOpacity(0.6),
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBriefPolicySection(String number, String title, IconData icon) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: const Color(0xFFD4AF37).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF0A1A3A),
+              ),
+            ),
+          ),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF0A1A3A),
+          ),
+        ),
+        trailing: Icon(
+          icon,
+          color: const Color(0xFFD4AF37),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: const Color(0xFFE8D9B0).withOpacity(0.5),
+            width: 1.5,
+          ),
+        ),
+        tileColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildContactInfo(IconData icon, String detail, String label) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: const Color(0xFFD4AF37),
+            size: 20,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.7),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  detail,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
