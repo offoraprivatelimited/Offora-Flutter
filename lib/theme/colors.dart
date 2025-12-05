@@ -17,4 +17,7 @@ class AppColors {
   static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFF8F9FB);
   static const Color text = Color(0xFF0B1220);
+
+  // Soft blue used for subtle cards/backgrounds (e.g. compare selections)
+  static const Color paleBlue = Color(0xFFE8F0FB);
 }

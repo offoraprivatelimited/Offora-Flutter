@@ -48,7 +48,8 @@ class OfferDetailsContent extends StatefulWidget {
 }
 
 class _OfferDetailsContentState extends State<OfferDetailsContent> {
-  // Removed unused _currentImageIndex
+  final PageController _pageController = PageController();
+  int _currentImageIndex = 0;
   bool _isSaved = false;
   bool _isInCompare = false;
 
@@ -74,6 +75,12 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
   void _checkCompareStatus() {
     final compareService = context.read<CompareService>();
     setState(() => _isInCompare = compareService.isInCompare(widget.offer.id));
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _toggleSave() async {
@@ -284,16 +291,26 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
   @override
   Widget build(BuildContext context) {
     final offer = widget.offer;
+    final images =
+        (offer.imageUrls ?? []).where((url) => url.isNotEmpty).toList();
     final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
     final discount = ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
         .toStringAsFixed(0);
 
     return Container(
-      color: const Color(0xFFF8F9FA),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFF7F9FD), Color(0xFFEFF3FA)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildHero(offer, images, currency, discount),
+            const SizedBox(height: 12),
             // Premium header with title and action buttons
             Container(
               color: Colors.white,
@@ -361,7 +378,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 border: Border.all(color: const Color(0xFFE5E7EB)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
+                    color: Colors.black.withOpacity(0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -431,6 +448,8 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
               ),
             ),
 
+            const SizedBox(height: 12),
+            _buildHighlights(offer),
             const SizedBox(height: 16),
 
             // Description
@@ -567,6 +586,310 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
             const SizedBox(height: 100),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHero(Offer offer, List<String> images, NumberFormat currency,
+      String discount) {
+    final hasImages = images.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          children: [
+            AspectRatio(
+              aspectRatio: 16 / 10,
+              child: hasImages
+                  ? PageView.builder(
+                      controller: _pageController,
+                      itemCount: images.length,
+                      onPageChanged: (index) {
+                        setState(() => _currentImageIndex = index);
+                      },
+                      itemBuilder: (context, index) {
+                        final url = images[index];
+                        return Image.network(
+                          url,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return _buildImagePlaceholder();
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildImagePlaceholder();
+                          },
+                        );
+                      },
+                    )
+                  : _buildImagePlaceholder(),
+            ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withOpacity(0.35),
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.45),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0, 0.45, 1],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 14,
+              left: 14,
+              child: _buildBadge('Limited time', Icons.flash_on_rounded),
+            ),
+            Positioned(
+              top: 14,
+              right: 14,
+              child: Row(
+                children: [
+                  _buildCircleIconButton(
+                    icon: _isSaved ? Icons.favorite : Icons.favorite_border,
+                    onTap: _toggleSave,
+                    isActive: _isSaved,
+                  ),
+                  const SizedBox(width: 10),
+                  _buildCircleIconButton(
+                    icon: Icons.share_outlined,
+                    onTap: _shareOffer,
+                  ),
+                ],
+              ),
+            ),
+            if (hasImages && images.length > 1)
+              Positioned(
+                bottom: 14,
+                right: 14,
+                child: _buildImageCount(images.length),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFE9F1FF), Color(0xFFE0E9FA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.image_outlined,
+          color: AppColors.darkBlue,
+          size: 48,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppColors.darkBlue),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.darkBlue,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCircleIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isActive = false,
+  }) {
+    return Material(
+      color: Colors.white.withOpacity(0.9),
+      shape: const CircleBorder(),
+      elevation: 1,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(
+            icon,
+            size: 20,
+            color: isActive ? AppColors.brightGold : AppColors.darkBlue,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageCount(int total) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.55),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        '${_currentImageIndex + 1}/$total',
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHighlights(Offer offer) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Highlights',
+            style: TextStyle(
+              color: AppColors.darkBlue,
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _factChip('Type', _formatOfferType(offer.offerType),
+                  Icons.local_offer_outlined),
+              _factChip('Category', _formatOfferCategory(offer.offerCategory),
+                  Icons.layers_outlined),
+              if (offer.minimumPurchase != null)
+                _factChip(
+                  'Min spend',
+                  '₹${offer.minimumPurchase!.toStringAsFixed(0)}',
+                  Icons.account_balance_wallet_outlined,
+                ),
+              if (offer.maxUsagePerCustomer != null)
+                _factChip(
+                  'Per customer',
+                  '${offer.maxUsagePerCustomer} uses',
+                  Icons.repeat_one_outlined,
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatOfferType(OfferType type) {
+    switch (type) {
+      case OfferType.percentageDiscount:
+        return 'Percent off';
+      case OfferType.flatDiscount:
+        return 'Flat discount';
+      case OfferType.buyXGetYPercentOff:
+        return 'Buy X Get Y%';
+      case OfferType.buyXGetYRupeesOff:
+        return 'Buy X Get ₹Y';
+      case OfferType.bogo:
+        return 'Buy One Get One';
+      case OfferType.productSpecific:
+        return 'Product specific';
+      case OfferType.serviceSpecific:
+        return 'Service specific';
+      case OfferType.bundleDeal:
+        return 'Bundle deal';
+    }
+  }
+
+  String _formatOfferCategory(OfferCategory category) {
+    switch (category) {
+      case OfferCategory.product:
+        return 'Products';
+      case OfferCategory.service:
+        return 'Services';
+      case OfferCategory.both:
+        return 'Products & Services';
+    }
+  }
+
+  Widget _factChip(String label, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.paleBlue,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppColors.darkBlue),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.darkBlue,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
