@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_declarations, curly_braces_in_flow_control_structures
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

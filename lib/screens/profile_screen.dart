@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -499,7 +498,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   ImageProvider _resolveAvatar(String? livePhotoUrl) {
-    if (_profileImage != null) return FileImage(_profileImage! as File);
+    if (_imageBytes != null) return MemoryImage(_imageBytes!);
     if ((livePhotoUrl ?? _initialPhotoUrl)?.isNotEmpty == true) {
       return NetworkImage(livePhotoUrl ?? _initialPhotoUrl!);
     }
