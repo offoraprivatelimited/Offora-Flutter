@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/exceptions.dart';
@@ -480,7 +480,7 @@ class AuthService extends ChangeNotifier {
   Future<bool> updateProfile({
     String? name,
     String? email,
-    File? profileImage,
+    XFile? profileImage,
     String? phone,
     String? address,
     String? gender,
@@ -512,7 +512,8 @@ class AuthService extends ChangeNotifier {
     if (profileImage != null) {
       final storageRef = FirebaseStorage.instance.ref().child(
           'users/${user.uid}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg');
-      final uploadTask = await storageRef.putFile(profileImage);
+      final imageBytes = await profileImage.readAsBytes();
+      final uploadTask = await storageRef.putData(imageBytes);
       uploadedPhotoUrl = await uploadTask.ref.getDownloadURL();
     }
 

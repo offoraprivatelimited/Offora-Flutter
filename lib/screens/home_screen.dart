@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/colors.dart';
@@ -15,6 +16,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? _selectedCategory;
+  final ScrollController _categoryScrollController = ScrollController();
+  Timer? _autoScrollTimer;
+  bool _isAutoScrolling = true;
 
   final List<Map<String, dynamic>> _categories = [
     {
@@ -65,7 +69,114 @@ class _HomeScreenState extends State<HomeScreen> {
       'color': const Color(0xFFFF5722),
       'gradient': [const Color(0xFFFF5722), const Color(0xFFFF8A65)],
     },
+    {
+      'name': 'Health',
+      'icon': Icons.favorite_outline,
+      'color': const Color(0xFFE53935),
+      'gradient': [const Color(0xFFE53935), const Color(0xFFEF5350)],
+    },
+    {
+      'name': 'Books',
+      'icon': Icons.menu_book_outlined,
+      'color': const Color(0xFF5E35B1),
+      'gradient': [const Color(0xFF5E35B1), const Color(0xFF7E57C2)],
+    },
+    {
+      'name': 'Toys',
+      'icon': Icons.toys_outlined,
+      'color': const Color(0xFFFDD835),
+      'gradient': [const Color(0xFFFDD835), const Color(0xFFFFEE58)],
+    },
+    {
+      'name': 'Automotive',
+      'icon': Icons.directions_car_outlined,
+      'color': const Color(0xFF616161),
+      'gradient': [const Color(0xFF616161), const Color(0xFF757575)],
+    },
+    {
+      'name': 'Pets',
+      'icon': Icons.pets_outlined,
+      'color': const Color(0xFF8D6E63),
+      'gradient': [const Color(0xFF8D6E63), const Color(0xFFA1887F)],
+    },
+    {
+      'name': 'Travel',
+      'icon': Icons.flight_outlined,
+      'color': const Color(0xFF00ACC1),
+      'gradient': [const Color(0xFF00ACC1), const Color(0xFF26C6DA)],
+    },
+    {
+      'name': 'Services',
+      'icon': Icons.room_service_outlined,
+      'color': const Color(0xFF43A047),
+      'gradient': [const Color(0xFF43A047), const Color(0xFF66BB6A)],
+    },
+    {
+      'name': 'Education',
+      'icon': Icons.school_outlined,
+      'color': const Color(0xFF1E88E5),
+      'gradient': [const Color(0xFF1E88E5), const Color(0xFF42A5F5)],
+    },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoScroll();
+  }
+
+  @override
+  void dispose() {
+    _autoScrollTimer?.cancel();
+    _categoryScrollController.dispose();
+    super.dispose();
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (!_isAutoScrolling ||
+          !mounted ||
+          !_categoryScrollController.hasClients) return;
+
+      final maxScroll = _categoryScrollController.position.maxScrollExtent;
+      final currentScroll = _categoryScrollController.offset;
+      final scrollAmount = 200.0; // Scroll by 200 pixels
+
+      if (currentScroll >= maxScroll - 10) {
+        // Reset to start
+        _categoryScrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        _categoryScrollController.animateTo(
+          currentScroll + scrollAmount,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  Map<String, int> _getCategoryCounts(List<Offer> offers) {
+    final counts = <String, int>{};
+    for (final category in _categories) {
+      final name = category['name'] as String;
+      if (name == 'All') {
+        counts[name] = offers.length;
+      } else {
+        counts[name] = offers.where((offer) {
+          // Match category name with offer title/description/client business name
+          final searchText =
+              '${offer.title} ${offer.description} ${offer.client?['businessName'] ?? ''}'
+                  .toLowerCase();
+          return searchText.contains(name.toLowerCase());
+        }).length;
+      }
+    }
+    return counts;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,104 +270,188 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Premium Category Cards Grid
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  childAspectRatio: 0.85,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final category = _categories[index];
-                    final isSelected = _selectedCategory == category['name'] ||
-                        (_selectedCategory == null &&
-                            category['name'] == 'All');
+            // Premium Category Cards - Horizontal Scrollable
+            SliverToBoxAdapter(
+              child: Consumer<OfferService>(
+                builder: (context, offerService, _) {
+                  return StreamBuilder<List<Offer>>(
+                    stream: offerService.watchApprovedOffers(),
+                    builder: (context, snapshot) {
+                      final offers = snapshot.data ?? [];
+                      final counts = _getCategoryCounts(offers);
 
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedCategory = category['name'] == 'All'
-                              ? null
-                              : category['name'];
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        decoration: BoxDecoration(
-                          gradient: isSelected
-                              ? LinearGradient(
-                                  colors: category['gradient'],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : null,
-                          color: isSelected ? null : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected
-                                ? Colors.transparent
-                                : const Color(0xFFE5E7EB),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isSelected
-                                  ? category['color'].withAlpha(80)
-                                  : Colors.black.withAlpha(8),
-                              blurRadius: isSelected ? 12 : 8,
-                              offset: Offset(0, isSelected ? 6 : 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? Colors.white.withAlpha(50)
-                                    : category['color'].withAlpha(25),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                category['icon'],
-                                color: isSelected
-                                    ? Colors.white
-                                    : category['color'],
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4),
-                              child: Text(
-                                category['name'],
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : AppColors.darkBlue,
-                                  height: 1.2,
+                      return SizedBox(
+                        height: 110,
+                        child: NotificationListener<ScrollNotification>(
+                          onNotification: (notification) {
+                            if (notification is ScrollStartNotification) {
+                              _isAutoScrolling = false;
+                            } else if (notification is ScrollEndNotification) {
+                              Future.delayed(const Duration(seconds: 5), () {
+                                if (mounted) {
+                                  setState(() => _isAutoScrolling = true);
+                                }
+                              });
+                            }
+                            return false;
+                          },
+                          child: ListView.builder(
+                            controller: _categoryScrollController,
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _categories.length,
+                            itemBuilder: (context, index) {
+                              final category = _categories[index];
+                              final isSelected =
+                                  _selectedCategory == category['name'] ||
+                                      (_selectedCategory == null &&
+                                          category['name'] == 'All');
+                              final offerCount = counts[category['name']] ?? 0;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedCategory =
+                                          category['name'] == 'All'
+                                              ? null
+                                              : category['name'];
+                                    });
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: 90,
+                                    decoration: BoxDecoration(
+                                      gradient: isSelected
+                                          ? LinearGradient(
+                                              colors: category['gradient'],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            )
+                                          : null,
+                                      color: isSelected ? null : Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? Colors.transparent
+                                            : const Color(0xFFE5E7EB),
+                                        width: 1.5,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: isSelected
+                                              ? category['color'].withAlpha(80)
+                                              : Colors.black.withAlpha(8),
+                                          blurRadius: isSelected ? 12 : 8,
+                                          offset: Offset(0, isSelected ? 6 : 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(12),
+                                                decoration: BoxDecoration(
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                          .withAlpha(50)
+                                                      : category['color']
+                                                          .withAlpha(25),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Icon(
+                                                  category['icon'],
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : category['color'],
+                                                  size: 26,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 6),
+                                                child: Text(
+                                                  category['name'],
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontSize: 9.5,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isSelected
+                                                        ? Colors.white
+                                                        : AppColors.darkBlue,
+                                                    height: 1.1,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        if (offerCount > 0)
+                                          Positioned(
+                                            top: 6,
+                                            right: 6,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 6,
+                                                vertical: 3,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : AppColors.brightGold,
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withOpacity(0.15),
+                                                    blurRadius: 4,
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Text(
+                                                offerCount > 99
+                                                    ? '99+'
+                                                    : offerCount.toString(),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: isSelected
+                                                      ? category['color']
+                                                      : Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  childCount: _categories.length,
-                ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
 

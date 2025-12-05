@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +18,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  File? _profileImage;
+  XFile? _profileImage;
+  Uint8List? _imageBytes;
   String? _initialPhotoUrl;
   bool _isSaving = false;
   bool _isEditing = false;
@@ -40,8 +42,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       imageQuality: 80,
     );
     if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
       setState(() {
-        _profileImage = File(pickedFile.path);
+        _profileImage = pickedFile;
+        _imageBytes = bytes;
       });
     }
   }
@@ -65,6 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (latestPhoto != null) {
             _initialPhotoUrl = latestPhoto;
             _profileImage = null;
+            _imageBytes = null;
           }
           _isEditing = false; // Close edit mode after save
         });
@@ -295,6 +300,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _isEditing = !_isEditing;
                           if (!_isEditing) {
                             _profileImage = null;
+                            _imageBytes = null;
                           }
                         });
                       },
@@ -319,8 +325,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: AppColors.paleBlue,
-                      backgroundImage: _resolveAvatar(
-                          context.read<AuthService>().currentUser?.photoUrl),
+                      backgroundImage: _imageBytes != null
+                          ? MemoryImage(_imageBytes!)
+                          : (context
+                                      .read<AuthService>()
+                                      .currentUser
+                                      ?.photoUrl
+                                      ?.isNotEmpty ==
+                                  true
+                              ? NetworkImage(context
+                                  .read<AuthService>()
+                                  .currentUser!
+                                  .photoUrl!)
+                              : const AssetImage(
+                                      'assets/images/logo/original/Logo_without_text_with_background.jpg')
+                                  as ImageProvider),
                     ),
                     Positioned(
                       bottom: 0,
@@ -480,7 +499,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   ImageProvider _resolveAvatar(String? livePhotoUrl) {
-    if (_profileImage != null) return FileImage(_profileImage!);
+    if (_profileImage != null) return FileImage(_profileImage! as File);
     if ((livePhotoUrl ?? _initialPhotoUrl)?.isNotEmpty == true) {
       return NetworkImage(livePhotoUrl ?? _initialPhotoUrl!);
     }
