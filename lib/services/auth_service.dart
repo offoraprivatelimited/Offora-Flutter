@@ -510,11 +510,21 @@ class AuthService extends ChangeNotifier {
     // Upload profile image if provided
     String? uploadedPhotoUrl;
     if (profileImage != null) {
-      final storageRef = FirebaseStorage.instance.ref().child(
-          'users/${user.uid}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg');
-      final imageBytes = await profileImage.readAsBytes();
-      final uploadTask = await storageRef.putData(imageBytes);
-      uploadedPhotoUrl = await uploadTask.ref.getDownloadURL();
+      try {
+        final storageRef = FirebaseStorage.instance.ref().child(
+            'users/${user.uid}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg');
+        final imageBytes = await profileImage.readAsBytes();
+
+        // Use putData which works on all platforms
+        final uploadTask = await storageRef.putData(
+          imageBytes,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+        uploadedPhotoUrl = await uploadTask.ref.getDownloadURL();
+      } catch (e) {
+        debugPrint('Error uploading profile image: $e');
+        throw AuthException('Failed to upload profile image: $e');
+      }
     }
 
     // Prepare firestore update map — only include provided fields

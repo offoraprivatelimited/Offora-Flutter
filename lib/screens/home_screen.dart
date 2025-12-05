@@ -159,6 +159,18 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _onCategoryScroll(ScrollNotification notification) {
+    if (notification is ScrollStartNotification) {
+      _isAutoScrolling = false;
+    } else if (notification is ScrollEndNotification) {
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          _isAutoScrolling = true;
+        }
+      });
+    }
+  }
+
   Map<String, int> _getCategoryCounts(List<Offer> offers) {
     final counts = <String, int>{};
     for (final category in _categories) {
@@ -284,15 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 110,
                         child: NotificationListener<ScrollNotification>(
                           onNotification: (notification) {
-                            if (notification is ScrollStartNotification) {
-                              _isAutoScrolling = false;
-                            } else if (notification is ScrollEndNotification) {
-                              Future.delayed(const Duration(seconds: 5), () {
-                                if (mounted) {
-                                  setState(() => _isAutoScrolling = true);
-                                }
-                              });
-                            }
+                            _onCategoryScroll(notification);
                             return false;
                           },
                           child: ListView.builder(
