@@ -152,24 +152,6 @@ class _LoginScreenState extends State<LoginScreen> {
             final isWide = constraints.maxWidth > 760;
             return Stack(
               children: [
-                // Back button
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: IconButton(
-                      onPressed: () {
-                        debugPrint(
-                            '[LoginScreen] Back button UI element TAPPED');
-                        _goToRoleSelection();
-                      },
-                      icon: const Icon(Icons.arrow_back,
-                          color: Color(0xFF1F477D)),
-                      tooltip: 'Back to role selection',
-                    ),
-                  ),
-                ),
                 // Decorative background shapes
                 Positioned(
                   top: -constraints.maxWidth * 0.25,
@@ -493,6 +475,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
+                    ),
+                  ),
+                ),
+                // Custom floating back button (top left) - moved to top of stack
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back,
+                          color: Color(0xFF1F477D)),
+                      tooltip: 'Back to role selection',
+                      onPressed: () {
+                        debugPrint('[LoginScreen] Custom back button TAPPED');
+                        _goToRoleSelection();
+                      },
                     ),
                   ),
                 ),

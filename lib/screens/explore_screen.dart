@@ -302,7 +302,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.68,
+                    childAspectRatio: 0.55,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
@@ -315,7 +315,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             offer.client?['businessName'] ?? offer.clientId,
                         'image': offer.imageUrls?.isNotEmpty == true
                             ? offer.imageUrls![0]
-                            : 'assets/images/logo/original/Logo_without_text_with_background.jpg',
+                            : '',
                         'discount':
                             '${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF',
                       };

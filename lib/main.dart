@@ -30,6 +30,7 @@ import 'client/screens/dashboard/dashboard_screen.dart' as client;
 import 'client/screens/main/client_main_screen.dart' as client;
 import 'screens/user_login_screen.dart';
 import 'client/screens/offers/new_offer_form_screen.dart' as client;
+import 'client/screens/dashboard/manage_offers_screen.dart' as client;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,6 +83,8 @@ class OfforaApp extends StatelessWidget {
               const client.ClientMainScreen(),
           client.NewOfferFormScreen.routeName: (_) =>
               const client.NewOfferFormScreen(),
+          client.ManageOffersScreen.routeName: (_) =>
+              const client.ManageOffersScreen(),
           UserLoginScreen.routeName: (context) => const UserLoginScreen(),
           '/about-us': (_) => const AboutUsPage(),
           '/contact-us': (_) => const ContactUsPage(),

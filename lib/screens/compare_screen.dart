@@ -71,6 +71,9 @@ class CompareScreen extends StatelessWidget {
                     final offerMap = <String, dynamic>{
                       'title': offer.title,
                       'store': offer.client?['businessName'] ?? offer.clientId,
+                      'image': (offer.imageUrls?.isNotEmpty ?? false)
+                          ? offer.imageUrls!.first
+                          : '',
                       'discount':
                           '${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF',
                     };

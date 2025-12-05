@@ -407,7 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 0.68,
+                        childAspectRatio: 0.55,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
                       ),
@@ -420,10 +420,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ? client['businessName'].toString()
                                 : offer.clientId;
                         final imageUrls = offer.imageUrls;
-                        final image = (imageUrls != null &&
-                                imageUrls.isNotEmpty)
-                            ? imageUrls[0]
-                            : 'assets/images/logo/original/Logo_without_text_with_background.jpg';
+                        final image =
+                            (imageUrls != null && imageUrls.isNotEmpty)
+                                ? imageUrls[0]
+                                : '';
                         final offerMap = <String, dynamic>{
                           'title': offer.title,
                           'store': businessName,

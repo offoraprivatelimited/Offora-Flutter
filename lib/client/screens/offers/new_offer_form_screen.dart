@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../services/auth_service.dart';
 import '../../models/offer.dart';
 import '../../services/offer_service.dart';
+import '../dashboard/manage_offers_screen.dart';
 
 class NewOfferFormScreen extends StatefulWidget {
   const NewOfferFormScreen({super.key});
@@ -19,6 +20,7 @@ class NewOfferFormScreen extends StatefulWidget {
 }
 
 class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
+  bool _redirectingToLogin = false;
   Offer? _editingOffer;
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
@@ -178,8 +180,14 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         final downloadUrl = await snapshot.ref.getDownloadURL();
         uploadedUrls.add(downloadUrl);
       }
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('Error uploading images: $e');
+      debugPrint('Stack trace: $stack');
+      if (e is FirebaseException) {
+        debugPrint('FirebaseException code: \\${e.code}');
+        debugPrint('FirebaseException message: \\${e.message}');
+        debugPrint('FirebaseException details: \\${e.details}');
+      }
       throw Exception('Failed to upload images: $e');
     }
 
@@ -531,7 +539,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
       if (mounted) {
         // Replace with your actual manage offers page route and pass a param to show pending section
         Navigator.of(context).pushReplacementNamed(
-          '/manage-offers',
+          ManageOffersScreen.routeName,
           arguments: {'section': 'pending'},
         );
       }
@@ -1051,6 +1059,16 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     final auth = context.watch<AuthService>();
     final user = auth.currentUser;
     if (user == null) {
+      if (!_redirectingToLogin) {
+        _redirectingToLogin = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            ManageOffersScreen.routeName,
+            (route) => false,
+          );
+        });
+      }
       return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.white,
@@ -1072,35 +1090,11 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           ),
           iconTheme: IconThemeData(color: darkBlue),
         ),
-        body: Column(
-          children: [
-            // Title below stable AppBar
-            Container(
-              width: double.infinity,
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Text(
-                'Create offer',
-                style: TextStyle(
-                  color: darkBlue,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const Divider(height: 1),
-            const Expanded(
-              child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text(
-                    'Sign in required to create offers.',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ),
-          ],
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: CircularProgressIndicator(),
+          ),
         ),
       );
     }
@@ -2027,6 +2021,10 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
       ),
     );
   }
+}
+
+extension on FirebaseException {
+  get details => null;
 }
 
 class SelectedImage {

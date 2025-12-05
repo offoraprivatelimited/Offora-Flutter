@@ -123,8 +123,8 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
         'Original Price: ₹${widget.offer.originalPrice.toStringAsFixed(0)}\n'
         'Save $discount%!\n\n'
         '${widget.offer.description}\n\n'
-        'Get this offer now: https://offora.com/offers/${widget.offer.id}\n\n'
-        'Download Offora app: https://offora.com';
+        'Get this offer now: https://offora.in/offers/${widget.offer.id}\n\n'
+        'Download Offora app: https://offora.in';
 
     if (kIsWeb) {
       // On web, show share options dialog
