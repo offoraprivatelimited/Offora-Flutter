@@ -134,22 +134,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final auth = context.watch<AuthService>();
     final user = auth.currentUser;
     final avatarImage = _resolveAvatar(user?.photoUrl);
+    // Force refresh profile from Firestore if logged in and name is empty
+    if (user != null && (user.name.isEmpty || user.name == '')) {
+      Future.microtask(() => auth.refreshProfile());
+    }
 
     return Scaffold(
       drawer: const AppDrawer(),
       backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.darkBlue),
-        title: const Text(
-          'Profile',
-          style: TextStyle(
-            color: AppColors.darkBlue,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
       body: SafeArea(
         child: Stack(
           children: [
@@ -296,11 +288,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ? null
                     : () {
                         setState(() {
-                          _isEditing = !_isEditing;
+                          // Prefill controllers with latest user info when entering edit mode
                           if (!_isEditing) {
+                            final user =
+                                context.read<AuthService>().currentUser;
+                            if (user != null) {
+                              _nameController.text = user.name;
+                              _emailController.text = user.email;
+                            }
                             _profileImage = null;
                             _imageBytes = null;
                           }
+                          _isEditing = !_isEditing;
                         });
                       },
                 icon: Icon(
@@ -418,13 +417,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 14),
             foregroundColor: Colors.red,
-            side: const BorderSide(color: Colors.red),
+            side: const BorderSide(color: Colors.red, width: 2),
+            backgroundColor: Colors.transparent,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
+            textStyle: const TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+            iconColor: Colors.red,
           ),
-          icon: const Icon(Icons.logout_rounded),
-          label: const Text('Logout'),
+          icon: const Icon(Icons.logout_rounded, color: Colors.red),
+          label: const Text('Logout', style: TextStyle(color: Colors.red)),
         ),
       ],
     );

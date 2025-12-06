@@ -18,6 +18,10 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     final user = auth.currentUser;
+    // Force refresh profile from Firestore if logged in and name is empty
+    if (user != null && (user.name.isEmpty || user.name == '')) {
+      Future.microtask(() => auth.refreshProfile());
+    }
 
     // Try to find MainScreen or ClientMainScreen state to show pages inline
     final mainScreenState =
@@ -238,19 +242,23 @@ class AppDrawer extends StatelessWidget {
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Sign Out'),
-                        content:
-                            const Text('Are you sure you want to sign out?'),
+                        title: const Text('Sign Out',
+                            style: TextStyle(color: Colors.black)),
+                        content: const Text(
+                            'Are you sure you want to sign out?',
+                            style: TextStyle(color: Colors.black)),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
+                            child: const Text('Cancel',
+                                style: TextStyle(color: Colors.black)),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
-                            style: TextButton.styleFrom(
-                                foregroundColor: Colors.red),
-                            child: const Text('Sign Out'),
+                            child: const Text('Sign Out',
+                                style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),

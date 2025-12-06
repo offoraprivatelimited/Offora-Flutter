@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../client/theme/app_theme.dart';
 
 class OnboardingScreen extends StatefulWidget {
   static const String routeName = '/onboarding';
@@ -15,8 +16,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     const primaryDark = Color(0xFF0A1A3A);
-    const accentOrange = Color.fromARGB(255, 255, 187, 0);
-    const softOrange = Color.fromARGB(255, 255, 102, 0);
+    const accentOrange = AppColors.secondary;
+    const softOrange = AppColors.secondary;
     const lightOrange = Color(0xFFFFF4ED);
     const gray20 = Color(0xFFF5F5F5);
 

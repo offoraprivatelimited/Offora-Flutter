@@ -327,32 +327,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   },
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
-                                    width: 90,
-                                    decoration: BoxDecoration(
-                                      gradient: isSelected
-                                          ? LinearGradient(
-                                              colors: category['gradient'],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            )
-                                          : null,
-                                      color: isSelected ? null : Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? Colors.transparent
-                                            : const Color(0xFFE5E7EB),
-                                        width: 1.5,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: isSelected
-                                              ? category['color'].withAlpha(80)
-                                              : Colors.black.withAlpha(8),
-                                          blurRadius: isSelected ? 12 : 8,
-                                          offset: Offset(0, isSelected ? 6 : 2),
-                                        ),
-                                      ],
+                                    width: 72,
+                                    height: 92,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.transparent,
                                     ),
                                     child: Stack(
                                       children: [
@@ -365,41 +343,36 @@ class _HomeScreenState extends State<HomeScreen> {
                                             children: [
                                               Container(
                                                 padding:
-                                                    const EdgeInsets.all(12),
-                                                decoration: BoxDecoration(
-                                                  color: isSelected
-                                                      ? Colors.white
-                                                          .withAlpha(50)
-                                                      : category['color']
-                                                          .withAlpha(25),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
+                                                    const EdgeInsets.all(8),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.transparent,
                                                 ),
                                                 child: Icon(
                                                   category['icon'],
                                                   color: isSelected
                                                       ? Colors.white
                                                       : category['color'],
-                                                  size: 26,
+                                                  size: 22,
                                                 ),
                                               ),
-                                              const SizedBox(height: 8),
+                                              const SizedBox(height: 7),
                                               Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                        horizontal: 6),
+                                                        horizontal: 2),
                                                 child: Text(
                                                   category['name'],
                                                   textAlign: TextAlign.center,
                                                   style: TextStyle(
-                                                    fontSize: 9.5,
-                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 11.5,
+                                                    fontWeight: FontWeight.w800,
                                                     color: isSelected
                                                         ? Colors.white
                                                         : AppColors.darkBlue,
-                                                    height: 1.1,
+                                                    letterSpacing: 0.1,
+                                                    height: 1.13,
                                                   ),
-                                                  maxLines: 1,
+                                                  maxLines: 2,
                                                   overflow:
                                                       TextOverflow.ellipsis,
                                                 ),
@@ -426,7 +399,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 boxShadow: [
                                                   BoxShadow(
                                                     color: Colors.black
-                                                        .withOpacity(0.15),
+                                                        .withAlpha((0.15 * 255)
+                                                            .toInt()),
                                                     blurRadius: 4,
                                                     offset: const Offset(0, 2),
                                                   ),

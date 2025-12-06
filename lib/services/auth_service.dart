@@ -27,6 +27,13 @@ class AuthService extends ChangeNotifier {
   // Track approval stage
   ClientPanelStage _stage = ClientPanelStage.pendingApproval;
 
+  // Cache for stage determination to avoid redundant Firestore queries
+  String? _cachedStageUid;
+
+  // Track if initial auth check is complete
+  bool _initialCheckComplete = false;
+  bool get initialCheckComplete => _initialCheckComplete;
+
   bool get isBusy => _isBusy;
   String? get errorMessage => _errorMessage;
   ClientPanelStage get stage => _stage;
@@ -49,13 +56,21 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> _checkPersistentLogin() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    if (isLoggedIn && _auth.currentUser != null) {
-      // User is already authenticated, load profile
-      await _loadUserFromFirestore(_auth.currentUser!.uid);
-      _loggedIn = true;
-      await _determineStage(_auth.currentUser!.uid);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+      if (isLoggedIn && _auth.currentUser != null) {
+        // User is already authenticated, load profile
+        await _loadUserFromFirestore(_auth.currentUser!.uid);
+        _loggedIn = true;
+        await _determineStage(_auth.currentUser!.uid);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during persistent login check: $e');
+      }
+    } finally {
+      _initialCheckComplete = true;
       notifyListeners();
     }
   }
@@ -100,21 +115,22 @@ class AuthService extends ChangeNotifier {
       );
       final user = credential.user;
       if (user != null) {
-        await _loadUserFromFirestore(user.uid);
+        // Load user profile and determine stage in parallel
+        await Future.wait([
+          _loadUserFromFirestore(user.uid),
+          _determineStage(user.uid),
+        ]);
+
         _loggedIn = true;
-        await _determineStage(user.uid);
         await _savePersistentLogin(true);
         notifyListeners();
       } else {
         throw AuthException('No user found after sign-in.');
       }
     } on FirebaseAuthException catch (e) {
-      // Log FirebaseAuthException details for debugging (visible in console / browser)
       if (kDebugMode) {
         debugPrint(
             'FirebaseAuthException.signIn -> code=${e.code}, message=${e.message}');
-      } else {
-        // Ensure we still have some logging in non-debug runs
       }
       _errorMessage = _getFirebaseErrorMessage(e.code);
       notifyListeners();
@@ -122,7 +138,7 @@ class AuthService extends ChangeNotifier {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Non-Firebase error during signIn: $e');
-      } else {}
+      }
       _errorMessage = 'Unable to sign in. Please try again.';
       notifyListeners();
       rethrow;
@@ -132,40 +148,51 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Determine approval stage for the user
+  // Determine approval stage for the user (with caching to avoid redundant queries)
   Future<void> _determineStage(String uid) async {
+    // Skip if already cached for this uid
+    if (_cachedStageUid == uid) {
+      return;
+    }
+
     final firestore = FirebaseFirestore.instance;
-    final approvedSnap = await firestore
-        .collection('clients')
-        .doc('approved')
-        .collection('clients')
-        .doc(uid)
-        .get();
-    if (approvedSnap.exists) {
+
+    // Check in parallel for better performance
+    final futures = [
+      firestore
+          .collection('clients')
+          .doc('approved')
+          .collection('clients')
+          .doc(uid)
+          .get(),
+      firestore
+          .collection('clients')
+          .doc('pending')
+          .collection('clients')
+          .doc(uid)
+          .get(),
+      firestore
+          .collection('clients')
+          .doc('rejected')
+          .collection('clients')
+          .doc(uid)
+          .get(),
+    ];
+
+    final results = await Future.wait(futures);
+
+    if (results[0].exists) {
       _stage = ClientPanelStage.active;
-      return;
-    }
-    final pendingSnap = await firestore
-        .collection('clients')
-        .doc('pending')
-        .collection('clients')
-        .doc(uid)
-        .get();
-    if (pendingSnap.exists) {
+    } else if (results[1].exists) {
       _stage = ClientPanelStage.pendingApproval;
-      return;
-    }
-    final rejectedSnap = await firestore
-        .collection('clients')
-        .doc('rejected')
-        .collection('clients')
-        .doc(uid)
-        .get();
-    if (rejectedSnap.exists) {
+    } else if (results[2].exists) {
       _stage = ClientPanelStage.rejected;
-      return;
+    } else {
+      _stage = ClientPanelStage.pendingApproval;
     }
-    _stage = ClientPanelStage.pendingApproval;
+
+    // Update cache
+    _cachedStageUid = uid;
   }
 
   // Register client (shop owner) - stores all information in Firestore

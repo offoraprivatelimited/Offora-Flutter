@@ -32,6 +32,9 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscureConfirmPassword = true;
   String? _selectedCategory;
 
+  // Track if we've already redirected to prevent multiple navigations
+  bool _hasRedirected = false;
+
   final List<String> _categories = const [
     'Grocery',
     'Supermarket',
@@ -80,6 +83,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _handleSignup() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Reset redirect flag when attempting new signup
+    _hasRedirected = false;
+
     final auth = Provider.of<AuthService>(context, listen: false);
     try {
       await auth.registerClient(
@@ -103,22 +110,34 @@ class _SignupScreenState extends State<SignupScreen> {
                 : _registrationNumberController.text.trim(),
       );
 
+      // Refresh profile to get the most current stage information
       await auth.refreshProfile();
 
       if (!mounted) return;
 
+      // Only redirect once
+      if (_hasRedirected) return;
+      _hasRedirected = true;
+
+      // Route based on approval stage
       if (auth.stage == ClientPanelStage.pendingApproval) {
         Navigator.of(context)
             .pushReplacementNamed(PendingApprovalPage.routeName);
       } else if (auth.stage == ClientPanelStage.active) {
         Navigator.of(context).pushReplacementNamed(DashboardScreen.routeName);
-      } else {
+      } else if (auth.stage == ClientPanelStage.rejected) {
         Navigator.of(context).pushReplacementNamed(RejectionPage.routeName);
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      _hasRedirected = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red.shade600,
+        ),
+      );
+      debugPrint('[SignupScreen] Signup error: $e');
     }
   }
 

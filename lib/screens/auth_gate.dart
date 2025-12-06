@@ -17,8 +17,8 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthService>(
       builder: (context, authService, _) {
-        // Show loading while checking auth state
-        if (authService.isBusy) {
+        // Wait for initial auth check to complete
+        if (!authService.initialCheckComplete) {
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
@@ -32,30 +32,28 @@ class AuthGate extends StatelessWidget {
 
           // User (not shop owner)
           if (user.role == 'user') {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.of(context).pushReplacementNamed(MainScreen.routeName);
-            });
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+            return _buildTransitionScreen(
+              context,
+              MainScreen.routeName,
             );
           }
 
           // Shop owner - check approval stage
           if (authService.stage == ClientPanelStage.active) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.of(context)
-                  .pushReplacementNamed(ClientMainScreen.routeName);
-            });
+            return _buildTransitionScreen(
+              context,
+              ClientMainScreen.routeName,
+            );
           } else if (authService.stage == ClientPanelStage.pendingApproval) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.of(context)
-                  .pushReplacementNamed(PendingApprovalPage.routeName);
-            });
+            return _buildTransitionScreen(
+              context,
+              PendingApprovalPage.routeName,
+            );
           } else if (authService.stage == ClientPanelStage.rejected) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.of(context)
-                  .pushReplacementNamed(RejectionPage.routeName);
-            });
+            return _buildTransitionScreen(
+              context,
+              RejectionPage.routeName,
+            );
           }
 
           return const Scaffold(
@@ -68,4 +66,19 @@ class AuthGate extends StatelessWidget {
       },
     );
   }
+
+  /// Build a screen that transitions to the target route once mounted
+  Widget _buildTransitionScreen(BuildContext context, String routeName) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed(routeName);
+      }
+    });
+
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  bool get mounted => true;
 }

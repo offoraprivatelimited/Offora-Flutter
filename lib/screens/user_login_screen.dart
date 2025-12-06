@@ -15,7 +15,9 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isLogin = true;
 
   // Signup fields
@@ -24,15 +26,38 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
   final _ageController = TextEditingController();
   final _cityController = TextEditingController();
 
+  // Track if we've already redirected to prevent multiple navigations
+  bool _hasRedirected = false;
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
     _ageController.dispose();
     _cityController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = context.watch<AuthService>();
+
+    // Only route if: user is logged in AND we haven't already redirected
+    if (!auth.isLoggedIn || _hasRedirected) {
+      return;
+    }
+
+    // Mark as redirected to prevent multiple navigations
+    _hasRedirected = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed(MainScreen.routeName);
+    });
   }
 
   void _toggleForm() {
@@ -42,34 +67,48 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
+    // Reset redirect flag when attempting new sign-in
+    _hasRedirected = false;
+
     final authService = context.read<AuthService>();
     try {
       await authService.signInWithGoogle(role: 'user');
+
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, MainScreen.routeName);
+
+      // Wait for auth state to be fully established
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // didChangeDependencies will handle routing
     } catch (e) {
       _showError('Google sign-in failed: ${e.toString()}');
+      debugPrint('[UserLoginScreen] Google sign-in error: $e');
     }
   }
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Reset redirect flag when attempting new login
+    _hasRedirected = false;
+
     final authService = context.read<AuthService>();
     try {
       await authService.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
       // Role check: Only allow if UID is in users, not clients
       final uid = authService.currentUser?.uid;
       final firestore = authService.firestore;
       if (uid != null) {
         final userDoc = await firestore.collection('users').doc(uid).get();
         final clientDoc = await firestore.collection('clients').doc(uid).get();
+
         if (userDoc.exists) {
           // Allowed: user login
-          if (!mounted) return;
-          Navigator.pushReplacementNamed(context, MainScreen.routeName);
+          // didChangeDependencies will handle routing
         } else if (clientDoc.exists) {
           // Block: shop owner trying to log in as user
           await authService.signOut();
@@ -84,11 +123,16 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
       }
     } catch (e) {
       _showError('Login failed: ${e.toString()}');
+      debugPrint('[UserLoginScreen] Login error: $e');
     }
   }
 
   Future<void> _handleSignup() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Reset redirect flag when attempting new signup
+    _hasRedirected = false;
+
     final authService = context.read<AuthService>();
     try {
       await authService.signUpWithEmail(
@@ -98,10 +142,16 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
         phone: _phoneController.text.trim(),
         role: 'user',
       );
+
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, MainScreen.routeName);
+
+      // Wait for auth state to be fully established
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // didChangeDependencies will handle routing
     } catch (e) {
       _showError('Signup failed: ${e.toString()}');
+      debugPrint('[UserLoginScreen] Signup error: $e');
     }
   }
 
@@ -370,6 +420,85 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                                           ? 'Password must be at least 6 characters'
                                           : null,
                                     ),
+                                    if (!_isLogin) ...{
+                                      const SizedBox(height: 14),
+                                      TextFormField(
+                                        controller: _confirmPasswordController,
+                                        obscureText: _obscureConfirmPassword,
+                                        style: const TextStyle(
+                                          color: Colors.black87,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        cursorColor: darkBlue,
+                                        decoration: InputDecoration(
+                                          labelText: 'Confirm Password',
+                                          labelStyle: const TextStyle(
+                                            color: Color(0xFF666666),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          prefixIcon: const Icon(
+                                              Icons.lock_outline,
+                                              color: darkBlue),
+                                          suffixIcon: IconButton(
+                                            icon: Icon(
+                                              _obscureConfirmPassword
+                                                  ? Icons
+                                                      .visibility_off_outlined
+                                                  : Icons.visibility_outlined,
+                                              color: darkBlue,
+                                            ),
+                                            onPressed: () => setState(() =>
+                                                _obscureConfirmPassword =
+                                                    !_obscureConfirmPassword),
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: const BorderSide(
+                                              color: Color(0xFFE0E0E0),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: const BorderSide(
+                                              color: darkBlue,
+                                              width: 2,
+                                            ),
+                                          ),
+                                          errorBorder: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: const BorderSide(
+                                              color: Colors.red,
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          focusedErrorBorder:
+                                              OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: const BorderSide(
+                                              color: Colors.red,
+                                              width: 2,
+                                            ),
+                                          ),
+                                        ),
+                                        validator: (v) {
+                                          if (v == null || v.isEmpty) {
+                                            return 'Please confirm your password';
+                                          }
+                                          if (v != _passwordController.text) {
+                                            return 'Passwords do not match';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    },
                                     const SizedBox(height: 24),
                                     SizedBox(
                                       width: double.infinity,

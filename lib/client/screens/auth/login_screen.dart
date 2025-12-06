@@ -8,6 +8,7 @@ import 'pending_approval_page.dart';
 import 'rejection_page.dart';
 import 'signup_screen.dart';
 import '../../../role_selection_screen.dart';
+import '../../theme/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,6 +24,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  // Track if we've already redirected to prevent multiple redirects
+  bool _hasRedirected = false;
 
   void _goToRoleSelection() {
     debugPrint(
@@ -60,28 +64,27 @@ class _LoginScreenState extends State<LoginScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final auth = context.watch<AuthService>();
-    // Only route based on stage after authentication; otherwise, stay on login
-    if (!auth.isLoggedIn) {
+
+    // Only route if: user is logged in AND we haven't already redirected
+    if (!auth.isLoggedIn || _hasRedirected) {
       return;
     }
-    if (auth.stage == ClientPanelStage.active) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+
+    // Mark as redirected to prevent multiple navigations
+    _hasRedirected = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      if (auth.stage == ClientPanelStage.active) {
         Navigator.of(context).pushReplacementNamed(DashboardScreen.routeName);
-      });
-    } else if (auth.stage == ClientPanelStage.pendingApproval) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(
-          context,
-        ).pushReplacementNamed(PendingApprovalPage.routeName);
-      });
-    } else if (auth.stage == ClientPanelStage.rejected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+      } else if (auth.stage == ClientPanelStage.pendingApproval) {
+        Navigator.of(context)
+            .pushReplacementNamed(PendingApprovalPage.routeName);
+      } else if (auth.stage == ClientPanelStage.rejected) {
         Navigator.of(context).pushReplacementNamed(RejectionPage.routeName);
-      });
-    }
+      }
+    });
   }
 
   Future<void> _handleLogin() async {
@@ -89,37 +92,62 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    // Reset redirect flag when attempting new login
+    _hasRedirected = false;
+
     final auth = context.read<AuthService>();
     try {
       await auth.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // Role check: Only allow if UID is in clients, not users
+
+      // Role check: Only allow if UID is in clients collections (hierarchical structure)
       final uid = auth.currentUser?.uid;
       final firestore = auth.firestore;
       if (uid != null) {
-        final clientDoc = await firestore.collection('clients').doc(uid).get();
-        final userDoc = await firestore.collection('users').doc(uid).get();
-        if (clientDoc.exists) {
+        // Check hierarchical client locations: approved, pending, rejected
+        final statuses = ['approved', 'pending', 'rejected'];
+        bool isClient = false;
+        for (final status in statuses) {
+          final doc = await firestore
+              .collection('clients')
+              .doc(status)
+              .collection('clients')
+              .doc(uid)
+              .get();
+          if (doc.exists) {
+            isClient = true;
+            break;
+          }
+        }
+
+        if (isClient) {
           // Allowed: shop owner login
-          // didChangeDependencies will handle routing
-        } else if (userDoc.exists) {
-          // Block: user trying to log in as shop owner
-          await auth.signOut();
-          _showError(
-              'This account is registered as a user. Please use the user login.');
+          // didChangeDependencies will handle routing once state updates
+          debugPrint('[LoginScreen] Login successful for shop owner: $uid');
         } else {
-          // Not found in either collection
-          await auth.signOut();
-          _showError(
-              'No shop owner record found. Please sign up or contact support.');
+          // Check if it's a regular user trying to log in as shop owner
+          final userDoc = await firestore.collection('users').doc(uid).get();
+          if (userDoc.exists) {
+            // Block: user trying to log in as shop owner
+            await auth.signOut();
+            _showError(
+                'This account is registered as a user. Please use the user login.');
+          } else {
+            // Not found in any collection
+            await auth.signOut();
+            _showError(
+                'No shop owner record found. Please sign up or contact support.');
+          }
         }
       }
-    } on FirebaseAuthException catch (_) {
+    } on FirebaseAuthException catch (e) {
       _showError(auth.errorMessage ?? 'Unable to sign in. Please try again.');
-    } catch (_) {
+      debugPrint('[LoginScreen] Firebase auth error: ${e.code}');
+    } catch (e) {
       _showError(auth.errorMessage ?? 'Unable to sign in. Please try again.');
+      debugPrint('[LoginScreen] Login error: $e');
     }
   }
 
@@ -134,10 +162,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     final theme = Theme.of(context);
-    // Theme colors provided by user
-    const darkBlue = Color(0xFF1F477D);
-    const brightGold = Color(0xFFF0B84D);
-    const darkerGold = Color(0xFFA3834D);
+    // Use theme colors
+   
+    const darkBlue = AppColors.primary;
+    const brightGold = AppColors.secondary;
+    const darkerGold = AppColors.secondary;
 
     return PopScope(
       canPop: false,
@@ -157,8 +186,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   top: -constraints.maxWidth * 0.25,
                   left: -constraints.maxWidth * 0.2,
                   child: Container(
-                    width: constraints.maxWidth * 0.9,
-                    height: constraints.maxWidth * 0.9,
+                    width: constraints.maxWidth * 0.7,
+                    height: constraints.maxWidth * 0.7,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
@@ -176,8 +205,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   top: -constraints.maxWidth * 0.15,
                   right: -constraints.maxWidth * 0.25,
                   child: Container(
-                    width: constraints.maxWidth * 0.7,
-                    height: constraints.maxWidth * 0.7,
+                    width: constraints.maxWidth * 0.5,
+                    height: constraints.maxWidth * 0.5,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
@@ -203,8 +232,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   bottom: -constraints.maxWidth * 0.25,
                   left: -constraints.maxWidth * 0.2,
                   child: Container(
-                    width: constraints.maxWidth * 1.2,
-                    height: constraints.maxWidth * 0.9,
+                    width: constraints.maxWidth * 0.8,
+                    height: constraints.maxWidth * 0.5,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(constraints.maxWidth),
                       gradient: LinearGradient(
@@ -219,10 +248,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Center card / form
                 Center(
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: isWide ? 640 : 420),
+                    constraints: BoxConstraints(maxWidth: isWide ? 480 : 340),
                     child: Padding(
                       padding: EdgeInsets.symmetric(
-                          horizontal: isWide ? 24 : 16, vertical: 28),
+                          horizontal: isWide ? 16 : 8, vertical: 18),
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.white.withAlpha(242),
@@ -236,8 +265,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 28, vertical: 28),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 16),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
