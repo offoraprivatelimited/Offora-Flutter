@@ -8,7 +8,6 @@ import 'pending_approval_page.dart';
 import 'rejection_page.dart';
 import 'signup_screen.dart';
 import '../../../role_selection_screen.dart';
-import '../../theme/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -162,11 +161,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     final theme = Theme.of(context);
-    // Use theme colors
-   
-    const darkBlue = AppColors.primary;
-    const brightGold = AppColors.secondary;
-    const darkerGold = AppColors.secondary;
+    // Use premium colors to match signup screen
+    const darkBlue = Color(0xFF1F477D);
+    const brightGold = Color(0xFFF0B84D);
+    const darkerGold = Color(0xFFA3834D);
 
     return PopScope(
       canPop: false,
@@ -265,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         child: Padding(
-                            padding: const EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 16),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
