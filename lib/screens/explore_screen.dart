@@ -196,6 +196,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: TextField(
                 controller: _searchController,
+                cursorColor: AppColors.darkBlue,
+                style: const TextStyle(
+                  color: AppColors.darkBlue,
+                  fontWeight: FontWeight.w600,
+                ),
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value;
@@ -203,11 +208,16 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 },
                 decoration: InputDecoration(
                   hintText: 'Search offers...',
-                  hintStyle: TextStyle(color: Colors.grey.shade500),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
+                  hintStyle: TextStyle(
+                    color: AppColors.darkBlue.withOpacity(0.55),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  prefixIcon:
+                      const Icon(Icons.search, color: AppColors.darkBlue),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
-                          icon: Icon(Icons.clear, color: Colors.grey.shade600),
+                          icon: const Icon(Icons.clear,
+                              color: AppColors.darkBlue),
                           onPressed: () {
                             _searchController.clear();
                             setState(() {
@@ -217,10 +227,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         )
                       : null,
                   filled: true,
-                  fillColor: Colors.grey.shade100,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                    borderSide: const BorderSide(
+                      color: AppColors.darkBlue,
+                      width: 1.2,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.darkBlue.withOpacity(0.35),
+                      width: 1.1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppColors.darkBlue,
+                      width: 1.5,
+                    ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,

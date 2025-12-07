@@ -314,6 +314,36 @@ class _HomeScreenState extends State<HomeScreen> {
                                           category['name'] == 'All');
                               final offerCount = counts[category['name']] ?? 0;
 
+                              // Custom style for 'All' card: white background, split blue/orange icon
+                              final isAll = category['name'] == 'All';
+                              final cardDecoration = isAll
+                                  ? BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.06),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    )
+                                  : BoxDecoration(
+                                      color: Colors.transparent,
+                                      borderRadius: BorderRadius.circular(16),
+                                    );
+                              final iconColor = isAll
+                                  ? Colors
+                                      .white // used only under shader for split color
+                                  : (isSelected
+                                      ? Colors.white
+                                      : category['color']);
+                              final textColor = isAll
+                                  ? Colors.black
+                                  : (isSelected
+                                      ? Colors.white
+                                      : AppColors.darkBlue);
+
                               return Padding(
                                 padding: const EdgeInsets.only(right: 12),
                                 child: GestureDetector(
@@ -329,9 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     duration: const Duration(milliseconds: 200),
                                     width: 72,
                                     height: 92,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.transparent,
-                                    ),
+                                    decoration: cardDecoration,
                                     child: Stack(
                                       children: [
                                         Center(
@@ -344,16 +372,50 @@ class _HomeScreenState extends State<HomeScreen> {
                                               Container(
                                                 padding:
                                                     const EdgeInsets.all(8),
-                                                decoration: const BoxDecoration(
-                                                  color: Colors.transparent,
-                                                ),
-                                                child: Icon(
-                                                  category['icon'],
-                                                  color: isSelected
+                                                decoration: BoxDecoration(
+                                                  color: isSelected && isAll
                                                       ? Colors.white
-                                                      : category['color'],
-                                                  size: 22,
+                                                          .withOpacity(0.12)
+                                                      : Colors.transparent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
                                                 ),
+                                                child: isAll
+                                                    ? ShaderMask(
+                                                        shaderCallback: (bounds) =>
+                                                            const LinearGradient(
+                                                          colors: [
+                                                            AppColors.darkBlue,
+                                                            AppColors.darkBlue,
+                                                            AppColors
+                                                                .brightGold,
+                                                            AppColors
+                                                                .brightGold,
+                                                          ],
+                                                          stops: [
+                                                            0,
+                                                            0.5,
+                                                            0.5,
+                                                            1
+                                                          ],
+                                                          begin: Alignment
+                                                              .centerLeft,
+                                                          end: Alignment
+                                                              .centerRight,
+                                                        ).createShader(bounds),
+                                                        blendMode:
+                                                            BlendMode.srcIn,
+                                                        child: Icon(
+                                                          category['icon'],
+                                                          color: iconColor,
+                                                          size: 22,
+                                                        ),
+                                                      )
+                                                    : Icon(
+                                                        category['icon'],
+                                                        color: iconColor,
+                                                        size: 22,
+                                                      ),
                                               ),
                                               const SizedBox(height: 7),
                                               Padding(
@@ -366,9 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   style: TextStyle(
                                                     fontSize: 11.5,
                                                     fontWeight: FontWeight.w800,
-                                                    color: isSelected
-                                                        ? Colors.white
-                                                        : AppColors.darkBlue,
+                                                    color: textColor,
                                                     letterSpacing: 0.1,
                                                     height: 1.13,
                                                   ),
@@ -393,7 +453,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                               decoration: BoxDecoration(
                                                 color: isSelected
                                                     ? Colors.white
-                                                    : AppColors.brightGold,
+                                                    : (isAll
+                                                        ? AppColors.brightGold
+                                                        : AppColors.brightGold),
                                                 borderRadius:
                                                     BorderRadius.circular(10),
                                                 boxShadow: [
@@ -414,7 +476,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.w800,
                                                   color: isSelected
-                                                      ? category['color']
+                                                      ? (isAll
+                                                          ? AppColors.darkBlue
+                                                          : category['color'])
                                                       : Colors.white,
                                                 ),
                                               ),
