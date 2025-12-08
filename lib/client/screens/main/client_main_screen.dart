@@ -4,8 +4,8 @@ import '../dashboard/manage_offers_screen.dart';
 import '../dashboard/enquiries_screen.dart';
 import '../dashboard/client_profile_screen.dart';
 import '../offers/new_offer_form_screen.dart';
-import 'add_offer_entry_screen.dart';
 import '../../../widgets/app_drawer.dart';
+import '../../../widgets/premium_app_bar.dart';
 
 class ClientMainScreen extends StatefulWidget {
   const ClientMainScreen({super.key});
@@ -17,12 +17,12 @@ class ClientMainScreen extends StatefulWidget {
 }
 
 class _ClientMainScreenState extends State<ClientMainScreen> {
-  // Keep index in sync with BottomNavigationBar items (0..3)
+  // Keep index in sync with BottomNavigationBar items (0..4)
   int _currentIndex = 1; // default to Manage
   Widget? _infoPage;
 
   final List<Widget> _screens = const [
-    AddOfferEntryScreen(),
+    NewOfferFormScreen(),
     ManageOffersScreen(),
     EnquiriesScreen(),
     ClientProfileScreen(),
@@ -44,70 +44,28 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
   @override
   Widget build(BuildContext context) {
     const brightGold = Color(0xFFF0B84D);
-    final titles = ['', 'Manage Offers', 'Enquiries', 'Profile'];
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        toolbarHeight: 44,
-        automaticallyImplyLeading: false,
-        title: Builder(
-          builder: (ctx) => Row(
-            children: [
-              IconButton(
-                icon: _infoPage != null
-                    ? const Icon(Icons.arrow_back, color: Color(0xFF1F477D))
-                    : const Icon(Icons.menu, color: Color(0xFF1F477D)),
-                onPressed: () {
-                  if (_infoPage != null) {
-                    clearInfoPage();
-                  } else {
-                    Scaffold.of(ctx).openDrawer();
-                  }
-                },
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 28,
-                child: Image.asset(
-                  'assets/images/logo/original/Text_without_logo_without_background.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ],
+      drawer: const AppDrawer(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(64),
+        child: Builder(
+          builder: (context) => PremiumAppBar(
+            showBack: _infoPage != null,
+            onBackTap: () => setState(() => _infoPage = null),
+            showMenu: _infoPage == null,
+            onMenuTap: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF1F477D)),
       ),
-      drawer: const AppDrawer(),
       body: _infoPage != null
           ? _infoPage!
-          : Column(
-              children: [
-                // Title row placed below the stable AppBar
-                Container(
-                  width: double.infinity,
-                  color: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Text(
-                    titles[_currentIndex],
-                    style: const TextStyle(
-                      color: Color(0xFF1F477D),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: IndexedStack(
-                    index: _currentIndex,
-                    children: _screens,
-                  ),
-                ),
-              ],
+          : Container(
+              color: const Color(0xFFF5F7FA),
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _screens,
+              ),
             ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -122,13 +80,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
-          onTap: (index) async {
-            if (index == 0) {
-              // Treat the first tab as a quick action to add an offer.
-              await Navigator.of(context)
-                  .pushNamed(NewOfferFormScreen.routeName);
-              return;
-            }
+          onTap: (index) {
             setState(() {
               _currentIndex = index;
               _infoPage = null; // Clear info page when switching tabs

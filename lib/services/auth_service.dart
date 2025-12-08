@@ -204,6 +204,7 @@ class AuthService extends ChangeNotifier {
     required String phoneNumber,
     required String address,
     required String location,
+    required String city,
     required String category,
     String? gstNumber,
     String? shopLicenseNumber,
@@ -229,6 +230,7 @@ class AuthService extends ChangeNotifier {
           'businessCategory': category,
           'location': location,
           'address': address,
+          'city': city,
 
           // Contact Information
           'contactPerson': contactPerson,

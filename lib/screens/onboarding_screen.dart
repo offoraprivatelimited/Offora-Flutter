@@ -1,5 +1,6 @@
+// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
+
 import 'package:flutter/material.dart';
-import '../client/theme/app_theme.dart';
 
 class OnboardingScreen extends StatefulWidget {
   static const String routeName = '/onboarding';
@@ -15,19 +16,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryDark = Color(0xFF0A1A3A);
-    const accentOrange = AppColors.secondary;
-    const softOrange = AppColors.secondary;
+    // Use login screen colors
+    const loginBlue = Color(0xFF1F477D);
+    const loginOrange = Color(0xFFF0B84D);
+    const loginOrangeDark = Color(0xFFA3834D);
     const lightOrange = Color(0xFFFFF4ED);
     const gray20 = Color(0xFFF5F5F5);
+    const primaryDark = Color(0xFF1F477D); // Use loginBlue for primaryDark
 
     final slides = [
       _Slide(
         title: 'Discover Offers',
         subtitle:
             'Find curated deals from brands and premium establishments with our advanced search.',
-        accentColor: accentOrange,
-        gradientColors: const [accentOrange, softOrange],
+        accentColor: loginOrange,
+        gradientColors: [loginOrange, loginOrangeDark],
         icon: Stack(
           children: [
             const Icon(Icons.search, size: 72, color: Colors.white),
@@ -36,9 +39,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               bottom: 0,
               child: Container(
                 padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: primaryDark,
+                  color: loginBlue,
                 ),
                 child: const Icon(Icons.star_border,
                     size: 20, color: Colors.white),
@@ -51,8 +54,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         title: 'Compare & Select',
         subtitle:
             'Side-by-side comparison of exclusive offers with detailed analytics to make informed decisions.',
-        accentColor: primaryDark,
-        gradientColors: const [primaryDark, Color(0xFF1A3A5A)],
+        accentColor: loginBlue,
+        gradientColors: [loginBlue, const Color(0xFF1A3A5A)],
         icon: Stack(
           children: [
             const Icon(Icons.analytics_outlined, size: 72, color: Colors.white),
@@ -61,9 +64,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               bottom: 0,
               child: Container(
                 padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: accentOrange,
+                  color: loginOrange,
                 ),
                 child: const Icon(Icons.balance_outlined,
                     size: 20, color: Colors.white),
@@ -76,8 +79,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         title: 'Save & Notify',
         subtitle:
             'Bookmark luxury deals and receive timely notifications before expiration. Never miss an exclusive offer.',
-        accentColor: accentOrange,
-        gradientColors: const [accentOrange, softOrange],
+        accentColor: loginOrange,
+        gradientColors: [loginOrange, loginOrangeDark],
         icon: Stack(
           children: [
             const Icon(Icons.bookmark_add_outlined,
@@ -87,9 +90,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               right: 0,
               child: Container(
                 padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: primaryDark,
+                  color: loginBlue,
                 ),
                 child: const Icon(Icons.notifications_none,
                     size: 18, color: Colors.white),
@@ -132,8 +135,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      accentOrange.withOpacity(0.12),
-                      accentOrange.withOpacity(0.05),
+                      loginOrange.withOpacity(0.12),
+                      loginOrange.withOpacity(0.05),
                       Colors.transparent
                     ],
                     stops: const [0, 0.6, 1],
@@ -152,8 +155,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      primaryDark.withOpacity(0.08),
-                      primaryDark.withOpacity(0.03),
+                      loginBlue.withOpacity(0.08),
+                      loginBlue.withOpacity(0.03),
                       Colors.transparent
                     ],
                     stops: const [0, 0.6, 1],
@@ -175,12 +178,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     borderRadius: BorderRadius.circular(20),
                     gradient: LinearGradient(
                       colors: [
-                        accentOrange.withOpacity(0.1),
-                        softOrange.withOpacity(0.05),
+                        loginOrange.withOpacity(0.1),
+                        loginOrangeDark.withOpacity(0.05),
                       ],
                     ),
                     border: Border.all(
-                      color: accentOrange.withOpacity(0.15),
+                      color: loginOrange.withOpacity(0.15),
                       width: 1.5,
                     ),
                   ),
@@ -199,7 +202,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: accentOrange.withOpacity(0.2),
+                      color: loginOrange.withOpacity(0.2),
                       width: 2,
                     ),
                   ),
@@ -220,7 +223,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              color: accentOrange.withOpacity(0.2),
+                              color: loginOrange.withOpacity(0.2),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -237,7 +240,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w900,
-                          color: primaryDark,
+                          color: Color(0xFF1F477D),
                           letterSpacing: -0.8,
                         ),
                       ),
@@ -248,8 +251,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [accentOrange, softOrange],
+                          gradient: LinearGradient(
+                            colors: [loginOrange, loginOrangeDark],
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -333,7 +336,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     horizontal: 24,
                                   ),
                                   side: BorderSide(
-                                    color: primaryDark.withOpacity(0.2),
+                                    color: primaryDark.withValues(alpha: 0.2),
                                     width: 1.5,
                                   ),
                                   shape: RoundedRectangleBorder(
@@ -467,94 +470,88 @@ class _Slide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const gray90 = Color(0xFF1A1A1A);
-    const gray60 = Color(0xFF666666);
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        return SingleChildScrollView(
+        return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Enhanced Icon Container with floating effect
-                Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: gradientColors,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: accentColor.withOpacity(0.3),
-                        blurRadius: 32,
-                        offset: const Offset(0, 16),
-                      ),
-                    ],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Enhanced Icon Container with floating effect
+              Container(
+                width: 160,
+                height: 160,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: gradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  child: Center(
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.1),
-                      ),
-                      child: Center(child: icon),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 48),
-
-                // Title with decorative underline
-                Column(
-                  children: [
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: gray90,
-                        letterSpacing: -0.8,
-                        height: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: 60,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: gradientColors,
-                        ),
-                        borderRadius: BorderRadius.circular(1.5),
-                      ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentColor.withOpacity(0.3),
+                      blurRadius: 32,
+                      offset: const Offset(0, 16),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-
-                // Subtitle with improved typography
-                Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: gray60,
-                    height: 1.7,
-                    letterSpacing: -0.2,
+                child: Center(
+                  child: Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.1),
+                    ),
+                    child: Center(child: icon),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 36),
+
+              // Title with decorative underline
+              Column(
+                children: [
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A),
+                      letterSpacing: -0.8,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 60,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: gradientColors,
+                      ),
+                      borderRadius: BorderRadius.circular(1.5),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // Subtitle with improved typography
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF666666),
+                  height: 1.7,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
           ),
         );
       },

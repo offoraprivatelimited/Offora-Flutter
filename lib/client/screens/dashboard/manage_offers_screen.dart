@@ -23,6 +23,12 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
   String _filterStatus = 'all'; // all, pending, approved, rejected
   bool _redirectingToLogin = false;
 
+  void _showMessage(String message) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _editOffer(Offer offer) async {
     final result = await Navigator.of(context).pushNamed(
       NewOfferFormScreen.routeName,
@@ -57,8 +63,7 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
     if (confirmed == true) {
       if (!mounted) return;
       try {
-        final service = context.read<OfferService>();
-        await service.deleteOffer(offer.id);
+        await context.read<OfferService>().deleteOffer(offer.id);
         if (!mounted) return;
         _showMessage('Offer deleted successfully.');
       } catch (e) {
@@ -68,18 +73,11 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
     }
   }
 
-  void _showMessage(String message) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(message)));
-  }
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     final user = auth.currentUser;
 
-    // If not signed in (common after hot reload), redirect to client login
     if (user == null) {
       if (!_redirectingToLogin) {
         _redirectingToLogin = true;
@@ -91,16 +89,14 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
           );
         });
       }
-      return const SafeArea(
-        child: Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    return SafeArea(
-      child: Container(
-        color: const Color(0xFFF5F7FA),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
+      body: SafeArea(
         child: Column(
           children: [
             // Filter chips
@@ -153,9 +149,6 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
                   }
 
                   if (snapshot.hasError) {
-                    // Print error to console for debugging
-                    // ignore: avoid_print
-                    print('ManageOffersScreen error: \\n${snapshot.error}');
                     return Center(
                       child: Text(
                         'Error: ${snapshot.error}',
@@ -223,43 +216,6 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final Color color;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? color : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            fontSize: 14,
-          ),
         ),
       ),
     );
@@ -494,6 +450,46 @@ class _OfferCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _FilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: color,
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : color,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
       ),
     );
   }

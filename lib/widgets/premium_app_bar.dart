@@ -3,13 +3,17 @@ import 'package:flutter/material.dart';
 class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final bool showMenu;
+  final bool showBack;
   final VoidCallback? onMenuTap;
+  final VoidCallback? onBackTap;
 
   const PremiumAppBar({
     super.key,
     this.title,
     this.showMenu = true,
+    this.showBack = false,
     this.onMenuTap,
+    this.onBackTap,
   });
 
   @override
@@ -33,7 +37,13 @@ class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              if (showMenu)
+              if (showBack)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back,
+                      color: Colors.white, size: 26),
+                  onPressed: onBackTap ?? () => Navigator.of(context).pop(),
+                )
+              else if (showMenu)
                 IconButton(
                   icon: const Icon(Icons.menu, color: Colors.white, size: 28),
                   onPressed: onMenuTap ??

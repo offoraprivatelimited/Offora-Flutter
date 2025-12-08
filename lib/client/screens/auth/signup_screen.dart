@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../../models/client_panel_stage.dart';
 import '../../../services/auth_service.dart';
 import '../dashboard/dashboard_screen.dart';
@@ -28,12 +30,16 @@ class _SignupScreenState extends State<SignupScreen> {
   final _gstNumberController = TextEditingController();
   final _shopLicenseController = TextEditingController();
   final _registrationNumberController = TextEditingController();
+  final _cityController = TextEditingController();
+  TextEditingController? _autocompleteCityController;
+  VoidCallback? _autocompleteListener;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String? _selectedCategory;
-
-  // Track if we've already redirected to prevent multiple navigations
   bool _hasRedirected = false;
+
+  List<String> _citySuggestions = [];
+  bool _loadingCities = false;
 
   final List<String> _categories = const [
     'Grocery',
@@ -66,6 +72,44 @@ class _SignupScreenState extends State<SignupScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _fetchCities();
+  }
+
+  Future<void> _fetchCities() async {
+    setState(() {
+      _loadingCities = true;
+    });
+    try {
+      // Remove unused/invalid 'response' and 'await' on Uri
+      final res =
+          await Future.delayed(const Duration(milliseconds: 500), () async {
+        return await http.post(
+          Uri.parse('https://countriesnow.space/api/v0.1/countries/cities'),
+          headers: {'Content-Type': 'application/json'},
+          body: '{"country": "India"}',
+        );
+      });
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final List<dynamic> cities = data['data'] ?? [];
+        setState(() {
+          _citySuggestions = List<String>.from(cities);
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _citySuggestions = [];
+      });
+    } finally {
+      setState(() {
+        _loadingCities = false;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _businessNameController.dispose();
     _contactNameController.dispose();
@@ -78,6 +122,14 @@ class _SignupScreenState extends State<SignupScreen> {
     _gstNumberController.dispose();
     _shopLicenseController.dispose();
     _registrationNumberController.dispose();
+    _cityController.dispose();
+    if (_autocompleteCityController != null && _autocompleteListener != null) {
+      try {
+        _autocompleteCityController!.removeListener(_autocompleteListener!);
+      } catch (_) {}
+      _autocompleteListener = null;
+      _autocompleteCityController = null;
+    }
     super.dispose();
   }
 
@@ -97,6 +149,7 @@ class _SignupScreenState extends State<SignupScreen> {
         phoneNumber: _phoneController.text.trim(),
         address: _addressController.text.trim(),
         location: _locationController.text.trim(),
+        city: _cityController.text.trim(),
         category: _selectedCategory ?? 'Other',
         gstNumber: _gstNumberController.text.trim().isEmpty
             ? null
@@ -451,6 +504,137 @@ class _SignupScreenState extends State<SignupScreen> {
                                             return 'Complete address is required';
                                           }
                                           return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 14),
+                                      // City Autocomplete Field
+                                      Autocomplete<String>(
+                                        optionsBuilder: (TextEditingValue
+                                            textEditingValue) {
+                                          if (_loadingCities ||
+                                              textEditingValue.text.isEmpty) {
+                                            return const Iterable<
+                                                String>.empty();
+                                          }
+                                          return _citySuggestions.where(
+                                              (city) => city
+                                                  .toLowerCase()
+                                                  .contains(textEditingValue
+                                                      .text
+                                                      .toLowerCase()));
+                                        },
+                                        fieldViewBuilder: (context,
+                                            cityFieldController,
+                                            focusNode,
+                                            onFieldSubmitted) {
+                                          // Keep a single listener attached to the Autocomplete controller so
+                                          // the typed text is kept in sync with our _cityController used
+                                          // by the form submission.
+                                          _autocompleteCityController ??=
+                                              cityFieldController;
+                                          // initialize content
+                                          if (_autocompleteCityController!
+                                                  .text !=
+                                              _cityController.text) {
+                                            _autocompleteCityController!.text =
+                                                _cityController.text;
+                                            _autocompleteCityController!
+                                                    .selection =
+                                                _cityController.selection;
+                                          }
+                                          // Attach a single listener and store it so it can be removed on dispose
+                                          if (_autocompleteListener == null) {
+                                            _autocompleteListener = () {
+                                              if (_autocompleteCityController !=
+                                                      null &&
+                                                  _cityController.text !=
+                                                      _autocompleteCityController!
+                                                          .text) {
+                                                _cityController.text =
+                                                    _autocompleteCityController!
+                                                        .text;
+                                                _cityController.selection =
+                                                    _autocompleteCityController!
+                                                        .selection;
+                                              }
+                                            };
+                                            _autocompleteCityController!
+                                                .addListener(
+                                                    _autocompleteListener!);
+                                          }
+                                          return TextFormField(
+                                            controller: cityFieldController,
+                                            focusNode: focusNode,
+                                            style: const TextStyle(
+                                                color: Colors.black),
+                                            decoration: InputDecoration(
+                                              labelText: 'City',
+                                              prefixIcon: const Icon(
+                                                  Icons.location_city_outlined,
+                                                  color: Color(0xFF1F477D)),
+                                              filled: true,
+                                              fillColor: Colors.white,
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                  color: Color(0xFFE0E0E0),
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                  color: Color(0xFF1F477D),
+                                                  width: 2,
+                                                ),
+                                              ),
+                                            ),
+                                            validator: (v) =>
+                                                v == null || v.isEmpty
+                                                    ? 'Please enter your city'
+                                                    : null,
+                                          );
+                                        },
+                                        onSelected: (String selection) {
+                                          _cityController.text = selection;
+                                        },
+                                        optionsViewBuilder:
+                                            (context, onSelected, options) {
+                                          // Custom suggestions list with black text for readability
+                                          return Align(
+                                            alignment: Alignment.topLeft,
+                                            child: Material(
+                                              elevation: 4,
+                                              child: Container(
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        maxHeight: 220),
+                                                color: Colors.white,
+                                                child: ListView.builder(
+                                                  padding: EdgeInsets.zero,
+                                                  shrinkWrap: true,
+                                                  itemCount: options.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    final option = options
+                                                        .elementAt(index);
+                                                    return ListTile(
+                                                      dense: true,
+                                                      title: Text(option,
+                                                          style:
+                                                              const TextStyle(
+                                                                  color: Colors
+                                                                      .black)),
+                                                      onTap: () =>
+                                                          onSelected(option),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          );
                                         },
                                       ),
                                       const SizedBox(height: 20),
