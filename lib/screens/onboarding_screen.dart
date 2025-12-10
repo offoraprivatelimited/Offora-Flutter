@@ -18,8 +18,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     // Use login screen colors
     const loginBlue = Color(0xFF1F477D);
-    const loginOrange = Color(0xFFF0B84D);
-    const loginOrangeDark = Color(0xFFA3834D);
+    const onboardingGold = Color(0xFFEAB644); // rgba(234, 182, 68)
+
     const lightOrange = Color(0xFFFFF4ED);
     const gray20 = Color(0xFFF5F5F5);
     const primaryDark = Color(0xFF1F477D); // Use loginBlue for primaryDark
@@ -29,26 +29,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         title: 'Discover Offers',
         subtitle:
             'Find curated deals from brands and premium establishments with our advanced search.',
-        accentColor: loginOrange,
-        gradientColors: [loginOrange, loginOrangeDark],
-        icon: Stack(
-          children: [
-            const Icon(Icons.search, size: 72, color: Colors.white),
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: loginBlue,
-                ),
-                child: const Icon(Icons.star_border,
-                    size: 20, color: Colors.white),
-              ),
-            ),
-          ],
-        ),
+        accentColor: onboardingGold,
+        gradientColors: [onboardingGold, onboardingGold],
+        icon: const Icon(Icons.search, size: 72, color: Colors.white),
       ),
       _Slide(
         title: 'Compare & Select',
@@ -66,7 +49,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: loginOrange,
+                  color: onboardingGold,
                 ),
                 child: const Icon(Icons.balance_outlined,
                     size: 20, color: Colors.white),
@@ -79,8 +62,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         title: 'Save & Notify',
         subtitle:
             'Bookmark luxury deals and receive timely notifications before expiration. Never miss an exclusive offer.',
-        accentColor: loginOrange,
-        gradientColors: [loginOrange, loginOrangeDark],
+        accentColor: onboardingGold,
+        gradientColors: [onboardingGold, onboardingGold],
         icon: Stack(
           children: [
             const Icon(Icons.bookmark_add_outlined,
@@ -135,8 +118,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      loginOrange.withOpacity(0.12),
-                      loginOrange.withOpacity(0.05),
+                      onboardingGold.withOpacity(0.12),
+                      onboardingGold.withOpacity(0.05),
                       Colors.transparent
                     ],
                     stops: const [0, 0.6, 1],
@@ -178,12 +161,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     borderRadius: BorderRadius.circular(20),
                     gradient: LinearGradient(
                       colors: [
-                        loginOrange.withOpacity(0.1),
-                        loginOrangeDark.withOpacity(0.05),
+                        onboardingGold.withOpacity(0.1),
+                        onboardingGold.withOpacity(0.05),
                       ],
                     ),
                     border: Border.all(
-                      color: loginOrange.withOpacity(0.15),
+                      color: onboardingGold.withOpacity(0.15),
                       width: 1.5,
                     ),
                   ),
@@ -202,7 +185,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: loginOrange.withOpacity(0.2),
+                      color: onboardingGold.withOpacity(0.2),
                       width: 2,
                     ),
                   ),
@@ -214,18 +197,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               children: [
                 // Premium Logo Header
                 Padding(
-                  padding: const EdgeInsets.only(top: 40, bottom: 20),
+                  padding: const EdgeInsets.only(top: 24, bottom: 8),
                   child: Column(
                     children: [
                       Container(
-                        width: 80,
-                        height: 80,
+                        width: 56,
+                        height: 56,
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              color: loginOrange.withOpacity(0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                              color: onboardingGold.withOpacity(0.15),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
@@ -234,35 +217,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           fit: BoxFit.contain,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 6),
                       const Text(
                         'Offora',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 18,
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF1F477D),
                           letterSpacing: -0.8,
                         ),
                       ),
-                      const SizedBox(height: 4),
                       Container(
+                        margin: const EdgeInsets.only(top: 2),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
+                          horizontal: 8,
+                          vertical: 2,
                         ),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [loginOrange, loginOrangeDark],
+                            colors: [onboardingGold, onboardingGold],
                           ),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
                           'PREMIUM OFFERS',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 8,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
-                            letterSpacing: 2,
+                            letterSpacing: 1.2,
                           ),
                         ),
                       ),
@@ -479,8 +462,8 @@ class _Slide extends StatelessWidget {
             children: [
               // Enhanced Icon Container with floating effect
               Container(
-                width: 160,
-                height: 160,
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
@@ -490,25 +473,25 @@ class _Slide extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: accentColor.withOpacity(0.3),
-                      blurRadius: 32,
-                      offset: const Offset(0, 16),
+                      color: accentColor.withOpacity(0.2),
+                      blurRadius: 16,
+                      offset: const Offset(0, 8),
                     ),
                   ],
                 ),
                 child: Center(
                   child: Container(
-                    width: 140,
-                    height: 140,
+                    width: 70,
+                    height: 70,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withOpacity(0.08),
                     ),
                     child: Center(child: icon),
                   ),
                 ),
               ),
-              const SizedBox(height: 36),
+              const SizedBox(height: 18),
 
               // Title with decorative underline
               Column(
@@ -517,38 +500,38 @@ class _Slide extends StatelessWidget {
                     title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
                       color: Color(0xFF1A1A1A),
-                      letterSpacing: -0.8,
-                      height: 1.2,
+                      letterSpacing: -0.6,
+                      height: 1.1,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 6),
                   Container(
-                    width: 60,
-                    height: 3,
+                    width: 32,
+                    height: 2,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: gradientColors,
                       ),
-                      borderRadius: BorderRadius.circular(1.5),
+                      borderRadius: BorderRadius.circular(1),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 8),
 
               // Subtitle with improved typography
               Text(
                 subtitle,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 12,
                   fontWeight: FontWeight.w400,
                   color: Color(0xFF666666),
-                  height: 1.7,
-                  letterSpacing: -0.2,
+                  height: 1.4,
+                  letterSpacing: -0.1,
                 ),
               ),
             ],

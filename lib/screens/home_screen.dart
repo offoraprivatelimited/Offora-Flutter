@@ -316,9 +316,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                               // Custom style for 'All' card: white background, split blue/orange icon
                               final isAll = category['name'] == 'All';
-                              final cardDecoration = isAll
+                              final cardDecoration = isSelected
                                   ? BoxDecoration(
-                                      color: Colors.white,
+                                      color:
+                                          const Color(0xFFF9E5B2), // light gold
                                       borderRadius: BorderRadius.circular(16),
                                       boxShadow: [
                                         BoxShadow(
@@ -328,21 +329,31 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ],
                                     )
-                                  : BoxDecoration(
-                                      color: Colors.transparent,
-                                      borderRadius: BorderRadius.circular(16),
-                                    );
-                              final iconColor = isAll
-                                  ? Colors
-                                      .white // used only under shader for split color
-                                  : (isSelected
-                                      ? Colors.white
-                                      : category['color']);
-                              final textColor = isAll
-                                  ? Colors.black
-                                  : (isSelected
-                                      ? Colors.white
-                                      : AppColors.darkBlue);
+                                  : isAll
+                                      ? BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black
+                                                  .withOpacity(0.06),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        )
+                                      : BoxDecoration(
+                                          color: Colors.transparent,
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                        );
+                              final iconColor = isSelected
+                                  ? AppColors.darkBlue
+                                  : (isAll ? Colors.white : category['color']);
+                              final textColor = isSelected
+                                  ? AppColors.darkBlue
+                                  : (isAll ? Colors.black : AppColors.darkBlue);
 
                               return Padding(
                                 padding: const EdgeInsets.only(right: 12),

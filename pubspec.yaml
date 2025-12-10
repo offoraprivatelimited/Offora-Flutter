@@ -60,20 +60,22 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  windows: true
-  macos: true
-  web: true
-  image_path: "assets/images/logo/original/Logo_without_text_with_background.jpg"
+  windows:
+    generate: true
+    image_path: "assets/images/logo/original/Logo_without_text_with_background.jpg"
+  macos:
+    generate: true
+    image_path: "assets/images/logo/original/Logo_without_text_with_background.jpg"
+  web:
+    generate: true
+    image_path: "assets/images/logo/original/Logo_without_text_with_background.jpg"
   image_path_android: "assets/images/logo/original/Logo_without_text_with_background.jpg"
   image_path_ios: "assets/images/logo/original/Logo_without_text_with_background.jpg"
-  image_path_windows: "assets/images/logo/original/Logo_without_text_with_background.jpg"
-  image_path_macos: "assets/images/logo/original/Logo_without_text_with_background.jpg"
-  image_path_web: "assets/images/logo/original/Logo_without_text_with_background.jpg"
   min_sdk_android: 21
   web_directory: web
   windows_build_number: 1
   macos_build_number: 1
-
+  
 flutter:
   uses-material-design: true
 

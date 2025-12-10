@@ -40,6 +40,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
   bool _isSubmitting = false;
+  double? _uploadProgress; // 0-100
   final bool _isEditing = false;
   final List<String> _existingImageUrls = [];
   final List<SelectedImage> _selectedImages = [];
@@ -199,13 +200,32 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
 
         uploadTask.snapshotEvents.listen((snapshot) {
           final progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              ((i + snapshot.bytesTransferred / snapshot.totalBytes) /
+                      _selectedImages.length) *
+                  100;
           debugPrint('Upload progress: ${progress.toStringAsFixed(2)}%');
+          if (mounted) {
+            setState(() {
+              _uploadProgress = progress;
+            });
+          }
         });
 
         final snapshot = await uploadTask.whenComplete(() {});
         final downloadUrl = await snapshot.ref.getDownloadURL();
         uploadedUrls.add(downloadUrl);
+        // After each image, update progress to next image start
+        if (mounted) {
+          setState(() {
+            _uploadProgress = ((i + 1) / _selectedImages.length) * 100;
+          });
+        }
+      }
+      // Ensure progress is 100 at end
+      if (mounted) {
+        setState(() {
+          _uploadProgress = 100;
+        });
       }
     } catch (e, stack) {
       debugPrint('Error uploading images: $e');
@@ -428,7 +448,10 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
 
     final offerService = context.read<OfferService>();
 
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isSubmitting = true;
+      _uploadProgress = null;
+    });
     try {
       final originalPrice = double.parse(_originalPriceController.text.trim());
       double discountPrice;
@@ -608,11 +631,18 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         ),
       );
       if (mounted) {
-        // Replace with your actual manage offers page route and pass a param to show pending section
-        Navigator.of(context).pushReplacementNamed(
-          ManageOffersScreen.routeName,
-          arguments: {'section': 'pending'},
+        // Redirect to dashboard, then to manage offers (so dashboard shell is preserved)
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/dashboard',
+          (route) => false,
         );
+        // Delay to ensure dashboard is built before navigating to manage offers
+        Future.delayed(const Duration(milliseconds: 100), () {
+          Navigator.of(context).pushNamed(
+            ManageOffersScreen.routeName,
+            arguments: {'section': 'pending'},
+          );
+        });
       }
     } catch (error, stack) {
       debugPrint('[ERROR] Offer submit failed: $error');
@@ -620,7 +650,10 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
       _showError('Could not ${_isEditing ? 'update' : 'submit'} offer: $error');
     } finally {
       if (mounted) {
-        setState(() => _isSubmitting = false);
+        setState(() {
+          _isSubmitting = false;
+          _uploadProgress = null;
+        });
       }
     }
   }
@@ -2054,13 +2087,31 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                         shadowColor: brightGold.withOpacity(0.5),
                       ),
                       child: _isSubmitting
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Colors.white,
-                              ),
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  _uploadProgress != null
+                                      ? 'Uploading... ${_uploadProgress!.toStringAsFixed(0)}%'
+                                      : (_isEditing
+                                          ? 'Updating...'
+                                          : 'Submitting...'),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
                             )
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -2073,13 +2124,9 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  _isSubmitting
-                                      ? (_isEditing
-                                          ? 'Updating...'
-                                          : 'Submitting...')
-                                      : (_isEditing
-                                          ? 'Update Offer'
-                                          : 'Submit for Review'),
+                                  _isEditing
+                                      ? 'Update Offer'
+                                      : 'Submit for Review',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,

@@ -141,8 +141,13 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
             // Offers list
             Expanded(
               child: StreamBuilder<List<Offer>>(
-                stream:
-                    context.read<OfferService>().watchClientOffers(user.uid),
+                stream: _filterStatus == 'all'
+                    ? context
+                        .read<OfferService>()
+                        .watchClientOffersByStatus(user.uid)
+                    : context.read<OfferService>().watchClientOffersByStatus(
+                        user.uid,
+                        status: _filterStatus),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -164,13 +169,6 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
 
                   var offers = snapshot.data ?? [];
 
-                  // Apply filter
-                  if (_filterStatus != 'all') {
-                    offers = offers
-                        .where((o) => o.status.name == _filterStatus)
-                        .toList();
-                  }
-
                   if (offers.isEmpty) {
                     return Center(
                       child: Padding(
@@ -179,8 +177,7 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.campaign_outlined,
-                                size: 64,
-                                color: darkBlue.withValues(alpha: 0.3)),
+                                size: 64, color: darkBlue.withOpacity(0.3)),
                             const SizedBox(height: 16),
                             Text(
                               _filterStatus == 'all'
