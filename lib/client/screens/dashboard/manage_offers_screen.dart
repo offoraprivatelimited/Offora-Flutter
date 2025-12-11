@@ -6,11 +6,19 @@ import '../../../services/auth_service.dart';
 import '../../services/offer_service.dart';
 import '../offers/new_offer_form_screen.dart';
 import '../auth/login_screen.dart' as client;
+import '../../../screens/offer_details_screen.dart';
 
 class ManageOffersScreen extends StatefulWidget {
   static const String routeName = '/manage-offers';
 
-  const ManageOffersScreen({super.key});
+  final Function(Offer)? onEditOffer;
+  final Function(Offer)? onDeleteOffer;
+
+  const ManageOffersScreen({
+    super.key,
+    this.onEditOffer,
+    this.onDeleteOffer,
+  });
 
   @override
   State<ManageOffersScreen> createState() => _ManageOffersScreenState();
@@ -29,18 +37,101 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
+  void _viewOfferDetails(Offer offer) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF7F9FD),
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            children: [
+              Container(
+                height: 5,
+                width: 40,
+                margin: const EdgeInsets.only(top: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(2.5),
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: OfferDetailsContent(offer: offer),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _editOffer(Offer offer) async {
-    final result = await Navigator.of(context).pushNamed(
-      NewOfferFormScreen.routeName,
-      arguments: offer,
+    // Always fetch the latest offer from Firestore before editing
+    final offerService = Provider.of<OfferService>(context, listen: false);
+    final status = offer.status.name; // 'pending', 'approved', 'rejected'
+    final latestOffer =
+        await offerService.getOffer(offerId: offer.id, status: status);
+
+    if (widget.onEditOffer != null) {
+      if (latestOffer != null) {
+        widget.onEditOffer!(latestOffer);
+      } else {
+        _showMessage('Could not load offer details.');
+      }
+      return;
+    }
+
+    if (latestOffer == null) {
+      _showMessage('Could not load offer details.');
+      return;
+    }
+
+    // Fallback to modal for standalone use
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 1.0,
+        minChildSize: 1.0,
+        maxChildSize: 1.0,
+        expand: true,
+        builder: (context, scrollController) {
+          return NewOfferFormScreen(
+            offer: latestOffer,
+          );
+        },
+      ),
     );
     if (!mounted) return;
+    // Refresh offers after edit
     if (result == true) {
       _showMessage('Offer updated successfully.');
+      setState(() {});
     }
   }
 
   Future<void> _deleteOffer(Offer offer) async {
+    // If callback is provided, use it (for embedded use in ClientMainScreen)
+    if (widget.onDeleteOffer != null) {
+      widget.onDeleteOffer!(offer);
+      return;
+    }
+
+    // Fallback to dialog for standalone use
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -206,6 +297,7 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
                         brightGold: brightGold,
                         onEdit: () => _editOffer(offer),
                         onDelete: () => _deleteOffer(offer),
+                        onViewDetails: () => _viewOfferDetails(offer),
                       );
                     },
                   );
@@ -226,6 +318,7 @@ class _OfferCard extends StatelessWidget {
   final Color brightGold;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onViewDetails;
 
   const _OfferCard({
     required this.offer,
@@ -234,6 +327,7 @@ class _OfferCard extends StatelessWidget {
     required this.brightGold,
     required this.onEdit,
     required this.onDelete,
+    required this.onViewDetails,
   });
 
   Color _getStatusColor(OfferApprovalStatus status) {
@@ -411,37 +505,56 @@ class _OfferCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: onEdit,
-                      icon: const Icon(Icons.edit, size: 18),
-                      label: const Text('Edit'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: darkBlue,
-                        side: BorderSide(color: darkBlue),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: onViewDetails,
+                        icon: const Icon(Icons.visibility, size: 16),
+                        label: const Text('View'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: darkBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: onDelete,
-                      icon: const Icon(Icons.delete, size: 18),
-                      label: const Text('Delete'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                      const SizedBox(width: 6),
+                      OutlinedButton.icon(
+                        onPressed: onEdit,
+                        icon: const Icon(Icons.edit, size: 16),
+                        label: const Text('Edit'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: darkBlue,
+                          side: BorderSide(color: darkBlue),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      OutlinedButton.icon(
+                        onPressed: onDelete,
+                        icon: const Icon(Icons.delete, size: 16),
+                        label: const Text('Delete'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

@@ -308,9 +308,20 @@ class OfferService {
     required Offer offer,
   }) async {
     try {
-      final pendingDoc = await _statusCollection('pending').doc(offer.id).get();
-      if (!pendingDoc.exists) {
-        throw Exception('Offer not found');
+      // Search for the offer in all status collections
+      final statuses = ['pending', 'approved', 'rejected'];
+      String? foundStatus;
+
+      for (final status in statuses) {
+        final doc = await _statusCollection(status).doc(offer.id).get();
+        if (doc.exists) {
+          foundStatus = status;
+          break;
+        }
+      }
+
+      if (foundStatus == null) {
+        throw Exception('Offer not found in any status collection');
       }
 
       final updated = offer.copyWith(
@@ -318,7 +329,9 @@ class OfferService {
         updatedAt: DateTime.now(),
       );
 
-      await _statusCollection('pending').doc(offer.id).update(updated.toJson());
+      await _statusCollection(foundStatus)
+          .doc(offer.id)
+          .update(updated.toJson());
     } catch (e) {
       throw Exception('Failed to update offer: $e');
     }

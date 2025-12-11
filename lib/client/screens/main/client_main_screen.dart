@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 // import '../dashboard/dashboard_screen.dart';
 import '../dashboard/manage_offers_screen.dart';
 import '../dashboard/enquiries_screen.dart';
 import '../dashboard/client_profile_screen.dart';
 import '../offers/new_offer_form_screen.dart';
+import '../../models/offer.dart';
+import '../../services/offer_service.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/premium_app_bar.dart';
 
@@ -21,12 +24,21 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
   int _currentIndex = 1; // default to Manage
   Widget? _infoPage;
 
-  final List<Widget> _screens = const [
-    NewOfferFormScreen(),
-    ManageOffersScreen(),
-    EnquiriesScreen(),
-    ClientProfileScreen(),
-  ];
+  final List<Widget> _screens = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _screens.addAll([
+      const NewOfferFormScreen(),
+      ManageOffersScreen(
+        onEditOffer: _editOffer,
+        onDeleteOffer: _deleteOffer,
+      ),
+      const EnquiriesScreen(),
+      const ClientProfileScreen(),
+    ]);
+  }
 
   void showInfoPage(Widget page) {
     setState(() {
@@ -39,6 +51,57 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
     setState(() {
       _infoPage = null;
     });
+  }
+
+  Future<void> _editOffer(Offer offer) async {
+    setState(() {
+      _infoPage = NewOfferFormScreen(
+        offer: offer,
+        onSuccess: () {
+          setState(() {
+            _infoPage = null;
+          });
+        },
+      );
+    });
+  }
+
+  Future<void> _deleteOffer(Offer offer) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Offer'),
+        content: Text('Are you sure you want to delete "${offer.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      try {
+        final service = context.read<OfferService>();
+        await service.deleteOffer(offer.id);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Offer deleted successfully.')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete offer: $e')),
+        );
+      }
+    }
   }
 
   @override

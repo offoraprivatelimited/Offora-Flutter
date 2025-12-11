@@ -486,6 +486,137 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
               ),
             ),
 
+            const SizedBox(height: 16),
+
+            // Business Information Card
+            if (offer.client != null) ...[
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.paleBlue,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.business,
+                              color: AppColors.darkBlue, size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'About the Business',
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.darkBlue,
+                                    fontSize: 18,
+                                  ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _buildBusinessInfoRow(
+                      'Business Name',
+                      offer.client!['businessName'] ?? 'N/A',
+                      Icons.store_outlined,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildBusinessInfoRow(
+                      'Email',
+                      offer.client!['email'] ?? 'N/A',
+                      Icons.email_outlined,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildBusinessInfoRow(
+                      'Phone',
+                      offer.client!['phoneNumber'] ?? 'N/A',
+                      Icons.phone_outlined,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Timeline Card
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.paleBlue,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.history_outlined,
+                            color: AppColors.darkBlue, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Timeline',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.darkBlue,
+                              fontSize: 18,
+                            ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  if (offer.createdAt != null)
+                    _buildTimelineItem(
+                      'Created',
+                      DateFormat('MMM d, yyyy • hh:mm a')
+                          .format(offer.createdAt!),
+                      Icons.create_outlined,
+                    ),
+                  if (offer.updatedAt != null) ...[
+                    const SizedBox(height: 12),
+                    _buildTimelineItem(
+                      'Last Updated',
+                      DateFormat('MMM d, yyyy • hh:mm a')
+                          .format(offer.updatedAt!),
+                      Icons.update_outlined,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
             // Validity
             if (offer.startDate != null || offer.endDate != null) ...[
               const SizedBox(height: 16),
@@ -593,86 +724,156 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
   Widget _buildHero(Offer offer, List<String> images, NumberFormat currency,
       String discount) {
     final hasImages = images.isNotEmpty;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            AspectRatio(
-              aspectRatio: 16 / 10,
-              child: hasImages
-                  ? PageView.builder(
-                      controller: _pageController,
-                      itemCount: images.length,
-                      onPageChanged: (index) {
-                        setState(() => _currentImageIndex = index);
-                      },
-                      itemBuilder: (context, index) {
-                        final url = images[index];
-                        return Image.network(
-                          url,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              children: [
+                AspectRatio(
+                  aspectRatio: 16 / 10,
+                  child: hasImages
+                      ? PageView.builder(
+                          controller: _pageController,
+                          itemCount: images.length,
+                          onPageChanged: (index) {
+                            setState(() => _currentImageIndex = index);
+                          },
+                          itemBuilder: (context, index) {
+                            final url = images[index];
+                            return Image.network(
+                              url,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, progress) {
+                                if (progress == null) return child;
+                                return _buildImagePlaceholder();
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildImagePlaceholder();
+                              },
+                            );
+                          },
+                        )
+                      : _buildImagePlaceholder(),
+                ),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black.withOpacity(0.35),
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.45),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0, 0.45, 1],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 14,
+                  left: 14,
+                  child: _buildBadge('Limited time', Icons.flash_on_rounded),
+                ),
+                Positioned(
+                  top: 14,
+                  right: 14,
+                  child: Row(
+                    children: [
+                      _buildCircleIconButton(
+                        icon: _isSaved ? Icons.favorite : Icons.favorite_border,
+                        onTap: _toggleSave,
+                        isActive: _isSaved,
+                      ),
+                      const SizedBox(width: 10),
+                      _buildCircleIconButton(
+                        icon: Icons.share_outlined,
+                        onTap: _shareOffer,
+                      ),
+                    ],
+                  ),
+                ),
+                if (hasImages && images.length > 1)
+                  Positioned(
+                    bottom: 14,
+                    right: 14,
+                    child: _buildImageCount(images.length),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        // Thumbnail Strip
+        if (hasImages && images.length > 1)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: SizedBox(
+              height: 70,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: images.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      _pageController.animateToPage(
+                        index,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    child: Container(
+                      width: 70,
+                      margin: EdgeInsets.only(
+                          right: index == images.length - 1 ? 0 : 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _currentImageIndex == index
+                              ? AppColors.brightGold
+                              : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          images[index],
                           fit: BoxFit.cover,
                           loadingBuilder: (context, child, progress) {
                             if (progress == null) return child;
-                            return _buildImagePlaceholder();
+                            return Container(
+                              color: Colors.grey.shade200,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              ),
+                            );
                           },
                           errorBuilder: (context, error, stackTrace) {
-                            return _buildImagePlaceholder();
+                            return Container(
+                              color: Colors.grey.shade200,
+                              child: const Icon(Icons.image_not_supported,
+                                  size: 24),
+                            );
                           },
-                        );
-                      },
-                    )
-                  : _buildImagePlaceholder(),
-            ),
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.black.withOpacity(0.35),
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.45),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: const [0, 0.45, 1],
-                  ),
-                ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-            Positioned(
-              top: 14,
-              left: 14,
-              child: _buildBadge('Limited time', Icons.flash_on_rounded),
-            ),
-            Positioned(
-              top: 14,
-              right: 14,
-              child: Row(
-                children: [
-                  _buildCircleIconButton(
-                    icon: _isSaved ? Icons.favorite : Icons.favorite_border,
-                    onTap: _toggleSave,
-                    isActive: _isSaved,
-                  ),
-                  const SizedBox(width: 10),
-                  _buildCircleIconButton(
-                    icon: Icons.share_outlined,
-                    onTap: _shareOffer,
-                  ),
-                ],
-              ),
-            ),
-            if (hasImages && images.length > 1)
-              Positioned(
-                bottom: 14,
-                right: 14,
-                child: _buildImageCount(images.length),
-              ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 
@@ -891,6 +1092,95 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBusinessInfoRow(
+    String label,
+    String value,
+    IconData icon,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.paleBlue,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 16, color: AppColors.darkBlue),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.darkBlue,
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimelineItem(String label, String value, IconData icon) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.paleBlue,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 16, color: AppColors.darkBlue),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.darkBlue,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

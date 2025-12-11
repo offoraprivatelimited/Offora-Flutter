@@ -11,7 +11,14 @@ import '../../services/offer_service.dart';
 import '../dashboard/manage_offers_screen.dart';
 
 class NewOfferFormScreen extends StatefulWidget {
-  const NewOfferFormScreen({super.key});
+  final Offer? offer;
+  final VoidCallback? onSuccess;
+
+  const NewOfferFormScreen({
+    super.key,
+    this.offer,
+    this.onSuccess,
+  });
 
   static const String routeName = '/offers/new-advanced';
 
@@ -41,17 +48,105 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   DateTime? _endDate;
   bool _isSubmitting = false;
   double? _uploadProgress; // 0-100
-  final bool _isEditing = false;
+  bool _isEditing = false;
   final List<String> _existingImageUrls = [];
   final List<SelectedImage> _selectedImages = [];
   OfferType _selectedOfferType = OfferType.percentageDiscount;
   OfferCategory _selectedCategory = OfferCategory.product;
+  String? _selectedBusinessCategory;
   final List<String> _applicableProducts = [];
   final List<String> _applicableServices = [];
 
   final darkBlue = const Color(0xFF1F477D);
   final brightGold = const Color(0xFFF0B84D);
   final ImagePicker _imagePicker = ImagePicker();
+
+  // Business categories from home screen
+  final List<String> _businessCategories = [
+    'Grocery',
+    'Restaurant',
+    'Fashion',
+    'Electronics',
+    'Beauty',
+    'Home & Garden',
+    'Sports',
+    'Health',
+    'Books',
+    'Toys',
+    'Automotive',
+    'Pets',
+    'Entertainment',
+    'Travel',
+    'Services',
+  ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Load offer if passed as widget property (from bottom sheet)
+    if (widget.offer != null && _editingOffer == null) {
+      _loadOfferData(widget.offer!);
+      return;
+    }
+    // Load offer if passed as route argument (for named route)
+    final offer = ModalRoute.of(context)?.settings.arguments as Offer?;
+    if (offer != null && _editingOffer == null) {
+      _loadOfferData(offer);
+    }
+  }
+
+  void _loadOfferData(Offer offer) {
+    setState(() {
+      _editingOffer = offer;
+      _isEditing = true;
+      _titleController.text = offer.title;
+      _descriptionController.text = offer.description;
+      _originalPriceController.text = offer.originalPrice.toString();
+      _discountPriceController.text = offer.discountPrice.toString();
+      _termsController.text = offer.terms ?? '';
+      _startDate = offer.startDate;
+      _endDate = offer.endDate;
+      _selectedOfferType = offer.offerType;
+      _selectedCategory = offer.offerCategory;
+      _selectedBusinessCategory = offer.businessCategory;
+      _existingImageUrls.addAll(offer.imageUrls ?? []);
+
+      debugPrint('[LOAD_OFFER] Loading offer: ${offer.title}');
+      debugPrint('[LOAD_OFFER] Offer Type: ${offer.offerType}');
+      debugPrint('[LOAD_OFFER] percentageOff: ${offer.percentageOff}');
+      debugPrint(
+          '[LOAD_OFFER] flatDiscountAmount: ${offer.flatDiscountAmount}');
+
+      // Load offer-specific fields
+      if (offer.buyQuantity != null) {
+        _buyQuantityController.text = offer.buyQuantity.toString();
+      }
+      if (offer.getQuantity != null) {
+        _getQuantityController.text = offer.getQuantity.toString();
+      }
+      if (offer.percentageOff != null) {
+        _percentageOffController.text = offer.percentageOff.toString();
+        debugPrint('[LOAD_OFFER] Set percentageOff: ${offer.percentageOff}');
+      }
+      if (offer.flatDiscountAmount != null) {
+        _flatDiscountController.text = offer.flatDiscountAmount.toString();
+        debugPrint(
+            '[LOAD_OFFER] Set flatDiscountAmount: ${offer.flatDiscountAmount}');
+      }
+      if (offer.minimumPurchase != null) {
+        _minimumPurchaseController.text = offer.minimumPurchase.toString();
+      }
+      if (offer.maxUsagePerCustomer != null) {
+        _maxUsageController.text = offer.maxUsagePerCustomer.toString();
+      }
+      if (offer.applicableProducts != null) {
+        _applicableProducts.addAll(offer.applicableProducts!);
+      }
+      if (offer.applicableServices != null) {
+        _applicableServices.addAll(offer.applicableServices!);
+      }
+    });
+  }
 
   // Helper to check if minimum purchase applies to category
   bool get _showMinimumPurchase => _selectedCategory != OfferCategory.service;
@@ -428,37 +523,71 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   }
 
   Future<void> _submit() async {
+    debugPrint('[SUBMIT] 🚀 _submit() called');
+    debugPrint('[SUBMIT] _isEditing = $_isEditing');
+    debugPrint('[SUBMIT] _editingOffer = $_editingOffer');
+
+    debugPrint('[SUBMIT] 📋 Form field values:');
+    debugPrint('[SUBMIT]   Title: "${_titleController.text}"');
+    debugPrint('[SUBMIT]   Description: "${_descriptionController.text}"');
+    debugPrint('[SUBMIT]   Original Price: "${_originalPriceController.text}"');
+    debugPrint('[SUBMIT]   Discount Price: "${_discountPriceController.text}"');
+    debugPrint('[SUBMIT]   Offer Type: $_selectedOfferType');
+    debugPrint('[SUBMIT]   Offer Category: $_selectedCategory');
+    debugPrint('[SUBMIT]   Start Date: $_startDate');
+    debugPrint('[SUBMIT]   End Date: $_endDate');
+    debugPrint('[SUBMIT]   Percentage Off: "${_percentageOffController.text}"');
+    debugPrint('[SUBMIT]   Flat Discount: "${_flatDiscountController.text}"');
+    debugPrint('[SUBMIT]   Buy Qty: "${_buyQuantityController.text}"');
+    debugPrint('[SUBMIT]   Get Qty: "${_getQuantityController.text}"');
+
     if (!_formKey.currentState!.validate()) {
+      debugPrint('[SUBMIT] ❌ Form validation failed');
+      debugPrint(
+          '[SUBMIT] Please check the error messages displayed on the form fields');
       return;
     }
+
+    debugPrint('[SUBMIT] ✅ Form validation passed');
 
     if (_startDate != null &&
         _endDate != null &&
         _endDate!.isBefore(_startDate!)) {
+      debugPrint('[SUBMIT] ❌ End date is before start date');
       _showError('End date should be after the start date.');
       return;
     }
 
+    debugPrint('[SUBMIT] ✅ Date validation passed');
+
     final auth = context.read<AuthService>();
     final user = auth.currentUser;
     if (user == null) {
+      debugPrint('[SUBMIT] ❌ User not authenticated');
       _showError('Sign in required.');
       return;
     }
 
+    debugPrint('[SUBMIT] ✅ User authenticated: ${user.uid}');
+
     final offerService = context.read<OfferService>();
 
-    setState(() {
-      _isSubmitting = true;
-      _uploadProgress = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isSubmitting = true;
+        _uploadProgress = null;
+      });
+      debugPrint('[SUBMIT] ✅ Set _isSubmitting = true');
+    }
     try {
+      debugPrint('[SUBMIT] 📝 Parsing prices...');
       final originalPrice = double.parse(_originalPriceController.text.trim());
       double discountPrice;
 
       if (_isPercentageOffer) {
         final computed = _computedPercentageDiscountPrice();
         if (computed == null) {
+          debugPrint('[SUBMIT] ❌ Invalid percentage discount computation');
           _showError('Enter valid original price and discount percentage.');
           setState(() => _isSubmitting = false);
           return;
@@ -469,7 +598,27 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         discountPrice = double.parse(_discountPriceController.text.trim());
       }
 
+      debugPrint(
+          '[SUBMIT] ✅ Prices parsed - Original: $originalPrice, Discount: $discountPrice');
+
       if (_isEditing) {
+        debugPrint('[SUBMIT] 📝 EDITING MODE - Creating update request...');
+        // Upload new images if any
+        List<String> newImageUrls = [];
+        if (_selectedImages.isNotEmpty) {
+          debugPrint(
+              '[SUBMIT] 📸 Uploading ${_selectedImages.length} new images...');
+          newImageUrls =
+              await _uploadImagesToFirebase(user.uid, _editingOffer!.id);
+          debugPrint('[SUBMIT] ✅ Images uploaded: $newImageUrls');
+        } else {
+          debugPrint('[SUBMIT] ℹ️ No new images to upload');
+        }
+
+        // Combine existing and new image URLs
+        final allImageUrls = [..._existingImageUrls, ...newImageUrls];
+        debugPrint('[SUBMIT] 📋 All image URLs: $allImageUrls');
+
         final offer = Offer(
           id: _editingOffer!.id,
           clientId: user.uid,
@@ -480,6 +629,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           status: OfferApprovalStatus.pending,
           offerType: _selectedOfferType,
           offerCategory: _selectedCategory,
+          businessCategory: _selectedBusinessCategory,
           startDate: _startDate,
           endDate: _endDate,
           terms: _termsController.text.trim().isEmpty
@@ -507,24 +657,18 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
               _applicableProducts.isEmpty ? null : _applicableProducts,
           applicableServices:
               _applicableServices.isEmpty ? null : _applicableServices,
-          imageUrls: _existingImageUrls,
+          imageUrls: allImageUrls,
           client: user.toJson(),
           createdAt: _editingOffer?.createdAt,
         );
 
-        List<String> newImageUrls = [];
-        if (_selectedImages.isNotEmpty) {
-          newImageUrls = await _uploadImagesToFirebase(user.uid, offer.id);
-        }
+        debugPrint('[SUBMIT] 📤 Calling updateOfferAdvanced...');
+        debugPrint('[SUBMIT] Offer ID: ${offer.id}');
+        debugPrint('[SUBMIT] Offer Status: ${offer.status}');
+        debugPrint('[SUBMIT] Offer Type: ${offer.offerType}');
 
-        debugPrint('[DEBUG] Submitting edited offer with images:');
-        debugPrint(offer.toJson().toString());
-
-        await offerService.updateOfferAdvanced(
-          offer: offer.copyWith(
-            imageUrls: [..._existingImageUrls, ...newImageUrls],
-          ),
-        );
+        await offerService.updateOfferAdvanced(offer: offer);
+        debugPrint('[SUBMIT] ✅ updateOfferAdvanced completed successfully!');
       } else {
         final tempId = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -543,6 +687,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           status: OfferApprovalStatus.pending,
           offerType: _selectedOfferType,
           offerCategory: _selectedCategory,
+          businessCategory: _selectedBusinessCategory,
           startDate: _startDate,
           endDate: _endDate,
           terms: _termsController.text.trim().isEmpty
@@ -597,7 +742,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                 Icon(Icons.celebration, color: brightGold, size: 56),
                 const SizedBox(height: 16),
                 Text(
-                  'Offer Submitted!',
+                  _isEditing ? 'Offer Updated!' : 'Offer Submitted!',
                   style: TextStyle(
                     color: darkBlue,
                     fontSize: 22,
@@ -606,7 +751,9 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Your offer has been submitted for review and is now pending approval.',
+                  _isEditing
+                      ? 'Your offer has been updated and is now pending review again.'
+                      : 'Your offer has been submitted for review and is now pending approval.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: darkBlue, fontSize: 16),
                 ),
@@ -623,7 +770,12 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                   ),
                   icon: const Icon(Icons.arrow_forward),
                   label: const Text('Go to My Offers'),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/client-main', // Use the main dashboard route
+                      (route) => false,
+                    );
+                  },
                 ),
               ],
             ),
@@ -631,24 +783,38 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         ),
       );
       if (mounted) {
-        // Redirect to dashboard, then to manage offers (so dashboard shell is preserved)
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/dashboard',
-          (route) => false,
-        );
-        // Delay to ensure dashboard is built before navigating to manage offers
-        Future.delayed(const Duration(milliseconds: 100), () {
-          Navigator.of(context).pushNamed(
-            ManageOffersScreen.routeName,
-            arguments: {'section': 'pending'},
-          );
-        });
+        debugPrint(
+            '[SUBMIT] ✅ SUCCESS: ${_isEditing ? 'Updated' : 'Submitted'} offer successfully');
+        // If onSuccess callback is provided (embedded use), call it
+        if (widget.onSuccess != null) {
+          debugPrint('[SUBMIT] Calling onSuccess callback...');
+          widget.onSuccess!();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _isEditing
+                      ? 'Offer updated successfully.'
+                      : 'Offer submitted successfully.',
+                ),
+              ),
+            );
+          }
+        } else {
+          // Otherwise pop with success flag (for standalone use)
+          debugPrint('[SUBMIT] Popping with success flag...');
+          Navigator.of(context).pop(true);
+        }
       }
     } catch (error, stack) {
-      debugPrint('[ERROR] Offer submit failed: $error');
-      debugPrint('[ERROR] Stack trace: $stack');
-      _showError('Could not ${_isEditing ? 'update' : 'submit'} offer: $error');
+      debugPrint('[SUBMIT] ❌ ERROR: Offer submit failed: $error');
+      debugPrint('[SUBMIT] Stack trace: $stack');
+      final errorMsg = error.toString();
+      _showError(
+          'Could not ${_isEditing ? 'update' : 'submit'} offer: $errorMsg');
     } finally {
+      debugPrint(
+          '[SUBMIT] 🏁 Finally block - resetting _isSubmitting to false');
       if (mounted) {
         setState(() {
           _isSubmitting = false;
@@ -723,6 +889,20 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
             fillColor: Colors.white,
           ),
           validator: (value) {
+            final discountPrice = _discountPriceController.text.trim();
+
+            // When editing, if discount price is set, field is optional
+            if (_isEditing && discountPrice.isNotEmpty) {
+              if (value != null && value.trim().isNotEmpty) {
+                final num = double.tryParse(value.trim());
+                if (num == null || num <= 0 || num > 100) {
+                  return 'Enter a valid percentage (1-100)';
+                }
+              }
+              return null; // Valid because discount price is already set
+            }
+
+            // Creating new offer - percentage is required
             if (value == null || value.trim().isEmpty) {
               return 'Percentage is required';
             }
@@ -754,6 +934,20 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
             fillColor: Colors.white,
           ),
           validator: (value) {
+            final discountPrice = _discountPriceController.text.trim();
+
+            // When editing, if discount price is set, field is optional
+            if (_isEditing && discountPrice.isNotEmpty) {
+              if (value != null && value.trim().isNotEmpty) {
+                final num = double.tryParse(value.trim());
+                if (num == null || num <= 0) {
+                  return 'Enter a valid amount';
+                }
+              }
+              return null; // Valid because discount price is already set
+            }
+
+            // Creating new offer - discount amount is required
             if (value == null || value.trim().isEmpty) {
               return 'Discount amount is required';
             }
@@ -1184,997 +1378,1067 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
 
     final dateFormat = DateFormat('EEE, d MMM yyyy');
 
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Card
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [darkBlue, darkBlue.withOpacity(0.8)],
+    return Scaffold(
+      backgroundColor: Colors.grey.shade100,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Card
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [darkBlue, darkBlue.withOpacity(0.8)],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: darkBlue.withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: darkBlue.withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.campaign, color: brightGold, size: 32),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Create Amazing Offers',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Reach thousands of local customers',
-                                    style: TextStyle(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.9),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Main Form Card
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Basic Information',
-                          style: TextStyle(
-                            color: darkBlue,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        TextFormField(
-                          controller: _titleController,
-                          style: TextStyle(color: darkBlue),
-                          decoration: InputDecoration(
-                            labelText: 'Offer Title *',
-                            labelStyle: TextStyle(color: darkBlue),
-                            hintText: 'e.g., Summer Sale - 50% Off',
-                            hintStyle: const TextStyle(color: Colors.grey),
-                            prefixIcon: Icon(Icons.title, color: brightGold),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade200),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: brightGold, width: 2),
-                            ),
-                          ),
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Offer title is required';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 18),
-
-                        // ...existing code...
-
-                        TextFormField(
-                          controller: _descriptionController,
-                          maxLines: 4,
-                          style: TextStyle(color: darkBlue),
-                          decoration: InputDecoration(
-                            labelText: 'Description *',
-                            labelStyle: TextStyle(color: darkBlue),
-                            alignLabelWithHint: true,
-                            hintText:
-                                'Describe your offer in detail. What makes it special?',
-                            hintStyle: const TextStyle(color: Colors.grey),
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.only(bottom: 60),
-                              child: Icon(Icons.description_outlined,
-                                  color: brightGold),
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade200),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: brightGold, width: 2),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Description is required';
-                            }
-                            if (value.trim().length < 20) {
-                              return 'Please provide at least 20 characters';
-                            }
-                            return null;
-                          },
-                        ),
-
-                        const SizedBox(height: 18),
-
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Text(
-                                'Offer Images',
-                                style: TextStyle(
-                                  color: darkBlue,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Add up to 10 images to showcase your offer',
-                                style: TextStyle(
-                                  color: darkBlue.withOpacity(180 / 255.0),
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              _buildImagePreview(),
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: _pickImages,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: darkBlue,
-                                        elevation: 2,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 16,
-                                            horizontal:
-                                                8), // reduced horizontal padding
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          side: BorderSide(
-                                              color: brightGold, width: 2),
-                                        ),
-                                      ),
-                                      icon: Icon(Icons.photo_library,
-                                          color: brightGold),
-                                      label: const Text('Choose from Gallery',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w600)),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                      width: 12), // slightly reduced spacing
-                                  Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: _captureImage,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: brightGold,
-                                        foregroundColor: Colors.white,
-                                        elevation: 2,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 16,
-                                            horizontal:
-                                                8), // reduced horizontal padding
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                        ),
-                                      ),
-                                      icon: Icon(Icons.camera_alt,
-                                          color: darkBlue),
-                                      label: const Text('Camera',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w600)),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Supported formats: JPG, PNG, WebP. Max size: 5MB per image. You can add up to 10 images.',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Offer Type Selection
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Offer Type',
-                          style: TextStyle(
-                            color: darkBlue,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<OfferType>(
-                          initialValue: _selectedOfferType,
-                          isExpanded: true,
-                          dropdownColor: Colors.white,
-                          style: TextStyle(color: darkBlue, fontSize: 15),
-                          decoration: InputDecoration(
-                            prefixIcon:
-                                Icon(Icons.local_offer, color: brightGold),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade200),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: brightGold, width: 2),
-                            ),
-                          ),
-                          items: OfferType.values.map((type) {
-                            return DropdownMenuItem(
-                              value: type,
-                              child: Text(_getOfferTypeLabel(type)),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                _selectedOfferType = value;
-                                if (_isPercentageOffer) {
-                                  _syncComputedDiscountPrice();
-                                } else {
-                                  _discountPriceController.clear();
-                                }
-                              });
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Offer Category
-                        Text(
-                          'What are you offering? *',
-                          style: TextStyle(
-                            color: darkBlue,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: brightGold.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline,
-                                  color: darkBlue, size: 18),
-                              const SizedBox(width: 8),
+                              Icon(Icons.campaign, color: brightGold, size: 32),
+                              const SizedBox(width: 12),
                               Expanded(
-                                child: Text(
-                                  'Choose to see relevant fields for your offer type',
-                                  style: TextStyle(
-                                    color: darkBlue,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        DropdownButtonFormField<OfferCategory>(
-                          initialValue: _selectedCategory,
-                          isExpanded: true,
-                          dropdownColor: Colors.white,
-                          style: TextStyle(color: darkBlue, fontSize: 15),
-                          decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.category, color: brightGold),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade200),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: brightGold, width: 2),
-                            ),
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: OfferCategory.product,
-                              child: Text('Product (e.g., Food, Electronics)'),
-                            ),
-                            DropdownMenuItem(
-                              value: OfferCategory.service,
-                              child: Text('Service (e.g., Haircut, Repair)'),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                _selectedCategory = value;
-                              });
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Type-specific fields
-                        _buildOfferTypeSpecificFields(),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Pricing
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Pricing Details (Required)',
-                          style: TextStyle(
-                            color: darkBlue,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'All prices are mandatory and must be valid amounts',
-                          style: TextStyle(
-                            color: darkBlue.withOpacity(0.6),
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _originalPriceController,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                  decimal: true,
-                                ),
-                                style: TextStyle(color: darkBlue),
-                                onChanged: (_) {
-                                  if (_isPercentageOffer) {
-                                    setState(_syncComputedDiscountPrice);
-                                  }
-                                },
-                                decoration: InputDecoration(
-                                  labelText: 'Original Price (₹) *',
-                                  labelStyle: TextStyle(color: darkBlue),
-                                  hintText: '₹999',
-                                  hintStyle:
-                                      const TextStyle(color: Colors.grey),
-                                  prefixIcon: Icon(
-                                      Icons.currency_rupee_outlined,
-                                      color: brightGold),
-                                  filled: true,
-                                  fillColor: Colors.grey.shade50,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide:
-                                        BorderSide(color: Colors.grey.shade200),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide:
-                                        BorderSide(color: brightGold, width: 2),
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.trim().isEmpty) {
-                                    return 'Required';
-                                  }
-                                  final parsed = double.tryParse(value.trim());
-                                  if (parsed == null || parsed <= 0) {
-                                    return 'Enter valid price';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _discountPriceController,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                  decimal: true,
-                                ),
-                                style: TextStyle(color: darkBlue),
-                                readOnly: _isPercentageOffer,
-                                decoration: InputDecoration(
-                                  labelText: _isPercentageOffer
-                                      ? 'Offer Price (Auto)'
-                                      : 'Offer Price (₹) *',
-                                  labelStyle: TextStyle(color: darkBlue),
-                                  hintText: _isPercentageOffer
-                                      ? 'Calculated from percentage'
-                                      : '₹499',
-                                  hintStyle:
-                                      const TextStyle(color: Colors.grey),
-                                  prefixIcon: Icon(Icons.local_offer_outlined,
-                                      color: brightGold),
-                                  filled: true,
-                                  fillColor: Colors.grey.shade50,
-                                  helperText: _isPercentageOffer
-                                      ? 'Auto-calculated using original price and discount %'
-                                      : null,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide:
-                                        BorderSide(color: Colors.grey.shade200),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide:
-                                        BorderSide(color: brightGold, width: 2),
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (_isPercentageOffer) {
-                                    final computed =
-                                        _computedPercentageDiscountPrice();
-                                    if (computed == null) {
-                                      return 'Enter valid original price and %';
-                                    }
-                                    return null;
-                                  }
-                                  if (value == null || value.trim().isEmpty) {
-                                    return 'Required';
-                                  }
-                                  final parsed = double.tryParse(value.trim());
-                                  if (parsed == null || parsed <= 0) {
-                                    return 'Enter valid price';
-                                  }
-                                  final original = double.tryParse(
-                                    _originalPriceController.text.trim(),
-                                  );
-                                  if (original != null && parsed >= original) {
-                                    return 'Must be lower than original';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Additional Options (Category-specific)
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Additional Options',
-                          style: TextStyle(
-                            color: darkBlue,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: brightGold.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline,
-                                  color: darkBlue, size: 18),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _selectedCategory == OfferCategory.service
-                                      ? 'All fields below are optional'
-                                      : 'Min purchase applies only to products',
-                                  style: TextStyle(
-                                    color: darkBlue,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Minimum Purchase - Only for Products
-                        if (_showMinimumPurchase)
-                          Column(
-                            children: [
-                              TextFormField(
-                                controller: _minimumPurchaseController,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true),
-                                style: TextStyle(color: darkBlue),
-                                decoration: InputDecoration(
-                                  labelText: 'Min. Purchase Amount (₹)',
-                                  labelStyle: TextStyle(color: darkBlue),
-                                  hintText: 'Optional - e.g., 500',
-                                  hintStyle:
-                                      const TextStyle(color: Colors.grey),
-                                  prefixIcon: Icon(Icons.shopping_cart_outlined,
-                                      color: brightGold),
-                                  filled: true,
-                                  fillColor: Colors.grey.shade50,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide:
-                                        BorderSide(color: Colors.grey.shade200),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide:
-                                        BorderSide(color: brightGold, width: 2),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-                          ),
-                        // Max Usage Per Customer - For All
-                        TextFormField(
-                          controller: _maxUsageController,
-                          keyboardType: TextInputType.number,
-                          style: TextStyle(color: darkBlue),
-                          decoration: InputDecoration(
-                            labelText: 'Max Usage Per Customer',
-                            labelStyle: TextStyle(color: darkBlue),
-                            hintText: 'Optional - e.g., 3',
-                            hintStyle: const TextStyle(color: Colors.grey),
-                            prefixIcon: Icon(Icons.repeat, color: brightGold),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade200),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: brightGold, width: 2),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Validity Dates Section
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: brightGold.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline,
-                                  color: darkBlue, size: 18),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Start & End dates are optional',
-                                  style: TextStyle(
-                                    color: darkBlue,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: InkWell(
-                                onTap: () => _pickDate(isStart: true),
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border:
-                                        Border.all(color: Colors.grey.shade200),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.event, color: brightGold),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Start Date',
-                                              style: TextStyle(
-                                                color: Colors.grey.shade600,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              _startDate != null
-                                                  ? dateFormat
-                                                      .format(_startDate!)
-                                                  : 'Optional',
-                                              style: TextStyle(
-                                                color: darkBlue,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Create Amazing Offers',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: InkWell(
-                                onTap: () => _pickDate(isStart: false),
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border:
-                                        Border.all(color: Colors.grey.shade200),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.event_available,
-                                          color: brightGold),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'End Date',
-                                              style: TextStyle(
-                                                color: Colors.grey.shade600,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              _endDate != null
-                                                  ? dateFormat.format(_endDate!)
-                                                  : 'Optional',
-                                              style: TextStyle(
-                                                color: darkBlue,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Reach thousands of local customers',
+                                      style: TextStyle(
+                                        color:
+                                            Colors.white.withValues(alpha: 0.9),
+                                        fontSize: 14,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _termsController,
-                          maxLines: 3,
-                          style: TextStyle(color: darkBlue),
-                          decoration: InputDecoration(
-                            labelText: 'Terms & Conditions (Optional)',
-                            labelStyle: TextStyle(color: darkBlue),
-                            alignLabelWithHint: true,
-                            hintText:
-                                'e.g., Valid on Sundays only, Cannot be combined with other offers',
-                            hintStyle: const TextStyle(color: Colors.grey),
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.only(bottom: 40),
-                              child: Icon(Icons.article_outlined,
-                                  color: brightGold),
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade200),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  BorderSide(color: brightGold, width: 2),
-                            ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Submit Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: brightGold,
-                        foregroundColor: darkBlue,
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        shadowColor: brightGold.withOpacity(0.5),
+                        ],
                       ),
-                      child: _isSubmitting
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Text(
-                                  _uploadProgress != null
-                                      ? 'Uploading... ${_uploadProgress!.toStringAsFixed(0)}%'
-                                      : (_isEditing
-                                          ? 'Updating...'
-                                          : 'Submitting...'),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  _isEditing
-                                      ? Icons.save_outlined
-                                      : Icons.send_outlined,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  _isEditing
-                                      ? 'Update Offer'
-                                      : 'Submit for Review',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ],
-                            ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 24),
 
-                  // Info text
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: darkBlue.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline, color: darkBlue, size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Your offer will be reviewed by our team before going live. This usually takes 24-48 hours.',
+                    // Main Form Card
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Basic Information',
                             style: TextStyle(
                               color: darkBlue,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          TextFormField(
+                            controller: _titleController,
+                            style: TextStyle(color: darkBlue),
+                            decoration: InputDecoration(
+                              labelText: 'Offer Title *',
+                              labelStyle: TextStyle(color: darkBlue),
+                              hintText: 'e.g., Summer Sale - 50% Off',
+                              hintStyle: const TextStyle(color: Colors.grey),
+                              prefixIcon: Icon(Icons.title, color: brightGold),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: brightGold, width: 2),
+                              ),
+                            ),
+                            textInputAction: TextInputAction.next,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Offer title is required';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 18),
+
+                          // ...existing code...
+
+                          TextFormField(
+                            controller: _descriptionController,
+                            maxLines: 4,
+                            style: TextStyle(color: darkBlue),
+                            decoration: InputDecoration(
+                              labelText: 'Description *',
+                              labelStyle: TextStyle(color: darkBlue),
+                              alignLabelWithHint: true,
+                              hintText:
+                                  'Describe your offer in detail. What makes it special?',
+                              hintStyle: const TextStyle(color: Colors.grey),
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.only(bottom: 60),
+                                child: Icon(Icons.description_outlined,
+                                    color: brightGold),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: brightGold, width: 2),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Description is required';
+                              }
+                              if (value.trim().length < 20) {
+                                return 'Please provide at least 20 characters';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Offer Images',
+                                  style: TextStyle(
+                                    color: darkBlue,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Add up to 10 images to showcase your offer',
+                                  style: TextStyle(
+                                    color: darkBlue.withOpacity(180 / 255.0),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildImagePreview(),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: _pickImages,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor: darkBlue,
+                                          elevation: 2,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
+                                              horizontal:
+                                                  8), // reduced horizontal padding
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            side: BorderSide(
+                                                color: brightGold, width: 2),
+                                          ),
+                                        ),
+                                        icon: Icon(Icons.photo_library,
+                                            color: brightGold),
+                                        label: const Text('Choose from Gallery',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w600)),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                        width: 12), // slightly reduced spacing
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: _captureImage,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: brightGold,
+                                          foregroundColor: Colors.white,
+                                          elevation: 2,
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
+                                              horizontal:
+                                                  8), // reduced horizontal padding
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                        ),
+                                        icon: Icon(Icons.camera_alt,
+                                            color: darkBlue),
+                                        label: const Text('Camera',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w600)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Supported formats: JPG, PNG, WebP. Max size: 5MB per image. You can add up to 10 images.',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Offer Type Selection
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Offer Type',
+                            style: TextStyle(
+                              color: darkBlue,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<OfferType>(
+                            initialValue: _selectedOfferType,
+                            isExpanded: true,
+                            dropdownColor: Colors.white,
+                            style: TextStyle(color: darkBlue, fontSize: 15),
+                            decoration: InputDecoration(
+                              prefixIcon:
+                                  Icon(Icons.local_offer, color: brightGold),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: brightGold, width: 2),
+                              ),
+                            ),
+                            items: OfferType.values.map((type) {
+                              return DropdownMenuItem(
+                                value: type,
+                                child: Text(_getOfferTypeLabel(type)),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _selectedOfferType = value;
+                                  if (_isPercentageOffer) {
+                                    _syncComputedDiscountPrice();
+                                  } else {
+                                    _discountPriceController.clear();
+                                  }
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Offer Category
+                          Text(
+                            'What are you offering? *',
+                            style: TextStyle(
+                              color: darkBlue,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: brightGold.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline,
+                                    color: darkBlue, size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Choose to see relevant fields for your offer type',
+                                    style: TextStyle(
+                                      color: darkBlue,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<OfferCategory>(
+                            initialValue: _selectedCategory,
+                            isExpanded: true,
+                            dropdownColor: Colors.white,
+                            style: TextStyle(color: darkBlue, fontSize: 15),
+                            decoration: InputDecoration(
+                              prefixIcon:
+                                  Icon(Icons.category, color: brightGold),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: brightGold, width: 2),
+                              ),
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: OfferCategory.product,
+                                child:
+                                    Text('Product (e.g., Food, Electronics)'),
+                              ),
+                              DropdownMenuItem(
+                                value: OfferCategory.service,
+                                child: Text('Service (e.g., Haircut, Repair)'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _selectedCategory = value;
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Business Category
+
+                          Text(
+                            'Business Category *',
+                            style: TextStyle(
+                              color: darkBlue,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<String>(
+                            value: _selectedBusinessCategory,
+                            isExpanded: true,
+                            dropdownColor: Colors.white,
+                            style: TextStyle(color: darkBlue, fontSize: 15),
+                            decoration: InputDecoration(
+                              prefixIcon:
+                                  Icon(Icons.store_outlined, color: brightGold),
+                              hintText: 'Select business category',
+                              hintStyle: const TextStyle(color: Colors.grey),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: brightGold, width: 2),
+                              ),
+                            ),
+                            items: _businessCategories.map((category) {
+                              return DropdownMenuItem(
+                                value: category,
+                                child: Text(category),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _selectedBusinessCategory = value;
+                                });
+                              }
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Business category is required';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Type-specific fields
+                          _buildOfferTypeSpecificFields(),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Pricing
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Pricing Details (Required)',
+                            style: TextStyle(
+                              color: darkBlue,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'All prices are mandatory and must be valid amounts',
+                            style: TextStyle(
+                              color: darkBlue.withOpacity(0.6),
                               fontSize: 13,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _originalPriceController,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                                  style: TextStyle(color: darkBlue),
+                                  onChanged: (_) {
+                                    if (_isPercentageOffer) {
+                                      setState(_syncComputedDiscountPrice);
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                    labelText: 'Original Price (₹) *',
+                                    labelStyle: TextStyle(color: darkBlue),
+                                    hintText: '₹999',
+                                    hintStyle:
+                                        const TextStyle(color: Colors.grey),
+                                    prefixIcon: Icon(
+                                        Icons.currency_rupee_outlined,
+                                        color: brightGold),
+                                    filled: true,
+                                    fillColor: Colors.grey.shade50,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                          color: Colors.grey.shade200),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                          color: brightGold, width: 2),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Required';
+                                    }
+                                    final parsed =
+                                        double.tryParse(value.trim());
+                                    if (parsed == null || parsed <= 0) {
+                                      return 'Enter valid price';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _discountPriceController,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                                  style: TextStyle(color: darkBlue),
+                                  readOnly: _isPercentageOffer,
+                                  decoration: InputDecoration(
+                                    labelText: _isPercentageOffer
+                                        ? 'Offer Price (Auto)'
+                                        : 'Offer Price (₹) *',
+                                    labelStyle: TextStyle(color: darkBlue),
+                                    hintText: _isPercentageOffer
+                                        ? 'Calculated from percentage'
+                                        : '₹499',
+                                    hintStyle:
+                                        const TextStyle(color: Colors.grey),
+                                    prefixIcon: Icon(Icons.local_offer_outlined,
+                                        color: brightGold),
+                                    filled: true,
+                                    fillColor: Colors.grey.shade50,
+                                    helperText: _isPercentageOffer
+                                        ? 'Auto-calculated using original price and discount %'
+                                        : null,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                          color: Colors.grey.shade200),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                          color: brightGold, width: 2),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (_isPercentageOffer) {
+                                      final computed =
+                                          _computedPercentageDiscountPrice();
+                                      if (computed == null) {
+                                        return 'Enter valid original price and %';
+                                      }
+                                      return null;
+                                    }
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Required';
+                                    }
+                                    final parsed =
+                                        double.tryParse(value.trim());
+                                    if (parsed == null || parsed <= 0) {
+                                      return 'Enter valid price';
+                                    }
+                                    final original = double.tryParse(
+                                      _originalPriceController.text.trim(),
+                                    );
+                                    if (original != null &&
+                                        parsed >= original) {
+                                      return 'Must be lower than original';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 24),
+
+                    // Additional Options (Category-specific)
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Additional Options',
+                            style: TextStyle(
+                              color: darkBlue,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: brightGold.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline,
+                                    color: darkBlue, size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _selectedCategory == OfferCategory.service
+                                        ? 'All fields below are optional'
+                                        : 'Min purchase applies only to products',
+                                    style: TextStyle(
+                                      color: darkBlue,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Minimum Purchase - Only for Products
+                          if (_showMinimumPurchase)
+                            Column(
+                              children: [
+                                TextFormField(
+                                  controller: _minimumPurchaseController,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
+                                  style: TextStyle(color: darkBlue),
+                                  decoration: InputDecoration(
+                                    labelText: 'Min. Purchase Amount (₹)',
+                                    labelStyle: TextStyle(color: darkBlue),
+                                    hintText: 'Optional - e.g., 500',
+                                    hintStyle:
+                                        const TextStyle(color: Colors.grey),
+                                    prefixIcon: Icon(
+                                        Icons.shopping_cart_outlined,
+                                        color: brightGold),
+                                    filled: true,
+                                    fillColor: Colors.grey.shade50,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                          color: Colors.grey.shade200),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                          color: brightGold, width: 2),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            ),
+                          // Max Usage Per Customer - For All
+                          TextFormField(
+                            controller: _maxUsageController,
+                            keyboardType: TextInputType.number,
+                            style: TextStyle(color: darkBlue),
+                            decoration: InputDecoration(
+                              labelText: 'Max Usage Per Customer',
+                              labelStyle: TextStyle(color: darkBlue),
+                              hintText: 'Optional - e.g., 3',
+                              hintStyle: const TextStyle(color: Colors.grey),
+                              prefixIcon: Icon(Icons.repeat, color: brightGold),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: brightGold, width: 2),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Validity Dates Section
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: brightGold.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline,
+                                    color: darkBlue, size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Start & End dates are optional',
+                                    style: TextStyle(
+                                      color: darkBlue,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => _pickDate(isStart: true),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                          color: Colors.grey.shade200),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.event, color: brightGold),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Start Date',
+                                                style: TextStyle(
+                                                  color: Colors.grey.shade600,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _startDate != null
+                                                    ? dateFormat
+                                                        .format(_startDate!)
+                                                    : 'Optional',
+                                                style: TextStyle(
+                                                  color: darkBlue,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => _pickDate(isStart: false),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                          color: Colors.grey.shade200),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.event_available,
+                                            color: brightGold),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'End Date',
+                                                style: TextStyle(
+                                                  color: Colors.grey.shade600,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _endDate != null
+                                                    ? dateFormat
+                                                        .format(_endDate!)
+                                                    : 'Optional',
+                                                style: TextStyle(
+                                                  color: darkBlue,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _termsController,
+                            maxLines: 3,
+                            style: TextStyle(color: darkBlue),
+                            decoration: InputDecoration(
+                              labelText: 'Terms & Conditions (Optional)',
+                              labelStyle: TextStyle(color: darkBlue),
+                              alignLabelWithHint: true,
+                              hintText:
+                                  'e.g., Valid on Sundays only, Cannot be combined with other offers',
+                              hintStyle: const TextStyle(color: Colors.grey),
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.only(bottom: 40),
+                                child: Icon(Icons.article_outlined,
+                                    color: brightGold),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    BorderSide(color: brightGold, width: 2),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Submit Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _isSubmitting ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: brightGold,
+                          foregroundColor: darkBlue,
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          shadowColor: brightGold.withOpacity(0.5),
+                        ),
+                        child: _isSubmitting
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Text(
+                                    _uploadProgress != null
+                                        ? 'Uploading... ${_uploadProgress!.toStringAsFixed(0)}%'
+                                        : (_isEditing
+                                            ? 'Updating...'
+                                            : 'Submitting...'),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    _isEditing
+                                        ? Icons.save_outlined
+                                        : Icons.send_outlined,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    _isEditing
+                                        ? 'Update Offer'
+                                        : 'Submit for Review',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Info text
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: darkBlue.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: darkBlue, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Your offer will be reviewed by our team before going live. This usually takes 24-48 hours.',
+                              style: TextStyle(
+                                color: darkBlue,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 extension on FirebaseException {
-  get details => null;
+  dynamic get details => null;
 }
 
 class SelectedImage {
