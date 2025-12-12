@@ -159,6 +159,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: CustomScrollView(
+        // Prevent layout jumps on keyboard open/close (esp. web)
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         slivers: [
           SliverToBoxAdapter(
             child: Padding(

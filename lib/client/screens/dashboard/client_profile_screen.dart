@@ -391,18 +391,23 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Logout'),
-                        content: const Text('Are you sure you want to logout?'),
+                        backgroundColor: Colors.white,
+                        title: const Text('Logout',
+                            style: TextStyle(color: Colors.black)),
+                        content: const Text('Are you sure you want to logout?',
+                            style: TextStyle(color: Colors.black)),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
+                            child: const Text('Cancel',
+                                style: TextStyle(color: Colors.black)),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
-                            style: TextButton.styleFrom(
-                                foregroundColor: Colors.red),
-                            child: const Text('Logout'),
+                            child: const Text('Logout',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),

@@ -173,6 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _goToRoleSelection();
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: Colors.white,
         body: SafeArea(
           child: LayoutBuilder(builder: (context, constraints) {

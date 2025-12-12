@@ -64,20 +64,33 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   // Business categories from home screen
   final List<String> _businessCategories = [
     'Grocery',
+    'Supermarket',
     'Restaurant',
-    'Fashion',
+    'Cafe & Bakery', // Consolidated category
+
+    // Other Existing Categories
+    'Pharmacy',
     'Electronics',
-    'Beauty',
-    'Home & Garden',
-    'Sports',
-    'Health',
-    'Books',
-    'Toys',
+    'Mobile & Accessories',
+    'Fashion & Apparel',
+    'Footwear',
+    'Jewelry',
+    'Home Decor',
+    'Furniture',
+    'Hardware',
     'Automotive',
-    'Pets',
-    'Entertainment',
-    'Travel',
-    'Services',
+    'Books & Stationery',
+    'Toys & Games',
+    'Sports & Fitness',
+    'Beauty & Cosmetics',
+    'Salon & Spa',
+    'Pet Supplies',
+    'Dairy & Produce',
+    'Electronics Repair',
+    'Optical',
+    'Travel & Tours',
+    'Department Store',
+    'Other',
   ];
 
   @override
@@ -541,6 +554,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     debugPrint('[SUBMIT]   Buy Qty: "${_buyQuantityController.text}"');
     debugPrint('[SUBMIT]   Get Qty: "${_getQuantityController.text}"');
 
+    // Validate form fields
     if (!_formKey.currentState!.validate()) {
       debugPrint('[SUBMIT] ❌ Form validation failed');
       debugPrint(
@@ -548,11 +562,15 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
       return;
     }
 
-    debugPrint('[SUBMIT] ✅ Form validation passed');
+    // Validate start and end date are set
+    if (_startDate == null || _endDate == null) {
+      debugPrint('[SUBMIT] ❌ Start or End date missing');
+      _showError('Start date and End date are required.');
+      return;
+    }
 
-    if (_startDate != null &&
-        _endDate != null &&
-        _endDate!.isBefore(_startDate!)) {
+    // Validate end date after start date
+    if (_endDate!.isBefore(_startDate!)) {
       debugPrint('[SUBMIT] ❌ End date is before start date');
       _showError('End date should be after the start date.');
       return;
@@ -1930,7 +1948,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                                     }
                                   },
                                   decoration: InputDecoration(
-                                    labelText: 'Original Price (₹) *',
+                                    labelText: 'Original Price (₹)',
                                     labelStyle: TextStyle(color: darkBlue),
                                     hintText: '₹999',
                                     hintStyle:
@@ -1957,7 +1975,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                                   ),
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) {
-                                      return 'Required';
+                                      return null;
                                     }
                                     final parsed =
                                         double.tryParse(value.trim());
@@ -1981,7 +1999,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                                   decoration: InputDecoration(
                                     labelText: _isPercentageOffer
                                         ? 'Offer Price (Auto)'
-                                        : 'Offer Price (₹) *',
+                                        : 'Offer Price (₹)',
                                     labelStyle: TextStyle(color: darkBlue),
                                     hintText: _isPercentageOffer
                                         ? 'Calculated from percentage'
@@ -2014,13 +2032,22 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                                     if (_isPercentageOffer) {
                                       final computed =
                                           _computedPercentageDiscountPrice();
+                                      if (_originalPriceController.text
+                                              .trim()
+                                              .isEmpty &&
+                                          _percentageOffController.text
+                                              .trim()
+                                              .isEmpty) {
+                                        // Both fields empty: allow
+                                        return null;
+                                      }
                                       if (computed == null) {
                                         return 'Enter valid original price and %';
                                       }
                                       return null;
                                     }
                                     if (value == null || value.trim().isEmpty) {
-                                      return 'Required';
+                                      return null;
                                     }
                                     final parsed =
                                         double.tryParse(value.trim());
@@ -2171,7 +2198,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: brightGold.withValues(alpha: 0.08),
+                              color: brightGold.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -2181,7 +2208,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Start & End dates are optional',
+                                    'Start & End dates are required',
                                     style: TextStyle(
                                       color: darkBlue,
                                       fontSize: 13,
@@ -2227,9 +2254,11 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                                                 _startDate != null
                                                     ? dateFormat
                                                         .format(_startDate!)
-                                                    : 'Optional',
+                                                    : 'Required',
                                                 style: TextStyle(
-                                                  color: darkBlue,
+                                                  color: _startDate != null
+                                                      ? darkBlue
+                                                      : Colors.red,
                                                   fontWeight: FontWeight.w600,
                                                   fontSize: 14,
                                                 ),
@@ -2277,9 +2306,11 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                                                 _endDate != null
                                                     ? dateFormat
                                                         .format(_endDate!)
-                                                    : 'Optional',
+                                                    : 'Required',
                                                 style: TextStyle(
-                                                  color: darkBlue,
+                                                  color: _endDate != null
+                                                      ? darkBlue
+                                                      : Colors.red,
                                                   fontWeight: FontWeight.w600,
                                                   fontSize: 14,
                                                 ),
@@ -2333,6 +2364,20 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
+
+                    // Reminder Text
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        "Remember to update or remove your offer in the app once it expires or if any details change.",
+                        style: TextStyle(
+                          color: Colors.red.shade700,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
 
                     // Submit Button
                     SizedBox(

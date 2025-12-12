@@ -8,6 +8,7 @@ import '../client/models/offer.dart';
 import '../client/services/offer_service.dart';
 import '../widgets/offer_card.dart';
 import 'main_screen.dart';
+import '../services/offer_banner_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,6 +18,40 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _bannerIndex = 0;
+  final PageController _bannerPageController =
+      PageController(viewportFraction: 0.93);
+  Timer? _bannerTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoBannerScroll();
+    _startAutoScroll();
+  }
+
+  void _startAutoBannerScroll() {
+    _bannerTimer?.cancel();
+    _bannerTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!_bannerPageController.hasClients) return;
+      final next = _bannerIndex + 1;
+      _bannerPageController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _bannerTimer?.cancel();
+    _bannerPageController.dispose();
+    _autoScrollTimer?.cancel();
+    _categoryScrollController.dispose();
+    super.dispose();
+  }
+
   String? _selectedCategory;
   final ScrollController _categoryScrollController = ScrollController();
   Timer? _autoScrollTimer;
@@ -36,16 +71,28 @@ class _HomeScreenState extends State<HomeScreen> {
       'gradient': [const Color(0xFF4CAF50), const Color(0xFF66BB6A)],
     },
     {
+      'name': 'Supermarket',
+      'icon': Icons.storefront_outlined,
+      'color': const Color(0xFF388E3C),
+      'gradient': [const Color(0xFF388E3C), const Color(0xFF66BB6A)],
+    },
+    {
       'name': 'Restaurant',
       'icon': Icons.restaurant_outlined,
       'color': const Color(0xFFFF9800),
       'gradient': [const Color(0xFFFF9800), const Color(0xFFFFB74D)],
     },
     {
-      'name': 'Fashion',
-      'icon': Icons.checkroom_outlined,
-      'color': const Color(0xFFE91E63),
-      'gradient': [const Color(0xFFE91E63), const Color(0xFFF48FB1)],
+      'name': 'Cafe & Bakery',
+      'icon': Icons.coffee_outlined,
+      'color': const Color(0xFF795548),
+      'gradient': [const Color(0xFF795548), const Color(0xFFD7CCC8)],
+    },
+    {
+      'name': 'Pharmacy',
+      'icon': Icons.local_pharmacy_outlined,
+      'color': const Color(0xFF009688),
+      'gradient': [const Color(0xFF009688), const Color(0xFF4DB6AC)],
     },
     {
       'name': 'Electronics',
@@ -54,40 +101,46 @@ class _HomeScreenState extends State<HomeScreen> {
       'gradient': [const Color(0xFF2196F3), const Color(0xFF64B5F6)],
     },
     {
-      'name': 'Beauty',
-      'icon': Icons.face_outlined,
-      'color': const Color(0xFF9C27B0),
-      'gradient': [const Color(0xFF9C27B0), const Color(0xFFBA68C8)],
+      'name': 'Mobile & Accessories',
+      'icon': Icons.smartphone_outlined,
+      'color': const Color(0xFF1976D2),
+      'gradient': [const Color(0xFF1976D2), const Color(0xFF64B5F6)],
     },
     {
-      'name': 'Home & Garden',
-      'icon': Icons.home_outlined,
+      'name': 'Fashion & Apparel',
+      'icon': Icons.checkroom_outlined,
+      'color': const Color(0xFFE91E63),
+      'gradient': [const Color(0xFFE91E63), const Color(0xFFF48FB1)],
+    },
+    {
+      'name': 'Footwear',
+      'icon': Icons.hiking_outlined,
+      'color': const Color(0xFF6D4C41),
+      'gradient': [const Color(0xFF6D4C41), const Color(0xFFA1887F)],
+    },
+    {
+      'name': 'Jewelry',
+      'icon': Icons.diamond_outlined,
+      'color': const Color(0xFFFFD700),
+      'gradient': [const Color(0xFFFFD700), const Color(0xFFFFF9C4)],
+    },
+    {
+      'name': 'Home Decor',
+      'icon': Icons.chair_outlined,
       'color': const Color(0xFF795548),
       'gradient': [const Color(0xFF795548), const Color(0xFFA1887F)],
     },
     {
-      'name': 'Sports',
-      'icon': Icons.sports_basketball_outlined,
-      'color': const Color(0xFFFF5722),
-      'gradient': [const Color(0xFFFF5722), const Color(0xFFFF8A65)],
+      'name': 'Furniture',
+      'icon': Icons.weekend_outlined,
+      'color': const Color(0xFF8D6E63),
+      'gradient': [const Color(0xFF8D6E63), const Color(0xFFD7CCC8)],
     },
     {
-      'name': 'Health',
-      'icon': Icons.favorite_outline,
-      'color': const Color(0xFFE53935),
-      'gradient': [const Color(0xFFE53935), const Color(0xFFEF5350)],
-    },
-    {
-      'name': 'Books',
-      'icon': Icons.menu_book_outlined,
-      'color': const Color(0xFF5E35B1),
-      'gradient': [const Color(0xFF5E35B1), const Color(0xFF7E57C2)],
-    },
-    {
-      'name': 'Toys',
-      'icon': Icons.toys_outlined,
-      'color': const Color(0xFFFDD835),
-      'gradient': [const Color(0xFFFDD835), const Color(0xFFFFEE58)],
+      'name': 'Hardware',
+      'icon': Icons.handyman_outlined,
+      'color': const Color(0xFF607D8B),
+      'gradient': [const Color(0xFF607D8B), const Color(0xFF90A4AE)],
     },
     {
       'name': 'Automotive',
@@ -96,43 +149,82 @@ class _HomeScreenState extends State<HomeScreen> {
       'gradient': [const Color(0xFF616161), const Color(0xFF757575)],
     },
     {
-      'name': 'Pets',
+      'name': 'Books & Stationery',
+      'icon': Icons.menu_book_outlined,
+      'color': const Color(0xFF5E35B1),
+      'gradient': [const Color(0xFF5E35B1), const Color(0xFF7E57C2)],
+    },
+    {
+      'name': 'Toys & Games',
+      'icon': Icons.toys_outlined,
+      'color': const Color(0xFFFDD835),
+      'gradient': [const Color(0xFFFDD835), const Color(0xFFFFEE58)],
+    },
+    {
+      'name': 'Sports & Fitness',
+      'icon': Icons.sports_basketball_outlined,
+      'color': const Color(0xFFFF5722),
+      'gradient': [const Color(0xFFFF5722), const Color(0xFFFF8A65)],
+    },
+    {
+      'name': 'Beauty & Cosmetics',
+      'icon': Icons.face_outlined,
+      'color': const Color(0xFF9C27B0),
+      'gradient': [const Color(0xFF9C27B0), const Color(0xFFBA68C8)],
+    },
+    {
+      'name': 'Salon & Spa',
+      'icon': Icons.spa_outlined,
+      'color': const Color(0xFF8E24AA),
+      'gradient': [const Color(0xFF8E24AA), const Color(0xFFCE93D8)],
+    },
+    {
+      'name': 'Pet Supplies',
       'icon': Icons.pets_outlined,
       'color': const Color(0xFF8D6E63),
       'gradient': [const Color(0xFF8D6E63), const Color(0xFFA1887F)],
     },
     {
-      'name': 'Travel',
+      'name': 'Dairy & Produce',
+      'icon': Icons.egg_outlined,
+      'color': const Color(0xFFFFF176),
+      'gradient': [const Color(0xFFFFF176), const Color(0xFFFFF9C4)],
+    },
+    {
+      'name': 'Electronics Repair',
+      'icon': Icons.build_outlined,
+      'color': const Color(0xFF607D8B),
+      'gradient': [const Color(0xFF607D8B), const Color(0xFF90A4AE)],
+    },
+    {
+      'name': 'Optical',
+      'icon': Icons.remove_red_eye_outlined,
+      'color': const Color(0xFF00ACC1),
+      'gradient': [const Color(0xFF00ACC1), const Color(0xFF26C6DA)],
+    },
+    {
+      'name': 'Travel & Tours',
       'icon': Icons.flight_outlined,
       'color': const Color(0xFF00ACC1),
       'gradient': [const Color(0xFF00ACC1), const Color(0xFF26C6DA)],
     },
     {
-      'name': 'Services',
-      'icon': Icons.room_service_outlined,
-      'color': const Color(0xFF43A047),
-      'gradient': [const Color(0xFF43A047), const Color(0xFF66BB6A)],
+      'name': 'Department Store',
+      'icon': Icons.apartment_outlined,
+      'color': const Color(0xFF1F477D),
+      'gradient': [const Color(0xFF1F477D), const Color(0xFF2A5A9F)],
     },
     {
-      'name': 'Education',
-      'icon': Icons.school_outlined,
-      'color': const Color(0xFF1E88E5),
-      'gradient': [const Color(0xFF1E88E5), const Color(0xFF42A5F5)],
+      'name': 'Other',
+      'icon': Icons.category_outlined,
+      'color': const Color(0xFFBDBDBD),
+      'gradient': [const Color(0xFFBDBDBD), const Color(0xFFE0E0E0)],
     },
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _startAutoScroll();
-  }
+  // Removed duplicate initState()
 
-  @override
-  void dispose() {
-    _autoScrollTimer?.cancel();
-    _categoryScrollController.dispose();
-    super.dispose();
-  }
+  // Removed duplicate dispose() method. All dispose logic is now in a single method above.
 
   void _startAutoScroll() {
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
@@ -202,56 +294,89 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Premium Hero Section
             SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1F477D), Color(0xFF2A5A9F)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF1F477D).withAlpha(60),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Discover Amazing',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+              child: StreamBuilder<List<OfferBanner>>(
+                stream: OfferBannerService().watchOfferBanners(),
+                builder: (context, snapshot) {
+                  final banners = snapshot.data ?? [];
+                  if (banners.isEmpty) {
+                    return const SizedBox(height: 0);
+                  }
+                  return Column(
+                    children: [
+                      SizedBox(
+                        height: 150,
+                        child: PageView.builder(
+                          controller: _bannerPageController,
+                          itemCount: banners.length,
+                          onPageChanged: (i) {
+                            setState(() => _bannerIndex = i);
+                          },
+                          itemBuilder: (context, i) {
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 350),
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(18),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: banners[i].url.isNotEmpty
+                                  ? Image.network(
+                                      banners[i].url,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      loadingBuilder:
+                                          (context, child, progress) {
+                                        if (progress == null) return child;
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: progress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? progress
+                                                        .cumulativeBytesLoaded /
+                                                    (progress
+                                                            .expectedTotalBytes ??
+                                                        1)
+                                                : null,
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : const SizedBox.shrink(),
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Deals & Offers',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(banners.length, (i) {
+                          final isActive = i == _bannerIndex;
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: isActive ? 18 : 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? const Color(0xFF1F477D)
+                                  : Colors.grey[300],
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          );
+                        }),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Save big on your favorite products & services',
-                      style: TextStyle(
-                        color: Colors.white.withAlpha(200),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  );
+                },
               ),
             ),
 

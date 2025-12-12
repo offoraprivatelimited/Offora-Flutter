@@ -91,6 +91,42 @@ class OfforaApp extends StatelessWidget {
           '/terms-and-conditions': (_) => const TermsAndConditionsPage(),
           '/privacy-policy': (_) => const PrivacyPolicyPage(),
         },
+        onGenerateRoute: (settings) {
+          // Redirect to appropriate dashboard based on logged-in user role
+          return MaterialPageRoute(
+            builder: (context) {
+              final auth = Provider.of<AuthService>(context, listen: false);
+              final user = auth.currentUser;
+              if (user != null && user.role == 'shopowner') {
+                return const client.ClientMainScreen();
+              } else if (user != null && user.role == 'user') {
+                return const MainScreen();
+              } else {
+                // Not logged in, go to role selection
+                return const RoleSelectionScreen();
+              }
+            },
+            settings: settings,
+          );
+        },
+        onUnknownRoute: (settings) {
+          // Fallback for truly unknown routes, never show 404
+          return MaterialPageRoute(
+            builder: (context) {
+              final auth = Provider.of<AuthService>(context, listen: false);
+              final user = auth.currentUser;
+              if (user != null && user.role == 'shopowner') {
+                return const client.ClientMainScreen();
+              } else if (user != null && user.role == 'user') {
+                return const MainScreen();
+              } else {
+                // Not logged in, go to role selection
+                return const RoleSelectionScreen();
+              }
+            },
+            settings: settings,
+          );
+        },
       ),
     );
   }

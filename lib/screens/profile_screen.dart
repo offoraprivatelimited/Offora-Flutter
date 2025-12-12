@@ -109,8 +109,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Logout'),
+            style: TextButton.styleFrom(foregroundColor: Colors.black),
+            child: const Text(
+              'Logout',
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),

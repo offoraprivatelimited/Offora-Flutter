@@ -82,6 +82,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Complete Your Profile'),
         automaticallyImplyLeading: false,

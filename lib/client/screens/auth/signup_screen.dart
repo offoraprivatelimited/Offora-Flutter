@@ -42,11 +42,13 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _loadingCities = false;
 
   final List<String> _categories = const [
+    // Consolidated Food Categories
     'Grocery',
     'Supermarket',
     'Restaurant',
-    'Cafe',
-    'Bakery',
+    'Cafe & Bakery', // Consolidated category
+
+    // Other Existing Categories
     'Pharmacy',
     'Electronics',
     'Mobile & Accessories',
@@ -205,6 +207,7 @@ class _SignupScreenState extends State<SignupScreen> {
     const darkerGold = Color(0xFFA3834D);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
       body: SafeArea(
         child: LayoutBuilder(builder: (context, constraints) {

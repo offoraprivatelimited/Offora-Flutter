@@ -109,6 +109,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
     const brightGold = Color(0xFFF0B84D);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       drawer: const AppDrawer(),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(64),
