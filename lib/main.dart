@@ -68,7 +68,7 @@ class OfforaApp extends StatelessWidget {
           user.UserSplashScreen.routeName: (_) => const user.UserSplashScreen(),
           OnboardingScreen.routeName: (_) => const OnboardingScreen(),
           AuthScreen.routeName: (_) => const AuthScreen(),
-          MainScreen.routeName: (_) => const MainScreen(),
+          MainScreen.routeName: (_) => MainScreen(key: MainScreen.globalKey),
           OfferDetailsScreen.routeName: (_) => const OfferDetailsScreen(),
           ProfileCompleteScreen.routeName: (_) => const ProfileCompleteScreen(),
           // Shopowner (client) flow
@@ -100,7 +100,7 @@ class OfforaApp extends StatelessWidget {
               if (user != null && user.role == 'shopowner') {
                 return const client.ClientMainScreen();
               } else if (user != null && user.role == 'user') {
-                return const MainScreen();
+                return MainScreen(key: MainScreen.globalKey);
               } else {
                 // Not logged in, go to role selection
                 return const RoleSelectionScreen();
@@ -118,7 +118,7 @@ class OfforaApp extends StatelessWidget {
               if (user != null && user.role == 'shopowner') {
                 return const client.ClientMainScreen();
               } else if (user != null && user.role == 'user') {
-                return const MainScreen();
+                return MainScreen(key: MainScreen.globalKey);
               } else {
                 // Not logged in, go to role selection
                 return const RoleSelectionScreen();

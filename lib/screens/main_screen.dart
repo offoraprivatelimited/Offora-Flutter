@@ -15,6 +15,10 @@ import '../services/offer_scroller_service.dart';
 
 class MainScreen extends StatefulWidget {
   static const String routeName = '/main';
+  // Global key so other routes/widgets can ask MainScreen to show inline pages
+  static final GlobalKey<MainScreenState> globalKey =
+      GlobalKey<MainScreenState>();
+
   const MainScreen({super.key});
 
   @override
@@ -39,7 +43,7 @@ class MainScreenState extends State<MainScreen> {
       _infoPage = page;
       _selectedOffer = null;
     });
-    Navigator.of(context).pop(); // Close drawer
+    // Removed pop to avoid closing the current page when showing info inline
   }
 
   void showOfferDetails(Offer offer) {

@@ -12,6 +12,7 @@ import '../services/auth_service.dart';
 import '../services/saved_offers_service.dart';
 import '../services/compare_service.dart';
 import '../client/models/offer.dart';
+import 'main_screen.dart';
 
 class OfferDetailsScreen extends StatefulWidget {
   static const String routeName = '/offer';
@@ -30,6 +31,20 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
         body: Center(
           child: Text('Invalid offer data'),
         ),
+      );
+    }
+
+    // If MainScreen is mounted (via global key), show the offer inline there
+    final mainState = MainScreen.globalKey.currentState;
+    if (mainState != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        mainState.showOfferDetails(args);
+        // Pop this pushed route since the details are shown inline
+        if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+      });
+
+      return const Scaffold(
+        body: SizedBox.shrink(),
       );
     }
 
@@ -482,7 +497,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                           ),
                           const SizedBox(height: 16),
 
-                         // Price row (swapped: price left, percent right)
+                          // Price row (swapped: price left, percent right)
                           Row(
                             children: [
                               // Price to the left

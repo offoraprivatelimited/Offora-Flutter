@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:offora/screens/advertisement_details_screen.dart';
 import 'package:provider/provider.dart';
 import '../theme/colors.dart';
 import '../client/models/offer.dart';
@@ -312,45 +313,64 @@ class _HomeScreenState extends State<HomeScreen> {
                             setState(() => _bannerIndex = i);
                           },
                           itemBuilder: (context, i) {
-                            return AnimatedContainer(
-                              duration: const Duration(milliseconds: 350),
-                              margin: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(18),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                            final banner = banners[i];
+                            return GestureDetector(
+                              onTap: () {
+                                final mainScreenState = context
+                                    .findAncestorStateOfType<MainScreenState>();
+                                if (mainScreenState != null) {
+                                  mainScreenState.showInfoPage(
+                                    AdvertisementDetailsScreen(
+                                      title: banner.title ?? '',
+                                      description: banner.description ?? '',
+                                      email: banner.email ?? '',
+                                      phone: banner.phone ?? '',
+                                      link: banner.link ?? '',
+                                      imageUrl: banner.url,
+                                    ),
+                                  );
+                                }
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 350),
+                                margin: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(18),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.08),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: banner.url.isNotEmpty
+                                    ? Image.network(
+                                        banner.url,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        loadingBuilder:
+                                            (context, child, progress) {
+                                          if (progress == null) return child;
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value: progress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? progress
+                                                          .cumulativeBytesLoaded /
+                                                      (progress
+                                                              .expectedTotalBytes ??
+                                                          1)
+                                                  : null,
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    : const SizedBox.shrink(),
                               ),
-                              clipBehavior: Clip.antiAlias,
-                              child: banners[i].url.isNotEmpty
-                                  ? Image.network(
-                                      banners[i].url,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      loadingBuilder:
-                                          (context, child, progress) {
-                                        if (progress == null) return child;
-                                        return Center(
-                                          child: CircularProgressIndicator(
-                                            value: progress
-                                                        .expectedTotalBytes !=
-                                                    null
-                                                ? progress
-                                                        .cumulativeBytesLoaded /
-                                                    (progress
-                                                            .expectedTotalBytes ??
-                                                        1)
-                                                : null,
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  : const SizedBox.shrink(),
                             );
                           },
                         ),
