@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'main_screen.dart';
 import 'profile_complete_screen.dart';
+import '../core/error_messages.dart';
+import '../widgets/responsive_page.dart';
 
 class AuthScreen extends StatefulWidget {
   static const String routeName = '/auth';
@@ -62,9 +64,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Sign-in failed. Please try again. Error: ${e.toString()}',
-          ),
+          content: Text(ErrorMessages.friendlyErrorMessage(e)),
           backgroundColor: Colors.red,
         ),
       );
@@ -91,11 +91,10 @@ class _AuthScreenState extends State<AuthScreen> {
         centerTitle: true,
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
+      body: ResponsivePage(
         child: Center(
           child: SizedBox(
-            width: 320,
+            width: 420,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -120,8 +119,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 12,
+                        vertical: 14,
+                        horizontal: 16,
                       ),
                     ),
                     onPressed: _isLoading ? null : _handleGoogleSignIn,

@@ -8,6 +8,8 @@ import '../auth/login_screen.dart';
 import '../offers/new_offer_form_screen.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/premium_app_bar.dart';
+import '../../../core/error_messages.dart';
+import '../../../widgets/responsive_page.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -109,7 +111,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _showMessage('Offer deleted successfully.');
       } catch (e) {
         if (!mounted) return;
-        _showMessage('Failed to delete offer: $e');
+        _showMessage(ErrorMessages.friendlyErrorMessage(e));
       }
     }
   }
@@ -124,48 +126,84 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     final user = auth.currentUser;
-
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: const AppDrawer(),
       appBar: const PremiumAppBar(),
       body: user == null
           ? const Center(child: CircularProgressIndicator())
-          : CustomScrollView(
-              slivers: [
-                // Content
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Business info card
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: darkBlue.withAlpha(13),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: brightGold.withAlpha(76),
-                              width: 1,
+          : ResponsivePage(
+              child: CustomScrollView(
+                slivers: [
+                  // Content
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Business info card
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: darkBlue.withAlpha(13),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: brightGold.withAlpha(76),
+                                width: 1,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Welcome back!',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: darkBlue.withAlpha(179),
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  user.businessName,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                        color: darkBlue,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(Icons.location_on_outlined,
+                                        size: 16, color: darkerGold),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        user.address,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          const SizedBox(height: 24),
+                          // Offers section header
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Welcome back!',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: darkBlue.withAlpha(179),
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                user.businessName,
+                                'My Offers',
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleLarge
@@ -174,77 +212,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       color: darkBlue,
                                     ),
                               ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Icon(Icons.location_on_outlined,
-                                      size: 16, color: darkerGold),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      user.address,
-                                      style:
-                                          Theme.of(context).textTheme.bodySmall,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
+                              ElevatedButton.icon(
+                                onPressed: _createOffer,
+                                icon: const Icon(Icons.add, size: 18),
+                                label: const Text('New offer'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: brightGold,
+                                  foregroundColor: darkBlue,
+                                  elevation: 2,
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        // Offers section header
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'My Offers',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: darkBlue,
-                                  ),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: _createOffer,
-                              icon: const Icon(Icons.add, size: 18),
-                              label: const Text('New offer'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: brightGold,
-                                foregroundColor: darkBlue,
-                                elevation: 2,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                      ],
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                // Offers list
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverToBoxAdapter(
-                    child: _OffersSection(
-                      currency: _currency,
-                      userId: user.uid,
-                      // Allow creating offers (drafts) for signed-in users
-                      canCreateOffers: true,
-                      onCreateOffer: _createOffer,
-                      onEditOffer: _editOffer,
-                      onDeleteOffer: _deleteOffer,
-                      darkBlue: darkBlue,
-                      brightGold: brightGold,
-                      darkerGold: darkerGold,
+                  // Offers list
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverToBoxAdapter(
+                      child: _OffersSection(
+                        currency: _currency,
+                        userId: user.uid,
+                        // Allow creating offers (drafts) for signed-in users
+                        canCreateOffers: true,
+                        onCreateOffer: _createOffer,
+                        onEditOffer: _editOffer,
+                        onDeleteOffer: _deleteOffer,
+                        darkBlue: darkBlue,
+                        brightGold: brightGold,
+                        darkerGold: darkerGold,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
     );
   }

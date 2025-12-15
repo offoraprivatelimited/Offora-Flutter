@@ -31,6 +31,7 @@ class Offer {
     this.offerType = OfferType.percentageDiscount,
     this.offerCategory = OfferCategory.product,
     this.businessCategory,
+    this.city,
     this.imageUrls,
     this.client,
     this.terms,
@@ -60,6 +61,7 @@ class Offer {
   final OfferCategory offerCategory;
   final String?
       businessCategory; // Business category like Grocery, Restaurant, etc.
+  final String? city; // City where the offer is valid
   final List<String>? imageUrls;
   final Map<String, dynamic>? client;
   final String? terms;
@@ -96,6 +98,7 @@ class Offer {
       'offerType': offerType.name,
       'offerCategory': offerCategory.name,
       if (businessCategory != null) 'businessCategory': businessCategory,
+      if (city != null) 'city': city,
       if (imageUrls != null) 'imageUrls': imageUrls,
       if (client != null) 'client': client,
       if (terms != null) 'terms': terms,
@@ -147,6 +150,7 @@ class Offer {
         orElse: () => OfferCategory.product,
       ),
       businessCategory: data['businessCategory'] as String?,
+      city: data['city'] as String?,
       imageUrls: (data['imageUrls'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -190,6 +194,7 @@ class Offer {
     OfferType? offerType,
     OfferCategory? offerCategory,
     String? businessCategory,
+    String? city,
     List<String>? imageUrls,
     Map<String, dynamic>? client,
     String? terms,
@@ -218,6 +223,7 @@ class Offer {
       offerType: offerType ?? this.offerType,
       offerCategory: offerCategory ?? this.offerCategory,
       businessCategory: businessCategory ?? this.businessCategory,
+      city: city ?? this.city,
       imageUrls: imageUrls ?? this.imageUrls,
       client: client ?? this.client,
       terms: terms ?? this.terms,

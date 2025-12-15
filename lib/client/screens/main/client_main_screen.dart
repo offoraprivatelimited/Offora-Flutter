@@ -7,6 +7,8 @@ import '../dashboard/client_profile_screen.dart';
 import '../offers/new_offer_form_screen.dart';
 import '../../models/offer.dart';
 import '../../services/offer_service.dart';
+import '../../../services/auth_service.dart';
+import '../../../core/error_messages.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/premium_app_bar.dart';
 
@@ -30,7 +32,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
   void initState() {
     super.initState();
     _screens.addAll([
-      const NewOfferFormScreen(),
+      const SizedBox(), // Placeholder for NewOfferFormScreen
       ManageOffersScreen(
         onEditOffer: _editOffer,
         onDeleteOffer: _deleteOffer,
@@ -38,6 +40,11 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
       const EnquiriesScreen(),
       const ClientProfileScreen(),
     ]);
+  }
+
+  String get _clientId {
+    final auth = Provider.of<AuthService>(context, listen: false);
+    return auth.currentUser?.uid ?? '';
   }
 
   void showInfoPage(Widget page) {
@@ -54,14 +61,13 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
   }
 
   Future<void> _editOffer(Offer offer) async {
+    final auth = Provider.of<AuthService>(context, listen: false);
+    final clientId = auth.currentUser?.uid ?? '';
+
     setState(() {
       _infoPage = NewOfferFormScreen(
-        offer: offer,
-        onSuccess: () {
-          setState(() {
-            _infoPage = null;
-          });
-        },
+        clientId: clientId,
+        offerToEdit: offer,
       );
     });
   }
@@ -98,7 +104,7 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete offer: $e')),
+          SnackBar(content: Text(ErrorMessages.friendlyErrorMessage(e))),
         );
       }
     }
@@ -107,9 +113,9 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
   @override
   Widget build(BuildContext context) {
     const brightGold = Color(0xFFF0B84D);
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      // Keep drawer for narrow screens
       drawer: const AppDrawer(),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(64),
@@ -122,66 +128,125 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
           ),
         ),
       ),
-      body: _infoPage != null
-          ? _infoPage!
-          : Container(
-              color: const Color(0xFFF5F7FA),
-              child: IndexedStack(
-                index: _currentIndex,
-                children: _screens,
+      body: LayoutBuilder(builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 920;
+
+        // Update the first screen with actual NewOfferFormScreen
+        if (_screens.isNotEmpty && _screens[0] is SizedBox) {
+          _screens[0] = NewOfferFormScreen(clientId: _clientId);
+        }
+
+        Widget content = _infoPage != null
+            ? _infoPage!
+            : Container(
+                color: const Color(0xFFF5F7FA),
+                child: IndexedStack(
+                  index: _currentIndex,
+                  children: _screens,
+                ),
+              );
+
+        if (!isWide) return content;
+
+        // Desktop layout: navigation rail + content
+        return Row(
+          children: [
+            NavigationRail(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: (i) => setState(() {
+                _currentIndex = i;
+                _infoPage = null;
+              }),
+              labelType: NavigationRailLabelType.all,
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.add_circle_outline),
+                  selectedIcon: Icon(Icons.add_circle),
+                  label: Text('Add'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.campaign_outlined),
+                  selectedIcon: Icon(Icons.campaign),
+                  label: Text('Manage'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.question_answer_outlined),
+                  selectedIcon: Icon(Icons.question_answer),
+                  label: Text('Enquiries'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.person_outline),
+                  selectedIcon: Icon(Icons.person),
+                  label: Text('Profile'),
+                ),
+              ],
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1200),
+                  child: content,
+                ),
               ),
             ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(25),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
           ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-              _infoPage = null; // Clear info page when switching tabs
-            });
-          },
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: brightGold,
-          unselectedItemColor: Colors.grey.shade600,
-          selectedFontSize: 12,
-          unselectedFontSize: 11,
-          showUnselectedLabels: true,
-          elevation: 8,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.add_circle_outline),
-              activeIcon: Icon(Icons.add_circle),
-              label: 'Add',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.campaign_outlined),
-              activeIcon: Icon(Icons.campaign),
-              label: 'Manage',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.question_answer_outlined),
-              activeIcon: Icon(Icons.question_answer),
-              label: 'Enquiries',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
-        ),
-      ),
+        );
+      }),
+      bottomNavigationBar: LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxWidth > 920) return const SizedBox.shrink();
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(25),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+                _infoPage = null; // Clear info page when switching tabs
+              });
+            },
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Colors.white,
+            selectedItemColor: brightGold,
+            unselectedItemColor: Colors.grey.shade600,
+            selectedFontSize: 12,
+            unselectedFontSize: 11,
+            showUnselectedLabels: true,
+            elevation: 8,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.add_circle_outline),
+                activeIcon: Icon(Icons.add_circle),
+                label: 'Add',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.campaign_outlined),
+                activeIcon: Icon(Icons.campaign),
+                label: 'Manage',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.question_answer_outlined),
+                activeIcon: Icon(Icons.question_answer),
+                label: 'Enquiries',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

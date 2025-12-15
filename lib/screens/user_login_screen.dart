@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import 'main_screen.dart';
+import '../core/error_messages.dart';
 
 class UserLoginScreen extends StatefulWidget {
   static const String routeName = '/user-login';
@@ -13,51 +13,38 @@ class UserLoginScreen extends StatefulWidget {
 
 class _UserLoginScreenState extends State<UserLoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
+  late TextEditingController _passwordController;
+  late TextEditingController _phoneController;
+  late TextEditingController _cityController;
+  late TextEditingController _confirmPasswordController;
+
+  bool _isLogin = true;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _isLogin = true;
-
-  // Signup fields
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _ageController = TextEditingController();
-  final _cityController = TextEditingController();
-
-  // Track if we've already redirected to prevent multiple navigations
-  bool _hasRedirected = false;
+  bool _isLoading = false;
 
   @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    _nameController.dispose();
-    _phoneController.dispose();
-    _ageController.dispose();
-    _cityController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
+    _phoneController = TextEditingController();
+    _cityController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final auth = context.watch<AuthService>();
-
-    // Only route if: user is logged in AND we haven't already redirected
-    if (!auth.isLoggedIn || _hasRedirected) {
-      return;
-    }
-
-    // Mark as redirected to prevent multiple navigations
-    _hasRedirected = true;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed(MainScreen.routeName);
-    });
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _phoneController.dispose();
+    _cityController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   void _toggleForm() {
@@ -66,76 +53,53 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
     });
   }
 
-  Future<void> _handleGoogleSignIn() async {
-    // Reset redirect flag when attempting new sign-in
-    _hasRedirected = false;
-
-    final authService = context.read<AuthService>();
-    try {
-      await authService.signInWithGoogle(role: 'user');
-
-      if (!mounted) return;
-
-      // Wait for auth state to be fully established
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // didChangeDependencies will handle routing
-    } catch (e) {
-      _showError('Google sign-in failed: ${e.toString()}');
-      debugPrint('[UserLoginScreen] Google sign-in error: $e');
-    }
-  }
-
   Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      _showError('Please fix the errors in the form');
+      return;
+    }
 
-    // Reset redirect flag when attempting new login
-    _hasRedirected = false;
+    setState(() => _isLoading = true);
 
-    final authService = context.read<AuthService>();
     try {
-      await authService.signIn(
+      final auth = context.read<AuthService>();
+      await auth.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      // Role check: Only allow if UID is in users, not clients
-      final uid = authService.currentUser?.uid;
-      final firestore = authService.firestore;
-      if (uid != null) {
-        final userDoc = await firestore.collection('users').doc(uid).get();
-        final clientDoc = await firestore.collection('clients').doc(uid).get();
-
-        if (userDoc.exists) {
-          // Allowed: user login
-          // didChangeDependencies will handle routing
-        } else if (clientDoc.exists) {
-          // Block: shop owner trying to log in as user
-          await authService.signOut();
-          _showError(
-              'This account is registered as a shop owner. Please use the shop owner login.');
-        } else {
-          // Not found in either collection
-          await authService.signOut();
-          _showError(
-              'No user record found. Please sign up or contact support.');
+      if (mounted) {
+        _showError('Login successful!'); // Feedback
+        // Wait a moment for the message to show, then navigate
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          // Navigate to AuthGate to route based on user type
+          Navigator.of(context).pushReplacementNamed('/auth-gate');
         }
       }
     } catch (e) {
-      _showError('Login failed: ${e.toString()}');
-      debugPrint('[UserLoginScreen] Login error: $e');
+      if (mounted) {
+        _showError(ErrorMessages.friendlyErrorMessage(e));
+        debugPrint('[UserLoginScreen] Login error: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   Future<void> _handleSignup() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      _showError('Please fix the errors in the form');
+      return;
+    }
 
-    // Reset redirect flag when attempting new signup
-    _hasRedirected = false;
+    setState(() => _isLoading = true);
 
-    final authService = context.read<AuthService>();
     try {
-      await authService.signUpWithEmail(
+      final auth = context.read<AuthService>();
+      await auth.signUpWithEmail(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
@@ -148,10 +112,50 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
       // Wait for auth state to be fully established
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // didChangeDependencies will handle routing
+      _showError('Account created successfully!'); // Feedback
+      // Wait a moment for the message to show, then navigate
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        // Navigate to AuthGate to route based on user type
+        Navigator.of(context).pushReplacementNamed('/auth-gate');
+      }
     } catch (e) {
-      _showError('Signup failed: ${e.toString()}');
-      debugPrint('[UserLoginScreen] Signup error: $e');
+      if (mounted) {
+        _showError(ErrorMessages.friendlyErrorMessage(e));
+        debugPrint('[UserLoginScreen] Signup error: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final auth = context.read<AuthService>();
+      await auth.signInWithGoogle();
+
+      if (mounted) {
+        _showError('Google sign in successful!'); // Feedback
+        // Wait a moment for the message to show, then navigate
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          // Navigate to AuthGate to route based on user type
+          Navigator.of(context).pushReplacementNamed('/auth-gate');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError(ErrorMessages.friendlyErrorMessage(e));
+        debugPrint('[UserLoginScreen] Google sign in error: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -245,7 +249,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                         context, '/role-selection'),
                     icon: const Icon(
                       Icons.arrow_back,
-                      color: Color.fromARGB(255, 0, 0, 0), // darkBlue
+                      color: Color.fromARGB(255, 0, 0, 0),
                     ),
                     tooltip: 'Back to role selection',
                   ),
@@ -278,7 +282,6 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                             children: [
                               Row(
                                 children: [
-                                  // Back button moved to top-level SafeArea
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -420,7 +423,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                                           ? 'Password must be at least 6 characters'
                                           : null,
                                     ),
-                                    if (!_isLogin) ...{
+                                    if (!_isLogin) ...[
                                       const SizedBox(height: 14),
                                       TextFormField(
                                         controller: _confirmPasswordController,
@@ -498,17 +501,21 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                                           return null;
                                         },
                                       ),
-                                    },
+                                    ],
                                     const SizedBox(height: 24),
                                     SizedBox(
                                       width: double.infinity,
                                       height: 54,
                                       child: ElevatedButton(
-                                        onPressed: _isLogin
-                                            ? _handleLogin
-                                            : _handleSignup,
+                                        onPressed: _isLoading
+                                            ? null
+                                            : (_isLogin
+                                                ? _handleLogin
+                                                : _handleSignup),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: darkBlue,
+                                          backgroundColor: _isLoading
+                                              ? Colors.grey
+                                              : darkBlue,
                                           shape: RoundedRectangleBorder(
                                             borderRadius:
                                                 BorderRadius.circular(12),
@@ -516,17 +523,31 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                                           elevation: 8,
                                           shadowColor: darkBlue.withAlpha(55),
                                         ),
-                                        child: Text(
-                                          _isLogin
-                                              ? 'Sign in'
-                                              : 'Create account',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 16,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
+                                        child: _isLoading
+                                            ? const SizedBox(
+                                                height: 24,
+                                                width: 24,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(
+                                                    Colors.white,
+                                                  ),
+                                                ),
+                                              )
+                                            : Text(
+                                                _isLogin
+                                                    ? 'Sign in'
+                                                    : 'Create account',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 16,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
                                       ),
                                     ),
                                     const SizedBox(height: 16),
@@ -598,7 +619,9 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                                       width: double.infinity,
                                       height: 52,
                                       child: OutlinedButton(
-                                        onPressed: _handleGoogleSignIn,
+                                        onPressed: _isLoading
+                                            ? null
+                                            : _handleGoogleSignIn,
                                         style: OutlinedButton.styleFrom(
                                           side: const BorderSide(
                                             color: Color(0xFFDADADA),

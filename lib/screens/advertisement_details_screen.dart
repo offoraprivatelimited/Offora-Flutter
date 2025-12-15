@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AdvertisementDetailsScreen extends StatelessWidget {
@@ -29,103 +28,171 @@ class AdvertisementDetailsScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: _buildHeroImage(context),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title Section
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1F477D).withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF1F477D).withOpacity(0.1),
-                        width: 1,
+            child: LayoutBuilder(builder: (context, constraints) {
+              final isWide = constraints.maxWidth > 920;
+
+              final content = Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title Section
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1F477D).withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF1F477D).withOpacity(0.1),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        title,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                          letterSpacing: -0.5,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      title,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+
+                    const SizedBox(height: 24),
+
+                    // Description Section
+                    Text(
+                      'Description',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                         color: Colors.black,
-                        letterSpacing: -0.5,
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Description Section
-                  Text(
-                    'Description',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      description,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        height: 1.6,
-                        color: Colors.black87,
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        description,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          height: 1.6,
+                          color: Colors.black87,
+                        ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
-                  // Contact Information Section
-                  Text(
-                    'Contact Information',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                    // Contact Information Section
+                    Text(
+                      'Contact Information',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  _ContactCard(
-                    icon: Icons.email_rounded,
-                    label: 'Email',
-                    value: email,
-                    color: Colors.blue,
-                    onTap: () => _launchEmail(email),
-                  ),
+                    _ContactCard(
+                      icon: Icons.email_rounded,
+                      label: 'Email',
+                      value: email,
+                      color: Colors.blue,
+                      onTap: () => _launchEmail(email),
+                    ),
 
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                  _ContactCard(
-                    icon: Icons.phone_rounded,
-                    label: 'Phone',
-                    value: phone,
-                    color: Colors.green,
-                    onTap: () => _launchPhone(phone),
-                  ),
+                    _ContactCard(
+                      icon: Icons.phone_rounded,
+                      label: 'Phone',
+                      value: phone,
+                      color: Colors.green,
+                      onTap: () => _launchPhone(phone),
+                    ),
 
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                  _ContactCard(
-                    icon: Icons.link_rounded,
-                    label: 'Website',
-                    value: link,
-                    color: Colors.purple,
-                    onTap: () => _launchUrl(link),
-                  ),
-                ],
-              ),
-            ),
+                    _ContactCard(
+                      icon: Icons.link_rounded,
+                      label: 'Website',
+                      value: link,
+                      color: Colors.purple,
+                      onTap: () => _launchUrl(link),
+                    ),
+                  ],
+                ),
+              );
+
+              if (!isWide) {
+                return Column(
+                  children: [
+                    _buildHeroImage(context),
+                    content,
+                  ],
+                );
+              }
+
+              // Desktop: two-column layout
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: SizedBox(
+                          height: 420,
+                          child: Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                color: Colors.grey[200],
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                    strokeWidth: 2,
+                                    color: const Color(0xFF1F477D),
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[200],
+                                child: Center(
+                                  child: Icon(
+                                    Icons.image_not_supported_rounded,
+                                    size: 60,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 28),
+                    // Right content
+                    Expanded(child: content),
+                  ],
+                ),
+              );
+            }),
           ),
         ],
       ),

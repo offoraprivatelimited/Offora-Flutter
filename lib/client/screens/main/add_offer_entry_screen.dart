@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../offers/new_offer_form_screen.dart';
+import '../../../services/auth_service.dart';
 
 class AddOfferEntryScreen extends StatelessWidget {
   const AddOfferEntryScreen({super.key});
@@ -38,8 +40,17 @@ class AddOfferEntryScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed(NewOfferFormScreen.routeName),
+                  onPressed: () {
+                    final auth = context.read<AuthService>();
+                    final clientId = auth.currentUser?.uid ?? '';
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => NewOfferFormScreen(
+                          clientId: clientId,
+                        ),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: brightGold,
                     foregroundColor: darkBlue,

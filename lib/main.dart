@@ -29,6 +29,7 @@ import 'client/screens/auth/rejection_page.dart' as client;
 import 'client/screens/dashboard/dashboard_screen.dart' as client;
 import 'client/screens/main/client_main_screen.dart' as client;
 import 'screens/user_login_screen.dart';
+import 'widgets/responsive_wrapper.dart';
 import 'client/screens/offers/new_offer_form_screen.dart' as client;
 import 'client/screens/dashboard/manage_offers_screen.dart' as client;
 
@@ -53,6 +54,9 @@ class OfforaApp extends StatelessWidget {
         Provider(create: (_) => SavedOffersService()),
       ],
       child: MaterialApp(
+        // Wrap app content to provide desktop/tablet centering and padding
+        builder: (context, child) =>
+            ResponsiveApp(child: child ?? const SizedBox.shrink()),
         title: 'Offora',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,

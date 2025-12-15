@@ -4,6 +4,7 @@ import '../services/compare_service.dart';
 import '../services/saved_offers_service.dart';
 import '../services/auth_service.dart';
 import '../client/models/offer.dart';
+import '../core/error_messages.dart';
 
 class OfferCard extends StatefulWidget {
   final Map<String, dynamic> offer;
@@ -56,7 +57,7 @@ class _OfferCardState extends State<OfferCard> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update saved status: $e')),
+        SnackBar(content: Text(ErrorMessages.friendlyErrorMessage(e))),
       );
     }
   }

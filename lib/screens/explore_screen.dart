@@ -16,22 +16,9 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   String _searchQuery = '';
-  String? _selectedCategory;
+  String? _selectedCity;
   String _sortBy = 'newest'; // newest, discount, price
   final TextEditingController _searchController = TextEditingController();
-
-  final List<String> _categories = [
-    'All',
-    'Grocery',
-    'Restaurant',
-    'Fashion',
-    'Electronics',
-    'Beauty',
-    'Home & Garden',
-    'Sports',
-    'Books',
-    'Other',
-  ];
 
   List<Offer> _filterOffers(List<Offer> offers) {
     var filtered = offers;
@@ -48,11 +35,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
       }).toList();
     }
 
-    if (_selectedCategory != null && _selectedCategory != 'All') {
+    if (_selectedCity != null && _selectedCity != 'All Cities') {
       filtered = filtered.where((offer) {
-        final businessCategory = offer.client?['businessCategory'] as String?;
-        return businessCategory?.toLowerCase() ==
-            _selectedCategory!.toLowerCase();
+        final offerCity = offer.city ?? '';
+        return offerCity.toLowerCase() == _selectedCity!.toLowerCase();
       }).toList();
     }
 
@@ -260,36 +246,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
           ),
 
-          // Category chips
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _categories.length,
-                itemBuilder: (context, index) {
-                  final category = _categories[index];
-                  final isSelected = _selectedCategory == category ||
-                      (_selectedCategory == null && category == 'All');
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(category),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedCategory =
-                              category == 'All' ? null : category;
-                        });
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 16)),
           StreamBuilder<List<Offer>>(
             stream: context.read<OfferService>().watchApprovedOffers(),
             builder: (context, snapshot) {
@@ -312,16 +268,120 @@ class _ExploreScreenState extends State<ExploreScreen> {
               }
 
               final allOffers = snapshot.data ?? [];
+
+              // Extract unique cities from offers
+              final cities = <String>{'All Cities'};
+              for (final offer in allOffers) {
+                if (offer.city != null && offer.city!.isNotEmpty) {
+                  cities.add(offer.city!);
+                }
+              }
+              final sortedCities = cities.toList()..sort();
+
               final filteredOffers = _filterOffers(allOffers);
 
               if (filteredOffers.isEmpty) {
-                return SliverFillRemaining(
+                return SliverList(
+                  delegate: SliverChildListDelegate(
+                    [
+                      // Location chips
+                      SizedBox(
+                        height: 50,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: sortedCities.length,
+                          itemBuilder: (context, index) {
+                            final city = sortedCities[index];
+                            final isSelected = _selectedCity == city ||
+                                (_selectedCity == null &&
+                                    city == 'All Cities');
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                label: Text(city),
+                                selected: isSelected,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    _selectedCity =
+                                        city == 'All Cities' ? null : city;
+                                  });
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const EmptyState(
+                        icon: Icons.search_off,
+                        title: 'No offers found',
+                        message:
+                            'Try adjusting your search or location filters',
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return SliverList(
+                delegate: SliverChildListDelegate(
+                  [
+                    // Location chips
+                    SizedBox(
+                      height: 50,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: sortedCities.length,
+                        itemBuilder: (context, index) {
+                          final city = sortedCities[index];
+                          final isSelected = _selectedCity == city ||
+                              (_selectedCity == null && city == 'All Cities');
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ChoiceChip(
+                              label: Text(city),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  _selectedCity = city == 'All Cities'
+                                      ? null
+                                      : city;
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              );
+            },
+          ),
+          StreamBuilder<List<Offer>>(
+            stream: context.read<OfferService>().watchApprovedOffers(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SliverFillRemaining(
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.darkBlue),
+                  ),
+                );
+              }
+
+              final allOffers = snapshot.data ?? [];
+              final filteredOffers = _filterOffers(allOffers);
+
+              if (filteredOffers.isEmpty) {
+                return const SliverFillRemaining(
                   child: EmptyState(
                     icon: Icons.search_off,
                     title: 'No offers found',
-                    message: _searchQuery.isNotEmpty
-                        ? 'Try adjusting your search or filters'
-                        : 'Check back soon for new deals!',
+                    message: 'Try adjusting your search or location filters',
                   ),
                 );
               }

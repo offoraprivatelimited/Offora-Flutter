@@ -174,16 +174,19 @@ class OfferService {
       rejectionReason: null,
     );
 
+    // Create offer in the pending status collection (existing structure)
     final docRef = await _statusCollection('pending').add(toSave.toJson());
 
-    // Also store the offer id in the client's offers subcollection
+    // Also store the offer in the client's offers subcollection under pending
     if (toSave.clientId.isNotEmpty) {
       await _firestore
+          .collection('clients')
+          .doc('pending')
           .collection('clients')
           .doc(toSave.clientId)
           .collection('offers')
           .doc(docRef.id)
-          .set({'offerId': docRef.id, 'createdAt': createdAt});
+          .set(toSave.copyWith(id: docRef.id).toJson());
     }
     return docRef.id;
   }

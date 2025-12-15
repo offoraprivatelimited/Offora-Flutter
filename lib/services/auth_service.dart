@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/exceptions.dart';
 import '../models/user.dart';
 import '../models/client_panel_stage.dart';
+import '../core/error_messages.dart';
 
 class AuthService extends ChangeNotifier {
   /// Refreshes the current user's profile from Firestore and updates approval stage.
@@ -297,6 +298,10 @@ class AuthService extends ChangeNotifier {
     String? gender,
     String? dob,
   }) async {
+    _isBusy = true;
+    _errorMessage = null;
+    notifyListeners();
+
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -345,13 +350,29 @@ class AuthService extends ChangeNotifier {
               .set(appUser.toMap());
         }
 
+        // Load user profile and determine stage in parallel
+        await Future.wait([
+          _loadUserFromFirestore(user.uid),
+          _determineStage(user.uid),
+        ]);
+
         _loggedIn = true;
+        await _savePersistentLogin(true);
         notifyListeners();
       } else {
         throw AuthException('Sign up failed: User creation failed.');
       }
     } on FirebaseAuthException catch (e) {
-      throw AuthException(_getFirebaseErrorMessage(e.code));
+      _errorMessage = _getFirebaseErrorMessage(e.code);
+      notifyListeners();
+      rethrow;
+    } catch (e) {
+      _errorMessage = 'Sign up failed. Please try again.';
+      notifyListeners();
+      rethrow;
+    } finally {
+      _isBusy = false;
+      notifyListeners();
     }
   }
 
@@ -450,7 +471,7 @@ class AuthService extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       throw AuthException(_getFirebaseErrorMessage(e.code));
     } on Exception catch (e) {
-      throw AuthException('Google Sign-In failed: ${e.toString()}');
+      throw AuthException(ErrorMessages.friendlyErrorMessage(e));
     }
   }
 
@@ -552,7 +573,7 @@ class AuthService extends ChangeNotifier {
         uploadedPhotoUrl = await uploadTask.ref.getDownloadURL();
       } catch (e) {
         debugPrint('Error uploading profile image: $e');
-        throw AuthException('Failed to upload profile image: $e');
+        throw AuthException(ErrorMessages.friendlyErrorMessage(e));
       }
     }
 

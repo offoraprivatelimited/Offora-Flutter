@@ -1,352 +1,219 @@
-import 'dart:typed_data';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../services/auth_service.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../../models/offer.dart';
 import '../../services/offer_service.dart';
-import '../dashboard/manage_offers_screen.dart';
+import '../../../services/auth_service.dart';
+import '../../../theme/colors.dart';
+
+import '../../../widgets/premium_text_field.dart';
+import '../../../widgets/gradient_button.dart';
+import '../../../widgets/responsive_page.dart';
+import '../../../widgets/loading_overlay.dart';
+import 'models/image_models.dart';
+import 'widgets/discount_fields_widgets.dart';
+import 'widgets/advanced_discount_fields_widgets.dart';
+import 'widgets/category_specific_fields_widgets.dart';
+import 'widgets/image_preview_widget.dart';
 
 class NewOfferFormScreen extends StatefulWidget {
-  final Offer? offer;
-  final VoidCallback? onSuccess;
+  final String? clientId;
+  final Offer? offerToEdit;
 
   const NewOfferFormScreen({
     super.key,
-    this.offer,
-    this.onSuccess,
-  });
+    this.clientId,
+    this.offerToEdit,
+  }) : super();
 
-  static const String routeName = '/offers/new-advanced';
+  static const String routeName = '/new-offer';
 
   @override
   State<NewOfferFormScreen> createState() => _NewOfferFormScreenState();
 }
 
 class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
-  bool _redirectingToLogin = false;
-  Offer? _editingOffer;
-  final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _originalPriceController = TextEditingController();
-  final _discountPriceController = TextEditingController();
-  final _termsController = TextEditingController();
-  final _buyQuantityController = TextEditingController();
-  final _getQuantityController = TextEditingController();
-  final _percentageOffController = TextEditingController();
-  final _flatDiscountController = TextEditingController();
-  final _minimumPurchaseController = TextEditingController();
-  final _maxUsageController = TextEditingController();
-  final _productController = TextEditingController();
-  final _serviceController = TextEditingController();
+  late GlobalKey<FormState> _formKey;
+  late OfferService _offerService;
+  late String _clientId;
 
-  DateTime? _startDate;
-  DateTime? _endDate;
-  bool _isSubmitting = false;
-  double? _uploadProgress; // 0-100
-  bool _isEditing = false;
-  final List<String> _existingImageUrls = [];
-  final List<SelectedImage> _selectedImages = [];
-  OfferType _selectedOfferType = OfferType.percentageDiscount;
-  OfferCategory _selectedCategory = OfferCategory.product;
-  String? _selectedBusinessCategory;
-  final List<String> _applicableProducts = [];
-  final List<String> _applicableServices = [];
+  // Basic fields
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _originalPriceController;
+  late TextEditingController _termsController;
 
-  final darkBlue = const Color(0xFF1F477D);
-  final brightGold = const Color(0xFFF0B84D);
-  final ImagePicker _imagePicker = ImagePicker();
+  // Date fields
+  DateTime? _selectedStartDate;
+  DateTime? _selectedEndDate;
 
-  // Business categories from home screen
-  final List<String> _businessCategories = [
-    'Grocery',
-    'Supermarket',
-    'Restaurant',
-    'Cafe & Bakery', // Consolidated category
+  // Offer type and category
+  late OfferType _selectedOfferType;
+  late OfferCategory _selectedOfferCategory;
+  late String _selectedBusinessCategory;
+  late String _selectedCity;
 
-    // Other Existing Categories
-    'Pharmacy',
-    'Electronics',
-    'Mobile & Accessories',
-    'Fashion & Apparel',
-    'Footwear',
-    'Jewelry',
-    'Home Decor',
-    'Furniture',
-    'Hardware',
-    'Automotive',
-    'Books & Stationery',
-    'Toys & Games',
-    'Sports & Fitness',
-    'Beauty & Cosmetics',
-    'Salon & Spa',
-    'Pet Supplies',
-    'Dairy & Produce',
-    'Electronics Repair',
-    'Optical',
-    'Travel & Tours',
-    'Department Store',
-    'Other',
-  ];
+  // Discount fields
+  late TextEditingController _percentageOffController;
+  late TextEditingController _flatDiscountController;
+
+  // Advanced discount fields (for Buy X Get Y)
+  late TextEditingController _buyQuantityController;
+  late TextEditingController _getQuantityController;
+  late TextEditingController _advancedPercentageController;
+  late TextEditingController _advancedFlatDiscountController;
+
+  // Product/Service specific fields
+  late TextEditingController _productController;
+  late TextEditingController _serviceController;
+  late List<String> _applicableProducts;
+  late List<String> _applicableServices;
+
+  // Additional fields
+  late TextEditingController _minimumPurchaseController;
+  late TextEditingController _maxUsagePerCustomerController;
+
+  // Image handling
+  late List<String> _existingImageUrls;
+  late List<SelectedImage> _selectedImages;
+
+  bool _isLoading = false;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Load offer if passed as widget property (from bottom sheet)
-    if (widget.offer != null && _editingOffer == null) {
-      _loadOfferData(widget.offer!);
-      return;
+  void initState() {
+    super.initState();
+    _formKey = GlobalKey<FormState>();
+    _offerService = OfferService();
+
+    // Initialize clientId from widget parameter or from AuthService
+    _clientId = widget.clientId ?? '';
+    if (_clientId.isEmpty) {
+      final auth = context.read<AuthService>();
+      _clientId = auth.currentUser?.uid ?? '';
     }
-    // Load offer if passed as route argument (for named route)
-    final offer = ModalRoute.of(context)?.settings.arguments as Offer?;
-    if (offer != null && _editingOffer == null) {
-      _loadOfferData(offer);
-    }
-  }
 
-  void _loadOfferData(Offer offer) {
-    setState(() {
-      _editingOffer = offer;
-      _isEditing = true;
-      _titleController.text = offer.title;
-      _descriptionController.text = offer.description;
-      _originalPriceController.text = offer.originalPrice.toString();
-      _discountPriceController.text = offer.discountPrice.toString();
-      _termsController.text = offer.terms ?? '';
-      _startDate = offer.startDate;
-      _endDate = offer.endDate;
-      _selectedOfferType = offer.offerType;
-      _selectedCategory = offer.offerCategory;
-      _selectedBusinessCategory = offer.businessCategory;
-      _existingImageUrls.addAll(offer.imageUrls ?? []);
+    _titleController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _originalPriceController = TextEditingController();
+    _termsController = TextEditingController();
+    _percentageOffController = TextEditingController();
+    _flatDiscountController = TextEditingController();
+    _buyQuantityController = TextEditingController();
+    _getQuantityController = TextEditingController();
+    _advancedPercentageController = TextEditingController();
+    _advancedFlatDiscountController = TextEditingController();
+    _productController = TextEditingController();
+    _serviceController = TextEditingController();
+    _minimumPurchaseController = TextEditingController();
+    _maxUsagePerCustomerController = TextEditingController();
 
-      debugPrint('[LOAD_OFFER] Loading offer: ${offer.title}');
-      debugPrint('[LOAD_OFFER] Offer Type: ${offer.offerType}');
-      debugPrint('[LOAD_OFFER] percentageOff: ${offer.percentageOff}');
-      debugPrint(
-          '[LOAD_OFFER] flatDiscountAmount: ${offer.flatDiscountAmount}');
+    _selectedOfferType = OfferType.percentageDiscount;
+    _selectedOfferCategory = OfferCategory.product;
+    _selectedBusinessCategory = '';
+    _selectedCity = '';
+    _applicableProducts = [];
+    _applicableServices = [];
+    _existingImageUrls = [];
+    _selectedImages = [];
 
-      // Load offer-specific fields
-      if (offer.buyQuantity != null) {
-        _buyQuantityController.text = offer.buyQuantity.toString();
-      }
-      if (offer.getQuantity != null) {
-        _getQuantityController.text = offer.getQuantity.toString();
-      }
-      if (offer.percentageOff != null) {
-        _percentageOffController.text = offer.percentageOff.toString();
-        debugPrint('[LOAD_OFFER] Set percentageOff: ${offer.percentageOff}');
-      }
-      if (offer.flatDiscountAmount != null) {
-        _flatDiscountController.text = offer.flatDiscountAmount.toString();
-        debugPrint(
-            '[LOAD_OFFER] Set flatDiscountAmount: ${offer.flatDiscountAmount}');
-      }
-      if (offer.minimumPurchase != null) {
-        _minimumPurchaseController.text = offer.minimumPurchase.toString();
-      }
-      if (offer.maxUsagePerCustomer != null) {
-        _maxUsageController.text = offer.maxUsagePerCustomer.toString();
-      }
-      if (offer.applicableProducts != null) {
-        _applicableProducts.addAll(offer.applicableProducts!);
-      }
-      if (offer.applicableServices != null) {
-        _applicableServices.addAll(offer.applicableServices!);
-      }
-    });
-  }
-
-  // Helper to check if minimum purchase applies to category
-  bool get _showMinimumPurchase => _selectedCategory != OfferCategory.service;
-  bool get _isPercentageOffer =>
-      _selectedOfferType == OfferType.percentageDiscount;
-
-  double? _computedPercentageDiscountPrice() {
-    if (!_isPercentageOffer) return null;
-    final original = double.tryParse(_originalPriceController.text.trim());
-    final percentage = double.tryParse(_percentageOffController.text.trim());
-
-    if (original == null || original <= 0) return null;
-    if (percentage == null || percentage <= 0 || percentage > 100) return null;
-
-    final discounted = original * (1 - (percentage / 100));
-    return double.parse(discounted.toStringAsFixed(2));
-  }
-
-  void _syncComputedDiscountPrice() {
-    if (!_isPercentageOffer) return;
-    final computed = _computedPercentageDiscountPrice();
-    if (computed != null) {
-      _discountPriceController.text = computed.toStringAsFixed(2);
-    } else {
-      _discountPriceController.clear();
+    // If editing, populate with existing data
+    if (widget.offerToEdit != null) {
+      _populateFormWithExistingOffer(widget.offerToEdit!);
     }
   }
 
-  Future<SelectedImage> _toSelectedImage(XFile xFile) async {
-    final bytes = await xFile.readAsBytes();
-    final ext = _extensionFromName(xFile.name);
+  void _populateFormWithExistingOffer(Offer offer) {
+    _titleController.text = offer.title;
+    _descriptionController.text = offer.description;
+    _originalPriceController.text = offer.originalPrice.toString();
+    _termsController.text = offer.terms ?? '';
+    _selectedStartDate = offer.startDate;
+    _selectedEndDate = offer.endDate;
+    _selectedOfferType = offer.offerType;
+    _selectedOfferCategory = offer.offerCategory;
+    _selectedBusinessCategory = offer.businessCategory ?? '';
+    _selectedCity = offer.city ?? '';
+    _existingImageUrls = offer.imageUrls ?? [];
 
-    return SelectedImage(
-      bytes: bytes,
-      fileName: xFile.name.isNotEmpty
-          ? xFile.name
-          : 'image_${DateTime.now().millisecondsSinceEpoch}',
-      mimeType: _mimeTypeFromExtension(ext),
-    );
-  }
-
-  String _buildStorageFileName(SelectedImage image, int index) {
-    final ext = _extensionFromName(image.fileName) ?? 'jpg';
-    return 'offer_${DateTime.now().millisecondsSinceEpoch}_$index.$ext';
-  }
-
-  String? _extensionFromName(String name) {
-    final parts = name.split('.');
-    if (parts.length < 2) return null;
-    final ext = parts.last.toLowerCase();
-    const allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic'];
-    return allowed.contains(ext) ? ext : null;
-  }
-
-  String? _mimeTypeFromExtension(String? ext) {
-    switch (ext) {
-      case 'png':
-        return 'image/png';
-      case 'gif':
-        return 'image/gif';
-      case 'webp':
-        return 'image/webp';
-      case 'heic':
-        return 'image/heic';
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      default:
-        return null;
+    if (offer.percentageOff != null) {
+      _percentageOffController.text = offer.percentageOff.toString();
     }
+    if (offer.flatDiscountAmount != null) {
+      _flatDiscountController.text = offer.flatDiscountAmount.toString();
+    }
+    if (offer.buyQuantity != null) {
+      _buyQuantityController.text = offer.buyQuantity.toString();
+    }
+    if (offer.getQuantity != null) {
+      _getQuantityController.text = offer.getQuantity.toString();
+    }
+    if (offer.minimumPurchase != null) {
+      _minimumPurchaseController.text = offer.minimumPurchase.toString();
+    }
+    if (offer.maxUsagePerCustomer != null) {
+      _maxUsagePerCustomerController.text =
+          offer.maxUsagePerCustomer.toString();
+    }
+
+    _applicableProducts = offer.applicableProducts ?? [];
+    _applicableServices = offer.applicableServices ?? [];
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _originalPriceController.dispose();
+    _termsController.dispose();
+    _percentageOffController.dispose();
+    _flatDiscountController.dispose();
+    _buyQuantityController.dispose();
+    _getQuantityController.dispose();
+    _advancedPercentageController.dispose();
+    _advancedFlatDiscountController.dispose();
+    _productController.dispose();
+    _serviceController.dispose();
+    _minimumPurchaseController.dispose();
+    _maxUsagePerCustomerController.dispose();
+    super.dispose();
   }
 
   Future<void> _pickImages() async {
-    try {
-      final pickedFiles = await _imagePicker.pickMultiImage(
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 85,
-      );
+    final ImagePicker picker = ImagePicker();
+    final List<XFile> pickedFiles = await picker.pickMultiImage();
 
-      if (pickedFiles.isNotEmpty) {
-        if (_selectedImages.length + pickedFiles.length > 10) {
-          _showError('Maximum 10 images allowed');
-          return;
-        }
-
-        final newImages = await Future.wait(
-          pickedFiles.map((xFile) => _toSelectedImage(xFile)),
+    if (pickedFiles.isNotEmpty) {
+      for (var file in pickedFiles) {
+        final bytes = await file.readAsBytes();
+        _selectedImages.add(
+          SelectedImage(
+            bytes: bytes,
+            fileName: file.name,
+            mimeType: 'image/jpeg',
+          ),
         );
-
-        setState(() {
-          _selectedImages.addAll(newImages);
-        });
       }
-    } catch (e) {
-      _showError('Failed to pick images: $e');
+      setState(() {});
     }
   }
 
   Future<void> _captureImage() async {
-    try {
-      final pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 85,
+    final ImagePicker picker = ImagePicker();
+    final XFile? photo = await picker.pickImage(source: ImageSource.camera);
+
+    if (photo != null) {
+      final bytes = await photo.readAsBytes();
+      _selectedImages.add(
+        SelectedImage(
+          bytes: bytes,
+          fileName: photo.name,
+          mimeType: 'image/jpeg',
+        ),
       );
-
-      if (pickedFile != null) {
-        if (_selectedImages.length >= 10) {
-          _showError('Maximum 10 images allowed');
-          return;
-        }
-
-        final image = await _toSelectedImage(pickedFile);
-
-        setState(() {
-          _selectedImages.add(image);
-        });
-      }
-    } catch (e) {
-      _showError('Failed to capture image: $e');
+      setState(() {});
     }
-  }
-
-  Future<List<String>> _uploadImagesToFirebase(
-    String userId,
-    String offerId,
-  ) async {
-    if (_selectedImages.isEmpty) return [];
-
-    final storage = FirebaseStorage.instance;
-    final List<String> uploadedUrls = [];
-
-    try {
-      for (int i = 0; i < _selectedImages.length; i++) {
-        final image = _selectedImages[i];
-        final fileName = _buildStorageFileName(image, i);
-        final storagePath = 'offers/$userId/$offerId/$fileName';
-
-        final ref = storage.ref().child(storagePath);
-        final uploadTask = ref.putData(
-          image.bytes,
-          SettableMetadata(contentType: image.mimeType ?? 'image/jpeg'),
-        );
-
-        uploadTask.snapshotEvents.listen((snapshot) {
-          final progress =
-              ((i + snapshot.bytesTransferred / snapshot.totalBytes) /
-                      _selectedImages.length) *
-                  100;
-          debugPrint('Upload progress: ${progress.toStringAsFixed(2)}%');
-          if (mounted) {
-            setState(() {
-              _uploadProgress = progress;
-            });
-          }
-        });
-
-        final snapshot = await uploadTask.whenComplete(() {});
-        final downloadUrl = await snapshot.ref.getDownloadURL();
-        uploadedUrls.add(downloadUrl);
-        // After each image, update progress to next image start
-        if (mounted) {
-          setState(() {
-            _uploadProgress = ((i + 1) / _selectedImages.length) * 100;
-          });
-        }
-      }
-      // Ensure progress is 100 at end
-      if (mounted) {
-        setState(() {
-          _uploadProgress = 100;
-        });
-      }
-    } catch (e, stack) {
-      debugPrint('Error uploading images: $e');
-      debugPrint('Stack trace: $stack');
-      if (e is FirebaseException) {
-        debugPrint('FirebaseException code: \\${e.code}');
-        debugPrint('FirebaseException message: \\${e.message}');
-        debugPrint('FirebaseException details: \\${e.details}');
-      }
-      throw Exception('Failed to upload images: $e');
-    }
-
-    return uploadedUrls;
   }
 
   void _removeSelectedImage(int index) {
@@ -361,2154 +228,656 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     });
   }
 
-  Widget _buildImagePreview() {
-    final allImages = [
-      ..._existingImageUrls.map((url) => ImageItem(url: url, isExisting: true)),
-      ..._selectedImages
-          .map((image) => ImageItem(localImage: image, isExisting: false)),
-    ];
-
-    if (allImages.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: brightGold.withAlpha(80), width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(18 / 255.0),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: brightGold.withOpacity(40 / 255.0),
-                shape: BoxShape.circle,
-              ),
-              padding: const EdgeInsets.all(18),
-              child: Icon(Icons.photo_library, color: darkBlue, size: 54),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              'No Images Added',
-              style: TextStyle(
-                color: darkBlue,
-                fontWeight: FontWeight.w600,
-                fontSize: 17,
-                letterSpacing: 0.2,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Upload up to 10 images to showcase your offer',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 13,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1,
-      ),
-      itemCount: allImages.length,
-      itemBuilder: (context, index) {
-        final item = allImages[index];
-        return Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: item.isExisting
-                    ? CachedNetworkImage(
-                        imageUrl: item.url!,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: Colors.grey.shade200,
-                          child: const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey.shade200,
-                          child: const Icon(Icons.broken_image),
-                        ),
-                      )
-                    : Image.memory(
-                        item.localImage!.bytes,
-                        fit: BoxFit.cover,
-                      ),
-              ),
-            ),
-            Positioned(
-              top: 4,
-              right: 4,
-              child: GestureDetector(
-                onTap: () {
-                  if (item.isExisting) {
-                    _removeExistingImage(index);
-                  } else {
-                    final adjustedIndex = index - _existingImageUrls.length;
-                    _removeSelectedImage(adjustedIndex);
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _pickDate({required bool isStart}) async {
-    final initialDate = isStart
-        ? (_startDate ?? DateTime.now())
-        : (_endDate ?? _startDate ?? DateTime.now());
-    final newDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-    );
-
-    if (newDate == null) return;
-
-    setState(() {
-      if (isStart) {
-        _startDate = newDate;
-        if (_endDate != null && _endDate!.isBefore(newDate)) {
-          _endDate = newDate.add(const Duration(days: 7));
-        }
-      } else {
-        _endDate = newDate;
-      }
-    });
-  }
-
   void _addProduct() {
-    if (_productController.text.trim().isNotEmpty) {
+    if (_productController.text.isNotEmpty) {
       setState(() {
-        _applicableProducts.add(_productController.text.trim());
+        _applicableProducts.add(_productController.text);
         _productController.clear();
       });
     }
   }
 
   void _addService() {
-    if (_serviceController.text.trim().isNotEmpty) {
+    if (_serviceController.text.isNotEmpty) {
       setState(() {
-        _applicableServices.add(_serviceController.text.trim());
+        _applicableServices.add(_serviceController.text);
         _serviceController.clear();
       });
     }
   }
 
-  Future<void> _submit() async {
-    debugPrint('[SUBMIT] 🚀 _submit() called');
-    debugPrint('[SUBMIT] _isEditing = $_isEditing');
-    debugPrint('[SUBMIT] _editingOffer = $_editingOffer');
+  Future<void> _selectDate(bool isStartDate) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: isStartDate
+          ? (_selectedStartDate ?? DateTime.now())
+          : (_selectedEndDate ?? DateTime.now()),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2101),
+    );
 
-    debugPrint('[SUBMIT] 📋 Form field values:');
-    debugPrint('[SUBMIT]   Title: "${_titleController.text}"');
-    debugPrint('[SUBMIT]   Description: "${_descriptionController.text}"');
-    debugPrint('[SUBMIT]   Original Price: "${_originalPriceController.text}"');
-    debugPrint('[SUBMIT]   Discount Price: "${_discountPriceController.text}"');
-    debugPrint('[SUBMIT]   Offer Type: $_selectedOfferType');
-    debugPrint('[SUBMIT]   Offer Category: $_selectedCategory');
-    debugPrint('[SUBMIT]   Start Date: $_startDate');
-    debugPrint('[SUBMIT]   End Date: $_endDate');
-    debugPrint('[SUBMIT]   Percentage Off: "${_percentageOffController.text}"');
-    debugPrint('[SUBMIT]   Flat Discount: "${_flatDiscountController.text}"');
-    debugPrint('[SUBMIT]   Buy Qty: "${_buyQuantityController.text}"');
-    debugPrint('[SUBMIT]   Get Qty: "${_getQuantityController.text}"');
-
-    // Validate form fields
-    if (!_formKey.currentState!.validate()) {
-      debugPrint('[SUBMIT] ❌ Form validation failed');
-      debugPrint(
-          '[SUBMIT] Please check the error messages displayed on the form fields');
-      return;
-    }
-
-    // Validate start and end date are set
-    if (_startDate == null || _endDate == null) {
-      debugPrint('[SUBMIT] ❌ Start or End date missing');
-      _showError('Start date and End date are required.');
-      return;
-    }
-
-    // Validate end date after start date
-    if (_endDate!.isBefore(_startDate!)) {
-      debugPrint('[SUBMIT] ❌ End date is before start date');
-      _showError('End date should be after the start date.');
-      return;
-    }
-
-    debugPrint('[SUBMIT] ✅ Date validation passed');
-
-    final auth = context.read<AuthService>();
-    final user = auth.currentUser;
-    if (user == null) {
-      debugPrint('[SUBMIT] ❌ User not authenticated');
-      _showError('Sign in required.');
-      return;
-    }
-
-    debugPrint('[SUBMIT] ✅ User authenticated: ${user.uid}');
-
-    final offerService = context.read<OfferService>();
-
-    if (mounted) {
+    if (picked != null) {
       setState(() {
-        _isSubmitting = true;
-        _uploadProgress = null;
-      });
-      debugPrint('[SUBMIT] ✅ Set _isSubmitting = true');
-    }
-    try {
-      debugPrint('[SUBMIT] 📝 Parsing prices...');
-      final originalPrice = double.parse(_originalPriceController.text.trim());
-      double discountPrice;
-
-      if (_isPercentageOffer) {
-        final computed = _computedPercentageDiscountPrice();
-        if (computed == null) {
-          debugPrint('[SUBMIT] ❌ Invalid percentage discount computation');
-          _showError('Enter valid original price and discount percentage.');
-          setState(() => _isSubmitting = false);
-          return;
-        }
-        discountPrice = computed;
-        _discountPriceController.text = computed.toStringAsFixed(2);
-      } else {
-        discountPrice = double.parse(_discountPriceController.text.trim());
-      }
-
-      debugPrint(
-          '[SUBMIT] ✅ Prices parsed - Original: $originalPrice, Discount: $discountPrice');
-
-      if (_isEditing) {
-        debugPrint('[SUBMIT] 📝 EDITING MODE - Creating update request...');
-        // Upload new images if any
-        List<String> newImageUrls = [];
-        if (_selectedImages.isNotEmpty) {
-          debugPrint(
-              '[SUBMIT] 📸 Uploading ${_selectedImages.length} new images...');
-          newImageUrls =
-              await _uploadImagesToFirebase(user.uid, _editingOffer!.id);
-          debugPrint('[SUBMIT] ✅ Images uploaded: $newImageUrls');
+        if (isStartDate) {
+          _selectedStartDate = picked;
         } else {
-          debugPrint('[SUBMIT] ℹ️ No new images to upload');
+          _selectedEndDate = picked;
         }
+      });
+    }
+  }
 
-        // Combine existing and new image URLs
-        final allImageUrls = [..._existingImageUrls, ...newImageUrls];
-        debugPrint('[SUBMIT] 📋 All image URLs: $allImageUrls');
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fix the errors in the form')),
+      );
+      return;
+    }
 
-        final offer = Offer(
-          id: _editingOffer!.id,
-          clientId: user.uid,
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          originalPrice: originalPrice,
-          discountPrice: discountPrice,
-          status: OfferApprovalStatus.pending,
-          offerType: _selectedOfferType,
-          offerCategory: _selectedCategory,
-          businessCategory: _selectedBusinessCategory,
-          startDate: _startDate,
-          endDate: _endDate,
-          terms: _termsController.text.trim().isEmpty
-              ? null
-              : _termsController.text.trim(),
-          buyQuantity: _buyQuantityController.text.isEmpty
-              ? null
-              : int.tryParse(_buyQuantityController.text),
-          getQuantity: _getQuantityController.text.isEmpty
-              ? null
-              : int.tryParse(_getQuantityController.text),
-          percentageOff: _percentageOffController.text.isEmpty
-              ? null
-              : double.tryParse(_percentageOffController.text),
-          flatDiscountAmount: _flatDiscountController.text.isEmpty
-              ? null
-              : double.tryParse(_flatDiscountController.text),
-          minimumPurchase: _minimumPurchaseController.text.isEmpty
-              ? null
-              : double.tryParse(_minimumPurchaseController.text),
-          maxUsagePerCustomer: _maxUsageController.text.isEmpty
-              ? null
-              : int.tryParse(_maxUsageController.text),
-          applicableProducts:
-              _applicableProducts.isEmpty ? null : _applicableProducts,
-          applicableServices:
-              _applicableServices.isEmpty ? null : _applicableServices,
-          imageUrls: allImageUrls,
-          client: user.toJson(),
-          createdAt: _editingOffer?.createdAt,
-        );
+    setState(() => _isLoading = true);
 
-        debugPrint('[SUBMIT] 📤 Calling updateOfferAdvanced...');
-        debugPrint('[SUBMIT] Offer ID: ${offer.id}');
-        debugPrint('[SUBMIT] Offer Status: ${offer.status}');
-        debugPrint('[SUBMIT] Offer Type: ${offer.offerType}');
-
-        await offerService.updateOfferAdvanced(offer: offer);
-        debugPrint('[SUBMIT] ✅ updateOfferAdvanced completed successfully!');
-      } else {
-        final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-
-        List<String> imageUrls = [];
-        if (_selectedImages.isNotEmpty) {
-          imageUrls = await _uploadImagesToFirebase(user.uid, tempId);
+    try {
+      // Upload new images to Firebase Storage and get their URLs
+      final newImageUrls = <String>[];
+      if (_selectedImages.isNotEmpty) {
+        for (final image in _selectedImages) {
+          try {
+            final fileName =
+                'offers/$_clientId/${DateTime.now().millisecondsSinceEpoch}_${image.fileName}';
+            final ref = FirebaseStorage.instance.ref().child(fileName);
+            await ref.putData(image.bytes);
+            final url = await ref.getDownloadURL();
+            newImageUrls.add(url);
+          } catch (e) {
+            if (kDebugMode) {
+              debugPrint('Error uploading image: $e');
+            }
+          }
         }
-
-        final offer = Offer(
-          id: '',
-          clientId: user.uid,
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          originalPrice: originalPrice,
-          discountPrice: discountPrice,
-          status: OfferApprovalStatus.pending,
-          offerType: _selectedOfferType,
-          offerCategory: _selectedCategory,
-          businessCategory: _selectedBusinessCategory,
-          startDate: _startDate,
-          endDate: _endDate,
-          terms: _termsController.text.trim().isEmpty
-              ? null
-              : _termsController.text.trim(),
-          buyQuantity: _buyQuantityController.text.isEmpty
-              ? null
-              : int.tryParse(_buyQuantityController.text),
-          getQuantity: _getQuantityController.text.isEmpty
-              ? null
-              : int.tryParse(_getQuantityController.text),
-          percentageOff: _percentageOffController.text.isEmpty
-              ? null
-              : double.tryParse(_percentageOffController.text),
-          flatDiscountAmount: _flatDiscountController.text.isEmpty
-              ? null
-              : double.tryParse(_flatDiscountController.text),
-          minimumPurchase: _minimumPurchaseController.text.isEmpty
-              ? null
-              : double.tryParse(_minimumPurchaseController.text),
-          maxUsagePerCustomer: _maxUsageController.text.isEmpty
-              ? null
-              : int.tryParse(_maxUsageController.text),
-          applicableProducts:
-              _applicableProducts.isEmpty ? null : _applicableProducts,
-          applicableServices:
-              _applicableServices.isEmpty ? null : _applicableServices,
-          imageUrls: imageUrls,
-          client: user.toJson(),
-          createdAt: DateTime.now(),
-        );
-
-        debugPrint('[DEBUG] Submitting new offer with images:');
-        debugPrint(offer.toJson().toString());
-
-        await offerService.submitOfferAdvanced(offer: offer);
       }
 
-      if (!mounted) return;
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => Dialog(
-          backgroundColor: Colors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      // Combine existing and new image URLs
+      final allImageUrls = [..._existingImageUrls, ...newImageUrls];
+
+      // Build the Offer object
+      final offer = Offer(
+        id: widget.offerToEdit?.id ?? '',
+        clientId: _clientId,
+        title: _titleController.text,
+        description: _descriptionController.text,
+        originalPrice: double.parse(_originalPriceController.text),
+        discountPrice: double.parse(_originalPriceController.text),
+        status: OfferApprovalStatus.pending,
+        offerType: _selectedOfferType,
+        offerCategory: _selectedOfferCategory,
+        businessCategory: _selectedBusinessCategory.isNotEmpty
+            ? _selectedBusinessCategory
+            : null,
+        city: _selectedCity.isNotEmpty ? _selectedCity : null,
+        imageUrls: allImageUrls,
+        terms: _termsController.text.isNotEmpty ? _termsController.text : null,
+        startDate: _selectedStartDate,
+        endDate: _selectedEndDate,
+        createdAt: widget.offerToEdit?.createdAt ?? DateTime.now(),
+        percentageOff: _percentageOffController.text.isNotEmpty
+            ? double.tryParse(_percentageOffController.text)
+            : null,
+        flatDiscountAmount: _flatDiscountController.text.isNotEmpty
+            ? double.tryParse(_flatDiscountController.text)
+            : null,
+        buyQuantity: _buyQuantityController.text.isNotEmpty
+            ? int.tryParse(_buyQuantityController.text)
+            : null,
+        getQuantity: _getQuantityController.text.isNotEmpty
+            ? int.tryParse(_getQuantityController.text)
+            : null,
+        applicableProducts:
+            _applicableProducts.isNotEmpty ? _applicableProducts : null,
+        applicableServices:
+            _applicableServices.isNotEmpty ? _applicableServices : null,
+      );
+
+      // Submit the offer
+      await _offerService.submitOfferAdvanced(offer: offer);
+
+      if (mounted) {
+        _showSuccessDialog();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.celebration, color: brightGold, size: 56),
-                const SizedBox(height: 16),
-                Text(
-                  _isEditing ? 'Offer Updated!' : 'Offer Submitted!',
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color:
+                        const Color(0xFF0D9488).withAlpha((0.1 * 255).round()),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF0D9488),
+                    size: 48,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Offer Submitted Successfully!',
                   style: TextStyle(
-                    color: darkBlue,
-                    fontSize: 22,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _isEditing
-                      ? 'Your offer has been updated and is now pending review again.'
-                      : 'Your offer has been submitted for review and is now pending approval.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: darkBlue, fontSize: 16),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: brightGold,
-                    foregroundColor: darkBlue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 14),
+                  'Your offer has been submitted for approval.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
                   ),
-                  icon: const Icon(Icons.arrow_forward),
-                  label: const Text('Go to My Offers'),
-                  onPressed: () {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/client-main', // Use the main dashboard route
-                      (route) => false,
-                    );
-                  },
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Close dialog first
+                      Navigator.of(dialogContext).pop();
+                      // Navigate to ClientMainScreen to show ManageOffersScreen with AppBar and BottomNavBar
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        if (mounted) {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            '/client-main',
+                            (route) => route.isFirst,
+                          );
+                        }
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF5136F0),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Back to Manage Offers',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-        ),
-      );
-      if (mounted) {
-        debugPrint(
-            '[SUBMIT] ✅ SUCCESS: ${_isEditing ? 'Updated' : 'Submitted'} offer successfully');
-        // If onSuccess callback is provided (embedded use), call it
-        if (widget.onSuccess != null) {
-          debugPrint('[SUBMIT] Calling onSuccess callback...');
-          widget.onSuccess!();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  _isEditing
-                      ? 'Offer updated successfully.'
-                      : 'Offer submitted successfully.',
-                ),
-              ),
-            );
-          }
-        } else {
-          // Otherwise pop with success flag (for standalone use)
-          debugPrint('[SUBMIT] Popping with success flag...');
-          Navigator.of(context).pop(true);
-        }
-      }
-    } catch (error, stack) {
-      debugPrint('[SUBMIT] ❌ ERROR: Offer submit failed: $error');
-      debugPrint('[SUBMIT] Stack trace: $stack');
-      final errorMsg = error.toString();
-      _showError(
-          'Could not ${_isEditing ? 'update' : 'submit'} offer: $errorMsg');
-    } finally {
-      debugPrint(
-          '[SUBMIT] 🏁 Finally block - resetting _isSubmitting to false');
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-          _uploadProgress = null;
-        });
-      }
-    }
-  }
-
-  void _showError(String message) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  String _getOfferTypeLabel(OfferType type) {
-    switch (type) {
-      case OfferType.percentageDiscount:
-        return 'Percentage Discount (X% Off)';
-      case OfferType.flatDiscount:
-        return 'Flat Discount (₹X Off)';
-      case OfferType.buyXGetYPercentOff:
-        return 'Buy X Get Y% Off';
-      case OfferType.buyXGetYRupeesOff:
-        return 'Buy X Get ₹Y Off';
-      case OfferType.bogo:
-        return 'Buy One Get One (BOGO)';
-      case OfferType.productSpecific:
-        return 'Product-Specific Offer';
-      case OfferType.serviceSpecific:
-        return 'Service-Specific Offer';
-      case OfferType.bundleDeal:
-        return 'Bundle Deal';
-    }
-  }
-
-  Widget _buildOfferTypeSpecificFields() {
-    switch (_selectedOfferType) {
-      case OfferType.percentageDiscount:
-        return _buildPercentageDiscountFields();
-      case OfferType.flatDiscount:
-        return _buildFlatDiscountFields();
-      case OfferType.buyXGetYPercentOff:
-      case OfferType.buyXGetYRupeesOff:
-        return _buildBuyXGetYFields();
-      case OfferType.bogo:
-        return _buildBOGOFields();
-      case OfferType.productSpecific:
-        return _buildProductSpecificFields();
-      case OfferType.serviceSpecific:
-        return _buildServiceSpecificFields();
-      case OfferType.bundleDeal:
-        return _buildBundleDealFields();
-    }
-  }
-
-  Widget _buildPercentageDiscountFields() {
-    return Column(
-      children: [
-        TextFormField(
-          controller: _percentageOffController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: TextStyle(color: darkBlue),
-          onChanged: (_) => setState(_syncComputedDiscountPrice),
-          decoration: InputDecoration(
-            labelText: 'Discount Percentage',
-            labelStyle: TextStyle(color: darkBlue),
-            hintText: 'e.g., 25 for 25% off',
-            hintStyle: const TextStyle(color: Colors.grey),
-            prefixIcon: Icon(Icons.percent, color: brightGold),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-          validator: (value) {
-            final discountPrice = _discountPriceController.text.trim();
-
-            // When editing, if discount price is set, field is optional
-            if (_isEditing && discountPrice.isNotEmpty) {
-              if (value != null && value.trim().isNotEmpty) {
-                final num = double.tryParse(value.trim());
-                if (num == null || num <= 0 || num > 100) {
-                  return 'Enter a valid percentage (1-100)';
-                }
-              }
-              return null; // Valid because discount price is already set
-            }
-
-            // Creating new offer - percentage is required
-            if (value == null || value.trim().isEmpty) {
-              return 'Percentage is required';
-            }
-            final num = double.tryParse(value);
-            if (num == null || num <= 0 || num > 100) {
-              return 'Enter a valid percentage (1-100)';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFlatDiscountFields() {
-    return Column(
-      children: [
-        TextFormField(
-          controller: _flatDiscountController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: TextStyle(color: darkBlue),
-          decoration: InputDecoration(
-            labelText: 'Flat Discount Amount (₹)',
-            labelStyle: TextStyle(color: darkBlue),
-            hintText: 'e.g., 100 for ₹100 off',
-            hintStyle: const TextStyle(color: Colors.grey),
-            prefixIcon: Icon(Icons.currency_rupee, color: brightGold),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-          validator: (value) {
-            final discountPrice = _discountPriceController.text.trim();
-
-            // When editing, if discount price is set, field is optional
-            if (_isEditing && discountPrice.isNotEmpty) {
-              if (value != null && value.trim().isNotEmpty) {
-                final num = double.tryParse(value.trim());
-                if (num == null || num <= 0) {
-                  return 'Enter a valid amount';
-                }
-              }
-              return null; // Valid because discount price is already set
-            }
-
-            // Creating new offer - discount amount is required
-            if (value == null || value.trim().isEmpty) {
-              return 'Discount amount is required';
-            }
-            final num = double.tryParse(value);
-            if (num == null || num <= 0) {
-              return 'Enter a valid amount';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBuyXGetYFields() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _buyQuantityController,
-                keyboardType: TextInputType.number,
-                style: TextStyle(color: darkBlue),
-                decoration: InputDecoration(
-                  labelText: 'Buy Quantity',
-                  labelStyle: TextStyle(color: darkBlue),
-                  hintText: 'e.g., 2',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.shopping_cart, color: brightGold),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Required';
-                  }
-                  final num = int.tryParse(value);
-                  if (num == null || num <= 0) {
-                    return 'Enter valid quantity';
-                  }
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextFormField(
-                controller: _getQuantityController,
-                keyboardType: TextInputType.number,
-                style: TextStyle(color: darkBlue),
-                decoration: InputDecoration(
-                  labelText: 'Get Quantity',
-                  labelStyle: TextStyle(color: darkBlue),
-                  hintText: 'e.g., 1',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.card_giftcard, color: brightGold),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Required';
-                  }
-                  final num = int.tryParse(value);
-                  if (num == null || num <= 0) {
-                    return 'Enter valid quantity';
-                  }
-                  return null;
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        if (_selectedOfferType == OfferType.buyXGetYPercentOff)
-          TextFormField(
-            controller: _percentageOffController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: TextStyle(color: darkBlue),
-            decoration: InputDecoration(
-              labelText: 'Percentage Off on "Get" Items',
-              labelStyle: TextStyle(color: darkBlue),
-              hintText: 'e.g., 50 for 50% off',
-              hintStyle: const TextStyle(color: Colors.grey),
-              prefixIcon: Icon(Icons.percent, color: brightGold),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Percentage is required';
-              }
-              final num = double.tryParse(value);
-              if (num == null || num <= 0 || num > 100) {
-                return 'Enter valid percentage (1-100)';
-              }
-              return null;
-            },
-          ),
-        if (_selectedOfferType == OfferType.buyXGetYRupeesOff)
-          TextFormField(
-            controller: _flatDiscountController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: TextStyle(color: darkBlue),
-            decoration: InputDecoration(
-              labelText: 'Rupees Off on "Get" Items',
-              labelStyle: TextStyle(color: darkBlue),
-              hintText: 'e.g., 100 for ₹100 off',
-              hintStyle: const TextStyle(color: Colors.grey),
-              prefixIcon: Icon(Icons.currency_rupee, color: brightGold),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Amount is required';
-              }
-              final num = double.tryParse(value);
-              if (num == null || num <= 0) {
-                return 'Enter valid amount';
-              }
-              return null;
-            },
-          ),
-      ],
-    );
-  }
-
-  Widget _buildBOGOFields() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _buyQuantityController,
-                keyboardType: TextInputType.number,
-                style: TextStyle(color: darkBlue),
-                decoration: InputDecoration(
-                  labelText: 'Buy Quantity',
-                  labelStyle: TextStyle(color: darkBlue),
-                  hintText: 'Usually 1',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.shopping_bag, color: brightGold),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Required';
-                  }
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextFormField(
-                controller: _getQuantityController,
-                keyboardType: TextInputType.number,
-                style: TextStyle(color: darkBlue),
-                decoration: InputDecoration(
-                  labelText: 'Get Free Quantity',
-                  labelStyle: TextStyle(color: darkBlue),
-                  hintText: 'Usually 1',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.redeem, color: brightGold),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Required';
-                  }
-                  return null;
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: brightGold.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.info_outline, color: darkBlue, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Example: Buy 1 Get 1 Free - customers get one item free when they purchase one.',
-                  style: TextStyle(color: darkBlue, fontSize: 13),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProductSpecificFields() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Applicable Products',
-          style: TextStyle(
-            color: darkBlue,
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _productController,
-                style: TextStyle(color: darkBlue),
-                decoration: InputDecoration(
-                  labelText: 'Product Name',
-                  labelStyle: TextStyle(color: darkBlue),
-                  hintText: 'e.g., Premium Coffee Beans',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon:
-                      Icon(Icons.inventory_2_outlined, color: brightGold),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: _addProduct,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: brightGold,
-                foregroundColor: darkBlue,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              ),
-              child: const Text('Add'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        if (_applicableProducts.isNotEmpty)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _applicableProducts.map((product) {
-              return Chip(
-                label: Text(product),
-                deleteIcon: const Icon(Icons.close, size: 18),
-                onDeleted: () {
-                  setState(() {
-                    _applicableProducts.remove(product);
-                  });
-                },
-                backgroundColor: brightGold.withOpacity(0.2),
-                labelStyle: TextStyle(color: darkBlue),
-              );
-            }).toList(),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildServiceSpecificFields() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Applicable Services',
-          style: TextStyle(
-            color: darkBlue,
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _serviceController,
-                style: TextStyle(color: darkBlue),
-                decoration: InputDecoration(
-                  labelText: 'Service Name',
-                  labelStyle: TextStyle(color: darkBlue),
-                  hintText: 'e.g., Hair Styling',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon:
-                      Icon(Icons.design_services_outlined, color: brightGold),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: _addService,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: brightGold,
-                foregroundColor: darkBlue,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              ),
-              child: const Text('Add'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        if (_applicableServices.isNotEmpty)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _applicableServices.map((service) {
-              return Chip(
-                label: Text(service),
-                deleteIcon: const Icon(Icons.close, size: 18),
-                onDeleted: () {
-                  setState(() {
-                    _applicableServices.remove(service);
-                  });
-                },
-                backgroundColor: brightGold.withOpacity(0.2),
-                labelStyle: TextStyle(color: darkBlue),
-              );
-            }).toList(),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildBundleDealFields() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Bundle Items',
-          style: TextStyle(
-            color: darkBlue,
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _productController,
-                style: TextStyle(color: darkBlue),
-                decoration: InputDecoration(
-                  labelText: 'Item Name',
-                  labelStyle: TextStyle(color: darkBlue),
-                  hintText: 'e.g., Burger + Fries + Drink',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.shopping_basket, color: brightGold),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: _addProduct,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: brightGold,
-                foregroundColor: darkBlue,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              ),
-              child: const Text('Add'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        if (_applicableProducts.isNotEmpty)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _applicableProducts.map((item) {
-              return Chip(
-                label: Text(item),
-                deleteIcon: const Icon(Icons.close, size: 18),
-                onDeleted: () {
-                  setState(() {
-                    _applicableProducts.remove(item);
-                  });
-                },
-                backgroundColor: brightGold.withValues(alpha: 0.2),
-                labelStyle: TextStyle(color: darkBlue),
-              );
-            }).toList(),
-          ),
-      ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthService>();
-    final user = auth.currentUser;
-    if (user == null) {
-      if (!_redirectingToLogin) {
-        _redirectingToLogin = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            ManageOffersScreen.routeName,
-            (route) => false,
-          );
-        });
-      }
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
+    return LoadingOverlay(
+      isLoading: _isLoading,
+      child: Scaffold(
+        body: ResponsivePage(
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Basic Information Section
+                  _buildSectionTitle('Basic Information'),
+                  const SizedBox(height: 16),
+                  PremiumTextField(
+                    controller: _titleController,
+                    labelText: 'Offer Title',
+                    hintText: 'e.g., Summer Sale',
+                    prefixIcon: Icons.title,
+                    validator: (value) =>
+                        value?.isEmpty ?? true ? 'Title is required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  PremiumTextField(
+                    controller: _descriptionController,
+                    labelText: 'Description',
+                    hintText: 'Describe your offer in detail',
+                    prefixIcon: Icons.description,
+                    maxLines: 4,
+                    validator: (value) => value?.isEmpty ?? true
+                        ? 'Description is required'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  PremiumTextField(
+                    controller: _originalPriceController,
+                    labelText: 'Original Price',
+                    prefixIcon: Icons.currency_rupee,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'Required';
+                      }
+                      if (double.tryParse(value!) == null) {
+                        return 'Invalid price';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
 
-    final dateFormat = DateFormat('EEE, d MMM yyyy');
+                  // Offer Type Section
+                  _buildSectionTitle('Offer Type'),
+                  const SizedBox(height: 16),
+                  _buildOfferTypeDropdown(),
+                  const SizedBox(height: 24),
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header Card
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [darkBlue, darkBlue.withOpacity(0.8)],
+                  // Discount Details Section
+                  if (_selectedOfferType == OfferType.percentageDiscount)
+                    _buildPercentageDiscountSection(),
+                  if (_selectedOfferType == OfferType.flatDiscount)
+                    _buildFlatDiscountSection(),
+                  if (_selectedOfferType == OfferType.buyXGetYPercentOff ||
+                      _selectedOfferType == OfferType.buyXGetYRupeesOff ||
+                      _selectedOfferType == OfferType.bogo)
+                    _buildAdvancedDiscountSection(),
+                  if (_selectedOfferType == OfferType.productSpecific)
+                    _buildProductSpecificSection(),
+                  if (_selectedOfferType == OfferType.serviceSpecific)
+                    _buildServiceSpecificSection(),
+
+                  const SizedBox(height: 24),
+
+                  // Offer Category
+                  _buildSectionTitle('Offer Category'),
+                  const SizedBox(height: 16),
+                  _buildOfferCategoryDropdown(),
+                  const SizedBox(height: 24),
+
+                  // Location Section
+                  _buildSectionTitle('Location'),
+                  const SizedBox(height: 16),
+                  _buildCityDropdown(),
+                  const SizedBox(height: 24),
+
+                  // Additional Options
+                  _buildSectionTitle('Additional Options'),
+                  const SizedBox(height: 16),
+                  PremiumTextField(
+                    controller: _minimumPurchaseController,
+                    labelText: 'Minimum Purchase Amount (Optional)',
+                    prefixIcon: Icons.shopping_cart,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    validator: (value) {
+                      if (value?.isNotEmpty ?? false) {
+                        if (double.tryParse(value!) == null) {
+                          return 'Invalid amount';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  PremiumTextField(
+                    controller: _maxUsagePerCustomerController,
+                    labelText: 'Max Usage Per Customer (Optional)',
+                    prefixIcon: Icons.person,
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value?.isNotEmpty ?? false) {
+                        if (int.tryParse(value!) == null) {
+                          return 'Invalid number';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Date Section
+                  _buildSectionTitle('Offer Validity'),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _selectDate(true),
+                          icon: const Icon(Icons.calendar_today),
+                          label: Text(_selectedStartDate == null
+                              ? 'Start Date'
+                              : _selectedStartDate!.toString().split(' ')[0]),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.brightGold,
+                            foregroundColor: AppColors.darkBlue,
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: darkBlue.withOpacity(0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.campaign, color: brightGold, size: 32),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Create Amazing Offers',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Reach thousands of local customers',
-                                      style: TextStyle(
-                                        color:
-                                            Colors.white.withValues(alpha: 0.9),
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _selectDate(false),
+                          icon: const Icon(Icons.calendar_today),
+                          label: Text(_selectedEndDate == null
+                              ? 'End Date'
+                              : _selectedEndDate!.toString().split(' ')[0]),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.brightGold,
+                            foregroundColor: AppColors.darkBlue,
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Main Form Card
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Basic Information',
-                            style: TextStyle(
-                              color: darkBlue,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          TextFormField(
-                            controller: _titleController,
-                            style: TextStyle(color: darkBlue),
-                            decoration: InputDecoration(
-                              labelText: 'Offer Title *',
-                              labelStyle: TextStyle(color: darkBlue),
-                              hintText: 'e.g., Summer Sale - 50% Off',
-                              hintStyle: const TextStyle(color: Colors.grey),
-                              prefixIcon: Icon(Icons.title, color: brightGold),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade200),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: brightGold, width: 2),
-                              ),
-                            ),
-                            textInputAction: TextInputAction.next,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Offer title is required';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 18),
-
-                          // ...existing code...
-
-                          TextFormField(
-                            controller: _descriptionController,
-                            maxLines: 4,
-                            style: TextStyle(color: darkBlue),
-                            decoration: InputDecoration(
-                              labelText: 'Description *',
-                              labelStyle: TextStyle(color: darkBlue),
-                              alignLabelWithHint: true,
-                              hintText:
-                                  'Describe your offer in detail. What makes it special?',
-                              hintStyle: const TextStyle(color: Colors.grey),
-                              prefixIcon: Padding(
-                                padding: const EdgeInsets.only(bottom: 60),
-                                child: Icon(Icons.description_outlined,
-                                    color: brightGold),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade200),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: brightGold, width: 2),
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Description is required';
-                              }
-                              if (value.trim().length < 20) {
-                                return 'Please provide at least 20 characters';
-                              }
-                              return null;
-                            },
-                          ),
-
-                          const SizedBox(height: 18),
-
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Offer Images',
-                                  style: TextStyle(
-                                    color: darkBlue,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Add up to 10 images to showcase your offer',
-                                  style: TextStyle(
-                                    color: darkBlue.withOpacity(180 / 255.0),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                _buildImagePreview(),
-                                const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Expanded(
-                                      child: ElevatedButton.icon(
-                                        onPressed: _pickImages,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
-                                          foregroundColor: darkBlue,
-                                          elevation: 2,
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 16,
-                                              horizontal:
-                                                  8), // reduced horizontal padding
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                            side: BorderSide(
-                                                color: brightGold, width: 2),
-                                          ),
-                                        ),
-                                        icon: Icon(Icons.photo_library,
-                                            color: brightGold),
-                                        label: const Text('Choose from Gallery',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.w600)),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                        width: 12), // slightly reduced spacing
-                                    Expanded(
-                                      child: ElevatedButton.icon(
-                                        onPressed: _captureImage,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: brightGold,
-                                          foregroundColor: Colors.white,
-                                          elevation: 2,
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 16,
-                                              horizontal:
-                                                  8), // reduced horizontal padding
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                          ),
-                                        ),
-                                        icon: Icon(Icons.camera_alt,
-                                            color: darkBlue),
-                                        label: const Text('Camera',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.w600)),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Supported formats: JPG, PNG, WebP. Max size: 5MB per image. You can add up to 10 images.',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Offer Type Selection
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Offer Type',
-                            style: TextStyle(
-                              color: darkBlue,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<OfferType>(
-                            initialValue: _selectedOfferType,
-                            isExpanded: true,
-                            dropdownColor: Colors.white,
-                            style: TextStyle(color: darkBlue, fontSize: 15),
-                            decoration: InputDecoration(
-                              prefixIcon:
-                                  Icon(Icons.local_offer, color: brightGold),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade200),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: brightGold, width: 2),
-                              ),
-                            ),
-                            items: OfferType.values.map((type) {
-                              return DropdownMenuItem(
-                                value: type,
-                                child: Text(_getOfferTypeLabel(type)),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _selectedOfferType = value;
-                                  if (_isPercentageOffer) {
-                                    _syncComputedDiscountPrice();
-                                  } else {
-                                    _discountPriceController.clear();
-                                  }
-                                });
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Offer Category
-                          Text(
-                            'What are you offering? *',
-                            style: TextStyle(
-                              color: darkBlue,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: brightGold.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.info_outline,
-                                    color: darkBlue, size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Choose to see relevant fields for your offer type',
-                                    style: TextStyle(
-                                      color: darkBlue,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          DropdownButtonFormField<OfferCategory>(
-                            initialValue: _selectedCategory,
-                            isExpanded: true,
-                            dropdownColor: Colors.white,
-                            style: TextStyle(color: darkBlue, fontSize: 15),
-                            decoration: InputDecoration(
-                              prefixIcon:
-                                  Icon(Icons.category, color: brightGold),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade200),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: brightGold, width: 2),
-                              ),
-                            ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: OfferCategory.product,
-                                child:
-                                    Text('Product (e.g., Food, Electronics)'),
-                              ),
-                              DropdownMenuItem(
-                                value: OfferCategory.service,
-                                child: Text('Service (e.g., Haircut, Repair)'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _selectedCategory = value;
-                                });
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Business Category
-
-                          Text(
-                            'Business Category *',
-                            style: TextStyle(
-                              color: darkBlue,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
-                            value: _selectedBusinessCategory,
-                            isExpanded: true,
-                            dropdownColor: Colors.white,
-                            style: TextStyle(color: darkBlue, fontSize: 15),
-                            decoration: InputDecoration(
-                              prefixIcon:
-                                  Icon(Icons.store_outlined, color: brightGold),
-                              hintText: 'Select business category',
-                              hintStyle: const TextStyle(color: Colors.grey),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade200),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: brightGold, width: 2),
-                              ),
-                            ),
-                            items: _businessCategories.map((category) {
-                              return DropdownMenuItem(
-                                value: category,
-                                child: Text(category),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _selectedBusinessCategory = value;
-                                });
-                              }
-                            },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Business category is required';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Type-specific fields
-                          _buildOfferTypeSpecificFields(),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Pricing
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Pricing Details (Required)',
-                            style: TextStyle(
-                              color: darkBlue,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'All prices are mandatory and must be valid amounts',
-                            style: TextStyle(
-                              color: darkBlue.withOpacity(0.6),
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _originalPriceController,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                                  style: TextStyle(color: darkBlue),
-                                  onChanged: (_) {
-                                    if (_isPercentageOffer) {
-                                      setState(_syncComputedDiscountPrice);
-                                    }
-                                  },
-                                  decoration: InputDecoration(
-                                    labelText: 'Original Price (₹)',
-                                    labelStyle: TextStyle(color: darkBlue),
-                                    hintText: '₹999',
-                                    hintStyle:
-                                        const TextStyle(color: Colors.grey),
-                                    prefixIcon: Icon(
-                                        Icons.currency_rupee_outlined,
-                                        color: brightGold),
-                                    filled: true,
-                                    fillColor: Colors.grey.shade50,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                          color: Colors.grey.shade200),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                          color: brightGold, width: 2),
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return null;
-                                    }
-                                    final parsed =
-                                        double.tryParse(value.trim());
-                                    if (parsed == null || parsed <= 0) {
-                                      return 'Enter valid price';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _discountPriceController,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                                  style: TextStyle(color: darkBlue),
-                                  readOnly: _isPercentageOffer,
-                                  decoration: InputDecoration(
-                                    labelText: _isPercentageOffer
-                                        ? 'Offer Price (Auto)'
-                                        : 'Offer Price (₹)',
-                                    labelStyle: TextStyle(color: darkBlue),
-                                    hintText: _isPercentageOffer
-                                        ? 'Calculated from percentage'
-                                        : '₹499',
-                                    hintStyle:
-                                        const TextStyle(color: Colors.grey),
-                                    prefixIcon: Icon(Icons.local_offer_outlined,
-                                        color: brightGold),
-                                    filled: true,
-                                    fillColor: Colors.grey.shade50,
-                                    helperText: _isPercentageOffer
-                                        ? 'Auto-calculated using original price and discount %'
-                                        : null,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                          color: Colors.grey.shade200),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                          color: brightGold, width: 2),
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (_isPercentageOffer) {
-                                      final computed =
-                                          _computedPercentageDiscountPrice();
-                                      if (_originalPriceController.text
-                                              .trim()
-                                              .isEmpty &&
-                                          _percentageOffController.text
-                                              .trim()
-                                              .isEmpty) {
-                                        // Both fields empty: allow
-                                        return null;
-                                      }
-                                      if (computed == null) {
-                                        return 'Enter valid original price and %';
-                                      }
-                                      return null;
-                                    }
-                                    if (value == null || value.trim().isEmpty) {
-                                      return null;
-                                    }
-                                    final parsed =
-                                        double.tryParse(value.trim());
-                                    if (parsed == null || parsed <= 0) {
-                                      return 'Enter valid price';
-                                    }
-                                    final original = double.tryParse(
-                                      _originalPriceController.text.trim(),
-                                    );
-                                    if (original != null &&
-                                        parsed >= original) {
-                                      return 'Must be lower than original';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Additional Options (Category-specific)
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Additional Options',
-                            style: TextStyle(
-                              color: darkBlue,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: brightGold.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.info_outline,
-                                    color: darkBlue, size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _selectedCategory == OfferCategory.service
-                                        ? 'All fields below are optional'
-                                        : 'Min purchase applies only to products',
-                                    style: TextStyle(
-                                      color: darkBlue,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Minimum Purchase - Only for Products
-                          if (_showMinimumPurchase)
-                            Column(
-                              children: [
-                                TextFormField(
-                                  controller: _minimumPurchaseController,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                          decimal: true),
-                                  style: TextStyle(color: darkBlue),
-                                  decoration: InputDecoration(
-                                    labelText: 'Min. Purchase Amount (₹)',
-                                    labelStyle: TextStyle(color: darkBlue),
-                                    hintText: 'Optional - e.g., 500',
-                                    hintStyle:
-                                        const TextStyle(color: Colors.grey),
-                                    prefixIcon: Icon(
-                                        Icons.shopping_cart_outlined,
-                                        color: brightGold),
-                                    filled: true,
-                                    fillColor: Colors.grey.shade50,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                          color: Colors.grey.shade200),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                          color: brightGold, width: 2),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                              ],
-                            ),
-                          // Max Usage Per Customer - For All
-                          TextFormField(
-                            controller: _maxUsageController,
-                            keyboardType: TextInputType.number,
-                            style: TextStyle(color: darkBlue),
-                            decoration: InputDecoration(
-                              labelText: 'Max Usage Per Customer',
-                              labelStyle: TextStyle(color: darkBlue),
-                              hintText: 'Optional - e.g., 3',
-                              hintStyle: const TextStyle(color: Colors.grey),
-                              prefixIcon: Icon(Icons.repeat, color: brightGold),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade200),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: brightGold, width: 2),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Validity Dates Section
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: brightGold.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.info_outline,
-                                    color: darkBlue, size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Start & End dates are required',
-                                    style: TextStyle(
-                                      color: darkBlue,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () => _pickDate(isStart: true),
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade50,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                          color: Colors.grey.shade200),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.event, color: brightGold),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Start Date',
-                                                style: TextStyle(
-                                                  color: Colors.grey.shade600,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                _startDate != null
-                                                    ? dateFormat
-                                                        .format(_startDate!)
-                                                    : 'Required',
-                                                style: TextStyle(
-                                                  color: _startDate != null
-                                                      ? darkBlue
-                                                      : Colors.red,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () => _pickDate(isStart: false),
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade50,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                          color: Colors.grey.shade200),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.event_available,
-                                            color: brightGold),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'End Date',
-                                                style: TextStyle(
-                                                  color: Colors.grey.shade600,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                _endDate != null
-                                                    ? dateFormat
-                                                        .format(_endDate!)
-                                                    : 'Required',
-                                                style: TextStyle(
-                                                  color: _endDate != null
-                                                      ? darkBlue
-                                                      : Colors.red,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _termsController,
-                            maxLines: 3,
-                            style: TextStyle(color: darkBlue),
-                            decoration: InputDecoration(
-                              labelText: 'Terms & Conditions (Optional)',
-                              labelStyle: TextStyle(color: darkBlue),
-                              alignLabelWithHint: true,
-                              hintText:
-                                  'e.g., Valid on Sundays only, Cannot be combined with other offers',
-                              hintStyle: const TextStyle(color: Colors.grey),
-                              prefixIcon: Padding(
-                                padding: const EdgeInsets.only(bottom: 40),
-                                child: Icon(Icons.article_outlined,
-                                    color: brightGold),
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade200),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    BorderSide(color: brightGold, width: 2),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Reminder Text
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Text(
-                        "Remember to update or remove your offer in the app once it expires or if any details change.",
-                        style: TextStyle(
-                          color: Colors.red.shade700,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                    // Submit Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: _isSubmitting ? null : _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: brightGold,
-                          foregroundColor: darkBlue,
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          shadowColor: brightGold.withOpacity(0.5),
-                        ),
-                        child: _isSubmitting
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Text(
-                                    _uploadProgress != null
-                                        ? 'Uploading... ${_uploadProgress!.toStringAsFixed(0)}%'
-                                        : (_isEditing
-                                            ? 'Updating...'
-                                            : 'Submitting...'),
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    _isEditing
-                                        ? Icons.save_outlined
-                                        : Icons.send_outlined,
-                                    size: 22,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    _isEditing
-                                        ? 'Update Offer'
-                                        : 'Submit for Review',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                  // Terms & Conditions
+                  _buildSectionTitle('Terms & Conditions (Optional)'),
+                  const SizedBox(height: 16),
+                  PremiumTextField(
+                    controller: _termsController,
+                    labelText: 'Terms & Conditions',
+                    hintText: 'Add any terms or conditions for this offer',
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 24),
 
-                    // Info text
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: darkBlue.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.info_outline, color: darkBlue, size: 20),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Your offer will be reviewed by our team before going live. This usually takes 24-48 hours.',
-                              style: TextStyle(
-                                color: darkBlue,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
+                  // Images Section
+                  _buildSectionTitle('Offer Images'),
+                  const SizedBox(height: 16),
+                  ImagePreviewWidget(
+                    existingImageUrls: _existingImageUrls,
+                    selectedImages: _selectedImages,
+                    onPickImages: _pickImages,
+                    onCaptureImage: _captureImage,
+                    onRemoveSelectedImage: _removeSelectedImage,
+                    onRemoveExistingImage: _removeExistingImage,
+                    darkBlue: AppColors.darkBlue,
+                    brightGold: AppColors.brightGold,
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Submit Button
+                  GradientButton(
+                    label: widget.offerToEdit == null
+                        ? 'Create Offer'
+                        : 'Update Offer',
+                    onPressed: _submitForm,
+                    isLoading: _isLoading,
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
-}
 
-extension on FirebaseException {
-  dynamic get details => null;
-}
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: AppColors.darkBlue,
+      ),
+    );
+  }
 
-class SelectedImage {
-  SelectedImage({
-    required this.bytes,
-    required this.fileName,
-    this.mimeType,
-  });
-
-  final Uint8List bytes;
-  final String fileName;
-  final String? mimeType;
-}
-
-class ImageItem {
-  ImageItem({
-    this.url,
-    this.localImage,
-    required this.isExisting,
-  }) : assert(
-          (url != null && localImage == null) ||
-              (url == null && localImage != null),
+  Widget _buildOfferTypeDropdown() {
+    return DropdownButtonFormField<OfferType>(
+      initialValue: _selectedOfferType,
+      decoration: InputDecoration(
+        labelText: 'Select Offer Type',
+        prefixIcon: const Icon(Icons.local_offer, color: AppColors.darkBlue),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      dropdownColor: Colors.white,
+      items: OfferType.values.map((type) {
+        return DropdownMenuItem(
+          value: type,
+          child: Text(
+            _formatEnumName(type.name),
+            style: const TextStyle(color: Colors.black),
+          ),
         );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedOfferType = value!;
+        });
+      },
+    );
+  }
 
-  final String? url;
-  final SelectedImage? localImage;
-  final bool isExisting;
+  Widget _buildOfferCategoryDropdown() {
+    return DropdownButtonFormField<OfferCategory>(
+      initialValue: _selectedOfferCategory,
+      decoration: InputDecoration(
+        labelText: 'Select Category',
+        prefixIcon: const Icon(Icons.category, color: AppColors.darkBlue),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      dropdownColor: Colors.white,
+      items: OfferCategory.values.map((category) {
+        return DropdownMenuItem(
+          value: category,
+          child: Text(
+            _formatEnumName(category.name),
+            style: const TextStyle(color: Colors.black),
+          ),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedOfferCategory = value!;
+        });
+      },
+    );
+  }
+
+  Widget _buildCityDropdown() {
+    // Get user's city from their profile
+    final auth = context.read<AuthService>();
+    final userCity = auth.currentUser?.location ?? '';
+
+    // Initialize city with user's city if not already set
+    if (_selectedCity.isEmpty && userCity.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _selectedCity = userCity;
+        });
+      });
+    }
+
+    return DropdownButtonFormField<String>(
+      initialValue: _selectedCity.isNotEmpty ? _selectedCity : null,
+      decoration: InputDecoration(
+        labelText: 'Location/City',
+        hintText: 'Select your business location',
+        prefixIcon: const Icon(Icons.location_on, color: AppColors.darkBlue),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      dropdownColor: Colors.white,
+      items: _generateCityList().map((city) {
+        return DropdownMenuItem(
+          value: city,
+          child: Text(
+            city,
+            style: const TextStyle(color: Colors.black),
+          ),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedCity = value ?? '';
+        });
+      },
+      validator: (value) =>
+          value == null || value.isEmpty ? 'Please select a city' : null,
+    );
+  }
+
+  List<String> _generateCityList() {
+    // List of major Indian cities
+    return [
+      'Andhra Pradesh',
+      'Arunachal Pradesh',
+      'Assam',
+      'Bihar',
+      'Chhattisgarh',
+      'Goa',
+      'Gujarat',
+      'Haryana',
+      'Himachal Pradesh',
+      'Jharkhand',
+      'Karnataka',
+      'Kerala',
+      'Madhya Pradesh',
+      'Maharashtra',
+      'Manipur',
+      'Meghalaya',
+      'Mizoram',
+      'Nagaland',
+      'Odisha',
+      'Punjab',
+      'Rajasthan',
+      'Sikkim',
+      'Tamil Nadu',
+      'Telangana',
+      'Tripura',
+      'Uttar Pradesh',
+      'Uttarakhand',
+      'West Bengal',
+      'Chandigarh',
+      'Delhi',
+      'Ladakh',
+      'Lakshadweep',
+      'Puducherry',
+      'Andaman and Nicobar Islands',
+      'Dadra and Nagar Haveli',
+      'Daman and Diu',
+    ]..sort();
+  }
+
+  Widget _buildPercentageDiscountSection() {
+    return Column(
+      children: [
+        PercentageDiscountFields(
+          percentageOffController: _percentageOffController,
+          onPercentageChanged: (value) {},
+          darkBlue: AppColors.darkBlue,
+          brightGold: AppColors.brightGold,
+          isEditing: widget.offerToEdit != null,
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildFlatDiscountSection() {
+    return Column(
+      children: [
+        FlatDiscountFields(
+          flatDiscountController: _flatDiscountController,
+          darkBlue: AppColors.darkBlue,
+          brightGold: AppColors.brightGold,
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildAdvancedDiscountSection() {
+    return Column(
+      children: [
+        BuyXGetYFields(
+          buyQuantityController: _buyQuantityController,
+          getQuantityController: _getQuantityController,
+          percentageOffController: _advancedPercentageController,
+          flatDiscountController: _advancedFlatDiscountController,
+          selectedOfferType: _selectedOfferType,
+          darkBlue: AppColors.darkBlue,
+          brightGold: AppColors.brightGold,
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildProductSpecificSection() {
+    return Column(
+      children: [
+        ProductSpecificFields(
+          productController: _productController,
+          applicableProducts: _applicableProducts,
+          darkBlue: AppColors.darkBlue,
+          brightGold: AppColors.brightGold,
+          onAddProduct: _addProduct,
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildServiceSpecificSection() {
+    return Column(
+      children: [
+        ServiceSpecificFields(
+          serviceController: _serviceController,
+          applicableServices: _applicableServices,
+          darkBlue: AppColors.darkBlue,
+          brightGold: AppColors.brightGold,
+          onAddService: _addService,
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  String _formatEnumName(String name) {
+    return name
+        .replaceAllMapped(RegExp(r'[A-Z]'), (match) => ' ${match.group(0)}')
+        .trim()
+        .split(' ')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
+  }
 }

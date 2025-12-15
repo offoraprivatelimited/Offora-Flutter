@@ -5,8 +5,10 @@ import '../../models/offer.dart';
 import '../../../services/auth_service.dart';
 import '../../services/offer_service.dart';
 import '../offers/new_offer_form_screen.dart';
+import '../../../widgets/responsive_page.dart';
 import '../auth/login_screen.dart' as client;
 import '../../../screens/offer_details_screen.dart';
+import '../../../core/error_messages.dart';
 
 class ManageOffersScreen extends StatefulWidget {
   static const String routeName = '/manage-offers';
@@ -80,9 +82,14 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
   Future<void> _editOffer(Offer offer) async {
     // Always fetch the latest offer from Firestore before editing
     final offerService = Provider.of<OfferService>(context, listen: false);
+    final auth = context.read<AuthService>();
+    final clientId = auth.currentUser?.uid ?? '';
+
     final status = offer.status.name; // 'pending', 'approved', 'rejected'
     final latestOffer =
         await offerService.getOffer(offerId: offer.id, status: status);
+
+    if (!mounted) return;
 
     if (widget.onEditOffer != null) {
       if (latestOffer != null) {
@@ -111,7 +118,8 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
         expand: true,
         builder: (context, scrollController) {
           return NewOfferFormScreen(
-            offer: latestOffer,
+            clientId: clientId,
+            offerToEdit: latestOffer,
           );
         },
       ),
@@ -159,7 +167,7 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
         _showMessage('Offer deleted successfully.');
       } catch (e) {
         if (!mounted) return;
-        _showMessage('Failed to delete offer: $e');
+        _showMessage(ErrorMessages.friendlyErrorMessage(e));
       }
     }
   }
@@ -188,123 +196,126 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Filter chips
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.white,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _FilterChip(
-                      label: 'All',
-                      isSelected: _filterStatus == 'all',
-                      onTap: () => setState(() => _filterStatus = 'all'),
-                      color: darkBlue,
-                    ),
-                    const SizedBox(width: 8),
-                    _FilterChip(
-                      label: 'Pending',
-                      isSelected: _filterStatus == 'pending',
-                      onTap: () => setState(() => _filterStatus = 'pending'),
-                      color: Colors.orange,
-                    ),
-                    const SizedBox(width: 8),
-                    _FilterChip(
-                      label: 'Approved',
-                      isSelected: _filterStatus == 'approved',
-                      onTap: () => setState(() => _filterStatus = 'approved'),
-                      color: Colors.green,
-                    ),
-                    const SizedBox(width: 8),
-                    _FilterChip(
-                      label: 'Rejected',
-                      isSelected: _filterStatus == 'rejected',
-                      onTap: () => setState(() => _filterStatus = 'rejected'),
-                      color: Colors.red,
-                    ),
-                  ],
+        child: ResponsivePage(
+          child: Column(
+            children: [
+              // Filter chips
+              Container(
+                padding: const EdgeInsets.all(16),
+                color: Colors.white,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _FilterChip(
+                        label: 'All',
+                        isSelected: _filterStatus == 'all',
+                        onTap: () => setState(() => _filterStatus = 'all'),
+                        color: darkBlue,
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'Pending',
+                        isSelected: _filterStatus == 'pending',
+                        onTap: () => setState(() => _filterStatus = 'pending'),
+                        color: Colors.orange,
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'Approved',
+                        isSelected: _filterStatus == 'approved',
+                        onTap: () => setState(() => _filterStatus = 'approved'),
+                        color: Colors.green,
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'Rejected',
+                        isSelected: _filterStatus == 'rejected',
+                        onTap: () => setState(() => _filterStatus = 'rejected'),
+                        color: Colors.red,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            // Offers list
-            Expanded(
-              child: StreamBuilder<List<Offer>>(
-                stream: _filterStatus == 'all'
-                    ? context
-                        .read<OfferService>()
-                        .watchClientOffersByStatus(user.uid)
-                    : context.read<OfferService>().watchClientOffersByStatus(
-                        user.uid,
-                        status: _filterStatus),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+              // Offers list
+              Expanded(
+                child: StreamBuilder<List<Offer>>(
+                  stream: _filterStatus == 'all'
+                      ? context
+                          .read<OfferService>()
+                          .watchClientOffersByStatus(user.uid)
+                      : context.read<OfferService>().watchClientOffersByStatus(
+                          user.uid,
+                          status: _filterStatus),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error: ${snapshot.error}',
-                        style: TextStyle(
-                          color: darkBlue,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Error: ${snapshot.error}',
+                          style: TextStyle(
+                            color: darkBlue,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  }
-
-                  var offers = snapshot.data ?? [];
-
-                  if (offers.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.campaign_outlined,
-                                size: 64, color: darkBlue.withOpacity(0.3)),
-                            const SizedBox(height: 16),
-                            Text(
-                              _filterStatus == 'all'
-                                  ? 'No offers yet'
-                                  : 'No $_filterStatus offers',
-                              style: TextStyle(
-                                  color: darkBlue,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: offers.length,
-                    itemBuilder: (context, index) {
-                      final offer = offers[index];
-                      return _OfferCard(
-                        offer: offer,
-                        currency: _currency,
-                        darkBlue: darkBlue,
-                        brightGold: brightGold,
-                        onEdit: () => _editOffer(offer),
-                        onDelete: () => _deleteOffer(offer),
-                        onViewDetails: () => _viewOfferDetails(offer),
                       );
-                    },
-                  );
-                },
+                    }
+
+                    var offers = snapshot.data ?? [];
+
+                    if (offers.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.campaign_outlined,
+                                  size: 64,
+                                  color: darkBlue.withValues(alpha: 0.3)),
+                              const SizedBox(height: 16),
+                              Text(
+                                _filterStatus == 'all'
+                                    ? 'No offers yet'
+                                    : 'No $_filterStatus offers',
+                                style: TextStyle(
+                                    color: darkBlue,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: offers.length,
+                      itemBuilder: (context, index) {
+                        final offer = offers[index];
+                        return _OfferCard(
+                          offer: offer,
+                          currency: _currency,
+                          darkBlue: darkBlue,
+                          brightGold: brightGold,
+                          onEdit: () => _editOffer(offer),
+                          onDelete: () => _deleteOffer(offer),
+                          onViewDetails: () => _viewOfferDetails(offer),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

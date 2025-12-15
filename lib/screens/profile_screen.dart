@@ -6,6 +6,8 @@ import '../services/auth_service.dart';
 import '../models/user.dart';
 import '../widgets/app_drawer.dart';
 import '../theme/colors.dart';
+import '../core/error_messages.dart';
+import '../widgets/responsive_page.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -80,7 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _showMessage('Profile updated successfully.');
       }
     } catch (e) {
-      _showMessage('Failed to update profile: $e');
+      _showMessage(ErrorMessages.friendlyErrorMessage(e));
     } finally {
       setState(() => _isSaving = false);
     }
@@ -147,33 +149,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
       drawer: const AppDrawer(),
       backgroundColor: AppColors.surface,
       body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFF7F9FD), Color(0xFFEFF3FA)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+        child: ResponsivePage(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFF7F9FD), Color(0xFFEFF3FA)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
                   ),
                 ),
               ),
-            ),
-            SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHeaderCard(context, user, avatarImage),
-                  const SizedBox(height: 16),
-                  _buildFormCard(context),
-                  const SizedBox(height: 16),
-                  _buildActions(context),
-                ],
+              SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildHeaderCard(context, user, avatarImage),
+                    const SizedBox(height: 16),
+                    _buildFormCard(context),
+                    const SizedBox(height: 16),
+                    _buildActions(context),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

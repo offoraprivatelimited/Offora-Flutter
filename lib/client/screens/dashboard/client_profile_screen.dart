@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../services/auth_service.dart';
+import '../../../core/error_messages.dart';
 
 class ClientProfileScreen extends StatefulWidget {
   const ClientProfileScreen({super.key});
@@ -112,7 +113,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile: $e')),
+        SnackBar(content: Text(ErrorMessages.friendlyErrorMessage(e))),
       );
     } finally {
       if (mounted) {}
