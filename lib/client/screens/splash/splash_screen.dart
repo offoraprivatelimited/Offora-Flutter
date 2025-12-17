@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../services/auth_service.dart';
 import '../../../models/client_panel_stage.dart';
-import '../auth/login_screen.dart';
-import '../dashboard/dashboard_screen.dart';
 
 class ClientSplashScreen extends StatefulWidget {
   const ClientSplashScreen({super.key});
@@ -24,12 +23,12 @@ class _ClientSplashScreenState extends State<ClientSplashScreen> {
   void _maybeRedirect() {
     final auth = context.read<AuthService>();
     // If not logged in, go to login. Otherwise, go to dashboard.
-    final String route = auth.stage == ClientPanelStage.active
-        ? DashboardScreen.routeName
-        : LoginScreen.routeName;
+    final String routeName = auth.stage == ClientPanelStage.active
+        ? 'client-dashboard'
+        : 'client-login';
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed(route);
+      context.goNamed(routeName);
     });
   }
 

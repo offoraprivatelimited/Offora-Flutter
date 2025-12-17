@@ -1,13 +1,8 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../screens/about_us_page.dart';
-import '../screens/contact_us_page.dart';
-import '../screens/terms_and_conditions_page.dart';
-import '../screens/privacy_policy_page.dart';
-import '../screens/main_screen.dart';
-import '../client/screens/main/client_main_screen.dart';
 import '../services/auth_service.dart';
 import '../theme/colors.dart';
 
@@ -23,35 +18,12 @@ class AppDrawer extends StatelessWidget {
       Future.microtask(() => auth.refreshProfile());
     }
 
-    // Try to find MainScreen or ClientMainScreen state to show pages inline
-    final mainScreenState =
-        context.findAncestorStateOfType<State<MainScreen>>();
-    final clientMainScreenState =
-        context.findAncestorStateOfType<State<ClientMainScreen>>();
-
-    void navigateToPage(Widget page) {
-      if (mainScreenState != null) {
-        // If we're in MainScreen, show page inline
-        (mainScreenState as dynamic).showInfoPage(page);
-      } else if (clientMainScreenState != null) {
-        // If we're in ClientMainScreen, show page inline
-        (clientMainScreenState as dynamic).showInfoPage(page);
-      } else {
-        // Fallback to regular navigation
-        Navigator.of(context).pop();
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => Scaffold(
-              appBar: AppBar(
-                backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF1F477D),
-                elevation: 1,
-              ),
-              body: page,
-            ),
-          ),
-        );
-      }
+    void navigateToPage(String routeName) {
+      // Close the drawer first
+      Navigator.of(context).pop();
+      // Navigate using GoRouter
+      // Note: GoRouter will check the user's role in context automatically
+      context.goNamed(routeName);
     }
 
     return Drawer(
@@ -196,13 +168,13 @@ class AppDrawer extends StatelessWidget {
                     context,
                     icon: Icons.info_outline,
                     title: 'About Us',
-                    onTap: () => navigateToPage(const AboutUsPage()),
+                    onTap: () => navigateToPage('about-us'),
                   ),
                   _buildDrawerItem(
                     context,
                     icon: Icons.contact_mail_outlined,
                     title: 'Contact Us',
-                    onTap: () => navigateToPage(const ContactUsPage()),
+                    onTap: () => navigateToPage('contact-us'),
                   ),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(24, 20, 24, 8),
@@ -220,13 +192,13 @@ class AppDrawer extends StatelessWidget {
                     context,
                     icon: Icons.privacy_tip_outlined,
                     title: 'Privacy Policy',
-                    onTap: () => navigateToPage(const PrivacyPolicyPage()),
+                    onTap: () => navigateToPage('privacy-policy'),
                   ),
                   _buildDrawerItem(
                     context,
                     icon: Icons.description_outlined,
                     title: 'Terms & Conditions',
-                    onTap: () => navigateToPage(const TermsAndConditionsPage()),
+                    onTap: () => navigateToPage('terms-and-conditions'),
                   ),
                 ],
               ),
@@ -267,8 +239,7 @@ class AppDrawer extends StatelessWidget {
                     if (confirmed == true && context.mounted) {
                       await context.read<AuthService>().signOut();
                       if (context.mounted) {
-                        Navigator.of(context)
-                            .pushReplacementNamed('/role-selection');
+                        context.goNamed('role-selection');
                       }
                     }
                   },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/offer.dart';
@@ -6,7 +7,6 @@ import '../../../services/auth_service.dart';
 import '../../services/offer_service.dart';
 import '../offers/new_offer_form_screen.dart';
 import '../../../widgets/responsive_page.dart';
-import '../auth/login_screen.dart' as client;
 import '../../../screens/offer_details_screen.dart';
 import '../../../core/error_messages.dart';
 
@@ -182,10 +182,7 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
         _redirectingToLogin = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            client.LoginScreen.routeName,
-            (route) => false,
-          );
+          context.goNamed('client-login');
         });
       }
       return const Scaffold(

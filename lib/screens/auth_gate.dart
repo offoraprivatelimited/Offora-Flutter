@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../models/client_panel_stage.dart';
@@ -70,9 +71,18 @@ class AuthGate extends StatelessWidget {
   /// Build a screen that transitions to the target route once mounted
   Widget _buildTransitionScreen(BuildContext context, String routeName) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed(routeName);
+      // Convert route names to GoRouter names
+      String goRouterName = routeName;
+      if (routeName == '/main' || routeName.startsWith(MainScreen.routeName)) {
+        goRouterName = 'explore'; // Default to explore tab
+      } else if (routeName.startsWith('/client')) {
+        goRouterName = 'client-dashboard';
+      } else if (routeName == '/pending-approval') {
+        goRouterName = 'pending-approval';
+      } else if (routeName == '/rejection') {
+        goRouterName = 'rejection';
       }
+      context.goNamed(goRouterName);
     });
 
     return const Scaffold(

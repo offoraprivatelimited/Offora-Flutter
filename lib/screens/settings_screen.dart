@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/colors.dart';
@@ -29,7 +30,7 @@ class SettingsScreen extends StatelessWidget {
                         title: 'Edit Profile',
                         subtitle: 'Update your personal information',
                         onTap: () {
-                          Navigator.pushNamed(context, '/profile-complete');
+                          context.goNamed('profile-complete');
                         },
                       ),
                       const Divider(height: 1),
@@ -218,8 +219,7 @@ class SettingsScreen extends StatelessWidget {
                           if (confirmed == true && context.mounted) {
                             await context.read<AuthService>().signOut();
                             if (context.mounted) {
-                              Navigator.pushReplacementNamed(
-                                  context, '/user-login');
+                              context.goNamed('user-login');
                             }
                           }
                         },

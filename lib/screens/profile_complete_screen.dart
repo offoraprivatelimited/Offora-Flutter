@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import '../core/error_messages.dart';
-import 'main_screen.dart';
 import '../widgets/responsive_page.dart';
 
 class ProfileCompleteScreen extends StatefulWidget {
@@ -64,7 +64,7 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
       });
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, MainScreen.routeName);
+        context.goNamed('main');
       }
     } catch (e) {
       if (mounted) {

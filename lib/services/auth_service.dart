@@ -224,13 +224,21 @@ class AuthService extends ChangeNotifier {
         final clientData = {
           // Authentication & Identity
           'uid': user.uid,
+          'name': contactPerson, // Use contact person as name
           'email': email,
+          'phone': phoneNumber,
+          'role': 'shopowner', // IMPORTANT: Set role to shopowner
+
+          // User Profile Fields (required for AppUser but not always provided during client signup)
+          'address': address,
+          'gender': '', // Will be filled during profile completion
+          'dob': '', // Will be filled during profile completion
 
           // Business Information
           'businessName': businessName,
-          'businessCategory': category,
+          'category': category,
           'location': location,
-          'address': address,
+          'businessCategory': category,
           'city': city,
 
           // Contact Information
@@ -246,6 +254,7 @@ class AuthService extends ChangeNotifier {
           'approvalStatus': 'pending',
           'rejectionReason': null,
           'lastSignInAt': null,
+          'photoUrl': null,
 
           // Timestamps
           'createdAt': FieldValue.serverTimestamp(),

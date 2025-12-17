@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../services/auth_service.dart';
@@ -387,7 +388,6 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               if (!_isEditing)
                 OutlinedButton.icon(
                   onPressed: () async {
-                    final navigator = Navigator.of(context);
                     final authService = context.read<AuthService>();
                     final confirmed = await showDialog<bool>(
                       context: context,
@@ -417,10 +417,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     if (confirmed != true) return;
                     await authService.signOut();
                     if (!mounted) return;
-                    navigator.pushNamedAndRemoveUntil(
-                      '/',
-                      (route) => false,
-                    );
+                    context.goNamed('auth-gate');
                   },
                   icon: const Icon(Icons.logout, color: Color(0xFF1F477D)),
                   label: const Text('Logout',

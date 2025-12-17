@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/colors.dart';
 import '../widgets/offer_card.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/sort_filter_bar.dart';
 import '../client/models/offer.dart';
 import '../client/services/offer_service.dart';
 import 'main_screen.dart';
@@ -64,77 +65,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return filtered;
   }
 
-  void _showSortOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Sort By',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.darkBlue,
-                        ),
-                  ),
-                  const SizedBox(height: 16),
-                  _SortOption(
-                    title: 'Newest First',
-                    value: 'newest',
-                    groupValue: _sortBy,
-                    onChanged: (value) {
-                      setState(() => _sortBy = value!);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  _SortOption(
-                    title: 'Highest Discount',
-                    value: 'discount',
-                    groupValue: _sortBy,
-                    onChanged: (value) {
-                      setState(() => _sortBy = value!);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  _SortOption(
-                    title: 'Lowest Price',
-                    value: 'price',
-                    groupValue: _sortBy,
-                    onChanged: (value) {
-                      setState(() => _sortBy = value!);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -151,29 +81,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Explore',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: AppColors.darkBlue,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: _showSortOptions,
-                    icon: const Icon(Icons.sort, size: 18),
-                    label: Text(_getSortLabel()),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.darkBlue,
-                      side: const BorderSide(color: AppColors.darkBlue),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+              child: Text(
+                'Explore',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: AppColors.darkBlue,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ),
-                ],
               ),
             ),
           ),
@@ -246,6 +159,36 @@ class _ExploreScreenState extends State<ExploreScreen> {
             ),
           ),
 
+          // Sort and Filter Bar
+          SliverToBoxAdapter(
+            child: StreamBuilder<List<Offer>>(
+              stream: context.read<OfferService>().watchApprovedOffers(),
+              builder: (context, snapshot) {
+                final allOffers = snapshot.data ?? [];
+                final cities = <String>{};
+                for (final offer in allOffers) {
+                  if (offer.city != null && offer.city!.isNotEmpty) {
+                    cities.add(offer.city!);
+                  }
+                }
+                final sortedCities = cities.toList()..sort();
+
+                return SortFilterBar(
+                  currentSortBy: _sortBy,
+                  selectedCity: _selectedCity,
+                  onSortChanged: (value) {
+                    setState(() => _sortBy = value);
+                  },
+                  onCategoryChanged: (value) {},
+                  onCityChanged: (value) {
+                    setState(() => _selectedCity = value);
+                  },
+                  availableCities: sortedCities,
+                );
+              },
+            ),
+          ),
+
           StreamBuilder<List<Offer>>(
             stream: context.read<OfferService>().watchApprovedOffers(),
             builder: (context, snapshot) {
@@ -289,14 +232,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         height: 50,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           itemCount: sortedCities.length,
                           itemBuilder: (context, index) {
                             final city = sortedCities[index];
                             final isSelected = _selectedCity == city ||
-                                (_selectedCity == null &&
-                                    city == 'All Cities');
+                                (_selectedCity == null && city == 'All Cities');
                             return Padding(
                               padding: const EdgeInsets.only(right: 8),
                               child: ChoiceChip(
@@ -346,9 +287,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                               selected: isSelected,
                               onSelected: (selected) {
                                 setState(() {
-                                  _selectedCity = city == 'All Cities'
-                                      ? null
-                                      : city;
+                                  _selectedCity =
+                                      city == 'All Cities' ? null : city;
                                 });
                               },
                             ),
@@ -430,69 +370,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
-    );
-  }
-
-  String _getSortLabel() {
-    switch (_sortBy) {
-      case 'discount':
-        return 'Highest Discount';
-      case 'price':
-        return 'Lowest Price';
-      case 'newest':
-      default:
-        return 'Newest First';
-    }
-  }
-}
-
-class _SortOption extends StatelessWidget {
-  final String title;
-  final String value;
-  final String groupValue;
-  final void Function(String?) onChanged;
-
-  const _SortOption({
-    required this.title,
-    required this.value,
-    required this.groupValue,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Newer Flutter versions deprecate `groupValue`/`onChanged` on RadioListTile
-    // in favor of a RadioGroup ancestor. Rather than introduce a new ancestor
-    // type here we render a simple selectable ListTile that avoids the
-    // deprecated members and keeps behavior identical for our small local use.
-    final selected = value == groupValue;
-
-    return ListTile(
-      onTap: () => onChanged(value),
-      leading: Container(
-        width: 20,
-        height: 20,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: selected ? AppColors.darkBlue : Colors.transparent,
-          border: Border.all(
-            color: selected ? AppColors.darkBlue : Colors.grey.shade400,
-            width: 1.4,
-          ),
-        ),
-        child: selected
-            ? const Icon(
-                Icons.check,
-                size: 12,
-                color: Colors.white,
-              )
-            : null,
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      contentPadding: EdgeInsets.zero,
     );
   }
 }

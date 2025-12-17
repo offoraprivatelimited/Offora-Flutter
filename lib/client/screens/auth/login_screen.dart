@@ -1,13 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../models/client_panel_stage.dart';
 import '../../../services/auth_service.dart';
-import '../dashboard/dashboard_screen.dart';
-import 'pending_approval_page.dart';
-import 'rejection_page.dart';
-import 'signup_screen.dart';
-import '../../../role_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,17 +26,9 @@ class _LoginScreenState extends State<LoginScreen> {
   void _goToRoleSelection() {
     debugPrint(
         '[LoginScreen] Back button pressed - attempting to navigate to role selection');
-    debugPrint(
-        '[LoginScreen] Current route: ${ModalRoute.of(context)?.settings.name}');
-    debugPrint('[LoginScreen] Navigator state: ${Navigator.of(context)}');
-    debugPrint(
-        '[LoginScreen] RoleSelectionScreen.routeName: ${RoleSelectionScreen.routeName}');
 
     try {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        RoleSelectionScreen.routeName,
-        (route) => false,
-      );
+      context.goNamed('role-selection');
       debugPrint('[LoginScreen] ✓ Successfully navigated to role selection');
     } catch (e) {
       debugPrint('[LoginScreen] ✗ Error navigating to role selection: $e');
@@ -76,12 +64,11 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (auth.stage == ClientPanelStage.active) {
-        Navigator.of(context).pushReplacementNamed(DashboardScreen.routeName);
+        context.goNamed('client-dashboard');
       } else if (auth.stage == ClientPanelStage.pendingApproval) {
-        Navigator.of(context)
-            .pushReplacementNamed(PendingApprovalPage.routeName);
+        context.goNamed('pending-approval');
       } else if (auth.stage == ClientPanelStage.rejected) {
-        Navigator.of(context).pushReplacementNamed(RejectionPage.routeName);
+        context.goNamed('rejection');
       }
     });
   }
@@ -439,8 +426,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       alignment: Alignment.centerRight,
                                       child: TextButton(
                                         onPressed: () {
-                                          Navigator.of(context).pushNamed(
-                                              SignupScreen.routeName);
+                                          context.goNamed('client-signup');
                                         },
                                         style: TextButton.styleFrom(
                                           foregroundColor: darkBlue,

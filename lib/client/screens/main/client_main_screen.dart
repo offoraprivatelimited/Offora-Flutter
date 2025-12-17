@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 // import '../dashboard/dashboard_screen.dart';
 import '../dashboard/manage_offers_screen.dart';
@@ -13,9 +14,14 @@ import '../../../widgets/app_drawer.dart';
 import '../../../widgets/premium_app_bar.dart';
 
 class ClientMainScreen extends StatefulWidget {
-  const ClientMainScreen({super.key});
-
   static const String routeName = '/client-main';
+
+  final int initialIndex;
+
+  const ClientMainScreen({
+    super.key,
+    this.initialIndex = 1,
+  });
 
   @override
   State<ClientMainScreen> createState() => _ClientMainScreenState();
@@ -23,7 +29,7 @@ class ClientMainScreen extends StatefulWidget {
 
 class _ClientMainScreenState extends State<ClientMainScreen> {
   // Keep index in sync with BottomNavigationBar items (0..4)
-  int _currentIndex = 1; // default to Manage
+  late int _currentIndex;
   Widget? _infoPage;
 
   final List<Widget> _screens = [];
@@ -31,8 +37,10 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
+    final clientId = context.read<AuthService>().currentUser?.uid ?? '';
     _screens.addAll([
-      const SizedBox(), // Placeholder for NewOfferFormScreen
+      NewOfferFormScreen(clientId: clientId),
       ManageOffersScreen(
         onEditOffer: _editOffer,
         onDeleteOffer: _deleteOffer,
@@ -153,10 +161,27 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
           children: [
             NavigationRail(
               selectedIndex: _currentIndex,
-              onDestinationSelected: (i) => setState(() {
-                _currentIndex = i;
-                _infoPage = null;
-              }),
+              onDestinationSelected: (i) {
+                setState(() {
+                  _currentIndex = i;
+                  _infoPage = null;
+                });
+                // Update URL based on tab selection
+                switch (i) {
+                  case 0:
+                    context.goNamed('client-add');
+                    break;
+                  case 1:
+                    context.goNamed('client-manage');
+                    break;
+                  case 2:
+                    context.goNamed('client-enquiries');
+                    break;
+                  case 3:
+                    context.goNamed('client-profile');
+                    break;
+                }
+              },
               labelType: NavigationRailLabelType.all,
               destinations: const [
                 NavigationRailDestination(
@@ -213,6 +238,21 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
                 _currentIndex = index;
                 _infoPage = null; // Clear info page when switching tabs
               });
+              // Update URL based on tab selection
+              switch (index) {
+                case 0:
+                  context.goNamed('client-add');
+                  break;
+                case 1:
+                  context.goNamed('client-manage');
+                  break;
+                case 2:
+                  context.goNamed('client-enquiries');
+                  break;
+                case 3:
+                  context.goNamed('client-profile');
+                  break;
+              }
             },
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.white,

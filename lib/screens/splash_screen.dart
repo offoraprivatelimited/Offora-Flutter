@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import 'onboarding_screen.dart';
-import 'profile_complete_screen.dart';
-import 'main_screen.dart';
 
 class UserSplashScreen extends StatefulWidget {
   static const String routeName = '/user-splash';
@@ -48,13 +46,12 @@ class _UserSplashScreenState extends State<UserSplashScreen>
       if (authService.isLoggedIn && authService.currentUser != null) {
         final user = authService.currentUser!;
         if (!user.isProfileComplete) {
-          Navigator.pushReplacementNamed(
-              context, ProfileCompleteScreen.routeName);
+          context.goNamed('profile-complete');
         } else {
-          Navigator.pushReplacementNamed(context, MainScreen.routeName);
+          context.goNamed('main');
         }
       } else {
-        Navigator.pushReplacementNamed(context, OnboardingScreen.routeName);
+        context.goNamed('onboarding');
       }
     });
   }

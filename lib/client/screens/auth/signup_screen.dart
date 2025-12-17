@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -6,9 +7,6 @@ import '../../../models/client_panel_stage.dart';
 import '../../../services/auth_service.dart';
 import '../../../core/error_messages.dart';
 import '../../../widgets/responsive_page.dart';
-import '../dashboard/dashboard_screen.dart';
-import 'pending_approval_page.dart';
-import 'rejection_page.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -178,12 +176,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
       // Route based on approval stage
       if (auth.stage == ClientPanelStage.pendingApproval) {
-        Navigator.of(context)
-            .pushReplacementNamed(PendingApprovalPage.routeName);
+        context.goNamed('pending-approval');
       } else if (auth.stage == ClientPanelStage.active) {
-        Navigator.of(context).pushReplacementNamed(DashboardScreen.routeName);
+        context.goNamed('client-dashboard');
       } else if (auth.stage == ClientPanelStage.rejected) {
-        Navigator.of(context).pushReplacementNamed(RejectionPage.routeName);
+        context.goNamed('rejection');
       }
     } catch (e) {
       if (!mounted) return;

@@ -403,7 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // Categories Section Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                 child: Row(
                   children: [
                     Container(
@@ -440,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       final counts = _getCategoryCounts(offers);
 
                       return SizedBox(
-                        height: 110,
+                        height: 90,
                         child: NotificationListener<ScrollNotification>(
                           onNotification: (notification) {
                             _onCategoryScroll(notification);
@@ -514,7 +514,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
                                     width: 72,
-                                    height: 92,
+                                    height: 75,
                                     decoration: cardDecoration,
                                     child: Stack(
                                       children: [
@@ -527,7 +527,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             children: [
                                               Container(
                                                 padding:
-                                                    const EdgeInsets.all(8),
+                                                    const EdgeInsets.all(6),
                                                 decoration: BoxDecoration(
                                                   color: isSelected && isAll
                                                       ? Colors.white
@@ -564,16 +564,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         child: Icon(
                                                           category['icon'],
                                                           color: iconColor,
-                                                          size: 22,
+                                                          size: 20,
                                                         ),
                                                       )
                                                     : Icon(
                                                         category['icon'],
                                                         color: iconColor,
-                                                        size: 22,
+                                                        size: 20,
                                                       ),
                                               ),
-                                              const SizedBox(height: 7),
+                                              const SizedBox(height: 3),
                                               Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(

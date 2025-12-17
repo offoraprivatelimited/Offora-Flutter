@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/offer.dart';
 import '../../../services/auth_service.dart';
 import '../../services/offer_service.dart';
-import '../auth/login_screen.dart';
-import '../offers/new_offer_form_screen.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/premium_app_bar.dart';
 import '../../../core/error_messages.dart';
@@ -37,7 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (!auth.isLoggedIn) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
+        context.goNamed('client-login');
       });
     }
   }
@@ -57,28 +56,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    final result =
-        await Navigator.of(context).pushNamed(NewOfferFormScreen.routeName);
-    if (!mounted) return; // guard against using context across async gaps
-    if (result == true) {
-      if (user.isApproved) {
-        _showMessage('Offer submitted for moderator approval.');
-      } else {
-        _showMessage(
-            'Offer saved as a draft. It will be submitted when your account is approved.');
-      }
-    }
+    context.pushNamed('new-offer');
   }
 
   Future<void> _editOffer(Offer offer) async {
-    final result = await Navigator.of(context).pushNamed(
-      NewOfferFormScreen.routeName,
-      arguments: offer,
-    );
-    if (!mounted) return; // ensure widget still mounted before using context
-    if (result == true) {
-      _showMessage('Offer updated successfully.');
-    }
+    context.pushNamed('new-offer');
   }
 
   Future<void> _deleteOffer(Offer offer) async {

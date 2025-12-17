@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../services/auth_service.dart';
-import '../dashboard/dashboard_screen.dart';
-import 'rejection_page.dart';
 
 class PendingApprovalPage extends StatefulWidget {
   const PendingApprovalPage({super.key});
@@ -53,7 +52,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
           // Approved! Refresh auth and navigate to dashboard
           await auth.refreshProfile();
           if (!mounted) return;
-          Navigator.of(context).pushReplacementNamed(DashboardScreen.routeName);
+          context.goNamed('client-dashboard');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Your account has been approved! Welcome.'),
@@ -72,7 +71,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
           // Rejected! Refresh auth and navigate to rejection page
           await auth.refreshProfile();
           if (!mounted) return;
-          Navigator.of(context).pushReplacementNamed(RejectionPage.routeName);
+          context.goNamed('rejection');
           return;
         }
       }
@@ -89,7 +88,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
   Future<void> _signOut() async {
     await context.read<AuthService>().signOut();
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed('/login');
+    context.goNamed('client-login');
   }
 
   @override

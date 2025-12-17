@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:offora/widgets/premium_app_bar.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/custom_bottom_navbar.dart';
@@ -112,11 +113,31 @@ class MainScreenState extends State<MainScreen> {
           children: [
             NavigationRail(
               selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() {
-                _index = i;
-                _infoPage = null;
-                _selectedOffer = null;
-              }),
+              onDestinationSelected: (i) {
+                setState(() {
+                  _index = i;
+                  _infoPage = null;
+                  _selectedOffer = null;
+                });
+                // Update URL based on tab selection
+                switch (i) {
+                  case 0:
+                    context.goNamed('home');
+                    break;
+                  case 1:
+                    context.goNamed('explore');
+                    break;
+                  case 2:
+                    context.goNamed('compare');
+                    break;
+                  case 3:
+                    context.goNamed('saved');
+                    break;
+                  case 4:
+                    context.goNamed('profile');
+                    break;
+                }
+              },
               labelType: NavigationRailLabelType.all,
               destinations: const [
                 NavigationRailDestination(
@@ -164,11 +185,31 @@ class MainScreenState extends State<MainScreen> {
         if (constraints.maxWidth > 920) return const SizedBox.shrink();
         return CustomBottomNavBar(
           currentIndex: _index,
-          onTap: (i) => setState(() {
-            _index = i;
-            _infoPage = null; // Clear info page when switching tabs
-            _selectedOffer = null;
-          }),
+          onTap: (i) {
+            setState(() {
+              _index = i;
+              _infoPage = null; // Clear info page when switching tabs
+              _selectedOffer = null;
+            });
+            // Update URL based on tab selection
+            switch (i) {
+              case 0:
+                context.goNamed('home');
+                break;
+              case 1:
+                context.goNamed('explore');
+                break;
+              case 2:
+                context.goNamed('compare');
+                break;
+              case 3:
+                context.goNamed('saved');
+                break;
+              case 4:
+                context.goNamed('profile');
+                break;
+            }
+          },
         );
       }),
     );

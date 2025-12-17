@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -411,10 +412,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       // Navigate to ClientMainScreen to show ManageOffersScreen with AppBar and BottomNavBar
                       Future.delayed(const Duration(milliseconds: 100), () {
                         if (mounted) {
-                          Navigator.of(context).pushNamedAndRemoveUntil(
-                            '/client-main',
-                            (route) => route.isFirst,
-                          );
+                          context.goNamed('client-dashboard');
                         }
                       });
                     },
@@ -656,58 +654,66 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   }
 
   Widget _buildOfferTypeDropdown() {
-    return DropdownButtonFormField<OfferType>(
-      initialValue: _selectedOfferType,
-      decoration: InputDecoration(
-        labelText: 'Select Offer Type',
-        prefixIcon: const Icon(Icons.local_offer, color: AppColors.darkBlue),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      dropdownColor: Colors.white,
-      items: OfferType.values.map((type) {
-        return DropdownMenuItem(
-          value: type,
-          child: Text(
-            _formatEnumName(type.name),
-            style: const TextStyle(color: Colors.black),
+    return SizedBox(
+      width: double.infinity,
+      child: DropdownButtonFormField<OfferType>(
+        initialValue: _selectedOfferType,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: 'Select Offer Type',
+          prefixIcon: const Icon(Icons.local_offer, color: AppColors.darkBlue),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedOfferType = value!;
-        });
-      },
+        ),
+        dropdownColor: Colors.white,
+        items: OfferType.values.map((type) {
+          return DropdownMenuItem(
+            value: type,
+            child: Text(
+              _formatEnumName(type.name),
+              style: const TextStyle(color: Colors.black),
+            ),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            _selectedOfferType = value!;
+          });
+        },
+      ),
     );
   }
 
   Widget _buildOfferCategoryDropdown() {
-    return DropdownButtonFormField<OfferCategory>(
-      initialValue: _selectedOfferCategory,
-      decoration: InputDecoration(
-        labelText: 'Select Category',
-        prefixIcon: const Icon(Icons.category, color: AppColors.darkBlue),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      dropdownColor: Colors.white,
-      items: OfferCategory.values.map((category) {
-        return DropdownMenuItem(
-          value: category,
-          child: Text(
-            _formatEnumName(category.name),
-            style: const TextStyle(color: Colors.black),
+    return SizedBox(
+      width: double.infinity,
+      child: DropdownButtonFormField<OfferCategory>(
+        initialValue: _selectedOfferCategory,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: 'Select Category',
+          prefixIcon: const Icon(Icons.category, color: AppColors.darkBlue),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedOfferCategory = value!;
-        });
-      },
+        ),
+        dropdownColor: Colors.white,
+        items: OfferCategory.values.map((category) {
+          return DropdownMenuItem(
+            value: category,
+            child: Text(
+              _formatEnumName(category.name),
+              style: const TextStyle(color: Colors.black),
+            ),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            _selectedOfferCategory = value!;
+          });
+        },
+      ),
     );
   }
 
@@ -725,33 +731,37 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
       });
     }
 
-    return DropdownButtonFormField<String>(
-      initialValue: _selectedCity.isNotEmpty ? _selectedCity : null,
-      decoration: InputDecoration(
-        labelText: 'Location/City',
-        hintText: 'Select your business location',
-        prefixIcon: const Icon(Icons.location_on, color: AppColors.darkBlue),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      dropdownColor: Colors.white,
-      items: _generateCityList().map((city) {
-        return DropdownMenuItem(
-          value: city,
-          child: Text(
-            city,
-            style: const TextStyle(color: Colors.black),
+    return SizedBox(
+      width: double.infinity,
+      child: DropdownButtonFormField<String>(
+        initialValue: _selectedCity.isNotEmpty ? _selectedCity : null,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: 'Location/City',
+          hintText: 'Select your business location',
+          prefixIcon: const Icon(Icons.location_on, color: AppColors.darkBlue),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedCity = value ?? '';
-        });
-      },
-      validator: (value) =>
-          value == null || value.isEmpty ? 'Please select a city' : null,
+        ),
+        dropdownColor: Colors.white,
+        items: _generateCityList().map((city) {
+          return DropdownMenuItem(
+            value: city,
+            child: Text(
+              city,
+              style: const TextStyle(color: Colors.black),
+            ),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            _selectedCity = value ?? '';
+          });
+        },
+        validator: (value) =>
+            value == null || value.isEmpty ? 'Please select a city' : null,
+      ),
     );
   }
 

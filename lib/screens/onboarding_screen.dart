@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class OnboardingScreen extends StatefulWidget {
   static const String routeName = '/onboarding';
@@ -372,10 +373,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               child: ElevatedButton(
                                 onPressed: () {
                                   if (_page == slides.length - 1) {
-                                    Navigator.pushReplacementNamed(
-                                      context,
-                                      '/role-selection',
-                                    );
+                                    context.goNamed('role-selection');
                                   } else {
                                     _controller.nextPage(
                                       duration:

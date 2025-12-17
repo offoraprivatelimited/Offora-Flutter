@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../core/error_messages.dart';
@@ -74,7 +75,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
           // Navigate to AuthGate to route based on user type
-          Navigator.of(context).pushReplacementNamed('/auth-gate');
+          context.goNamed('auth-gate');
         }
       }
     } catch (e) {
@@ -117,7 +118,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
       await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
         // Navigate to AuthGate to route based on user type
-        Navigator.of(context).pushReplacementNamed('/auth-gate');
+        context.goNamed('auth-gate');
       }
     } catch (e) {
       if (mounted) {
@@ -144,7 +145,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
           // Navigate to AuthGate to route based on user type
-          Navigator.of(context).pushReplacementNamed('/auth-gate');
+          context.goNamed('auth-gate');
         }
       }
     } catch (e) {
@@ -245,8 +246,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                 left: 0,
                 child: SafeArea(
                   child: IconButton(
-                    onPressed: () => Navigator.pushReplacementNamed(
-                        context, '/role-selection'),
+                    onPressed: () => context.goNamed('role-selection'),
                     icon: const Icon(
                       Icons.arrow_back,
                       color: Color.fromARGB(255, 0, 0, 0),

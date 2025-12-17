@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../services/auth_service.dart';
-import 'login_screen.dart';
 
 class RejectionPage extends StatefulWidget {
   const RejectionPage({super.key});
@@ -17,7 +17,7 @@ class _RejectionPageState extends State<RejectionPage> {
   Future<void> _signOut() async {
     await context.read<AuthService>().signOut();
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
+    context.goNamed('client-login');
   }
 
   @override

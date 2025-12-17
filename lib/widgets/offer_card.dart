@@ -114,7 +114,7 @@ class _OfferCardState extends State<OfferCard> {
                 final maxH = constraints.maxHeight.isFinite
                     ? constraints.maxHeight
                     : 240.0;
-                final imageHeight = (maxH * 0.48).clamp(80.0, 150.0);
+                final imageHeight = (maxH * 0.65).clamp(100.0, 180.0);
 
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(20),
@@ -225,7 +225,7 @@ class _OfferCardState extends State<OfferCard> {
                       // Details
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(8),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.max,
@@ -234,37 +234,15 @@ class _OfferCardState extends State<OfferCard> {
                                 widget.offer['title'] ?? '',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: Color(0xFF1F477D),
-                                  height: 1.2,
+                                  height: 1.1,
                                 ),
-                                maxLines: 2,
+                                maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Icon(Icons.store_outlined,
-                                      size: 14, color: Colors.grey[600]),
-                                  const SizedBox(width: 5),
-                                  Expanded(
-                                    child: Text(
-                                      widget.offer['store'] ?? '',
-                                      style: TextStyle(
-                                        color: Colors.grey[700],
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 8),
-
-                              // Price section with compare button
+                              const SizedBox(height: 4),
+                              // Price section
                               if (originalPrice != null &&
                                   discountPrice != null)
                                 Row(
@@ -279,7 +257,7 @@ class _OfferCardState extends State<OfferCard> {
                                         Text(
                                           '₹${discountPrice.toStringAsFixed(0)}',
                                           style: const TextStyle(
-                                            fontSize: 20,
+                                            fontSize: 16,
                                             fontWeight: FontWeight.w900,
                                             color: Color(0xFF1F477D),
                                             letterSpacing: -0.5,
@@ -289,7 +267,7 @@ class _OfferCardState extends State<OfferCard> {
                                         Text(
                                           '₹${originalPrice.toStringAsFixed(0)}',
                                           style: TextStyle(
-                                            fontSize: 13,
+                                            fontSize: 11,
                                             color: Colors.grey[500],
                                             decoration:
                                                 TextDecoration.lineThrough,

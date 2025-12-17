@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   static const String routeName = '/role-selection';
@@ -189,10 +190,7 @@ class _RoleSelectionContent extends StatelessWidget {
                               'Discover and save the best local deals as a user.',
                           buttonText: 'Continue as User',
                           onPressed: () {
-                            Navigator.pushReplacementNamed(
-                              context,
-                              '/user-login',
-                            );
+                            context.goNamed('user-login');
                           },
                         ),
                         const SizedBox(height: 12),
@@ -203,10 +201,7 @@ class _RoleSelectionContent extends StatelessWidget {
                               'Manage your shop and publish exclusive offers.',
                           buttonText: 'Continue as Shop Owner',
                           onPressed: () {
-                            Navigator.pushReplacementNamed(
-                              context,
-                              '/login',
-                            );
+                            context.goNamed('client-login');
                           },
                         ),
                       ],

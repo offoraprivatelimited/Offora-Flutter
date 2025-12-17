@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import 'main_screen.dart';
-import 'profile_complete_screen.dart';
 import '../core/error_messages.dart';
 import '../widgets/responsive_page.dart';
 
@@ -49,16 +48,13 @@ class _AuthScreenState extends State<AuthScreen> {
       // Check if user needs to complete profile
       if (user.role == 'shopowner') {
         // Redirect to shopowner login (which will handle approval logic)
-        Navigator.pushReplacementNamed(context, '/login');
+        context.goNamed('client-login');
       } else if (user.address.isEmpty ||
           user.gender.isEmpty ||
           user.dob.isEmpty) {
-        Navigator.pushReplacementNamed(
-          context,
-          ProfileCompleteScreen.routeName,
-        );
+        context.goNamed('profile-complete');
       } else {
-        Navigator.pushReplacementNamed(context, MainScreen.routeName);
+        context.goNamed('main');
       }
     } catch (e) {
       if (!mounted) return;
@@ -84,7 +80,7 @@ class _AuthScreenState extends State<AuthScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushReplacementNamed(context, '/role-selection');
+            context.goNamed('role-selection');
           },
         ),
         title: const Text('Sign in'),

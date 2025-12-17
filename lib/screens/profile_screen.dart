@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
@@ -125,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (confirmed == true && mounted) {
       await context.read<AuthService>().signOut();
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/role-selection');
+        context.goNamed('role-selection');
       }
     }
   }
