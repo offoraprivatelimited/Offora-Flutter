@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../models/offer.dart';
 import '../../services/offer_service.dart';
 import '../../../services/auth_service.dart';
@@ -55,6 +57,13 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   late OfferCategory _selectedOfferCategory;
   late String _selectedBusinessCategory;
   late String _selectedCity;
+
+  // City autocomplete
+  late TextEditingController _cityController;
+  TextEditingController? _autocompleteCityController;
+  VoidCallback? _autocompleteListener;
+  List<String> _citySuggestions = [];
+  bool _loadingCities = false;
 
   // Discount fields
   late TextEditingController _percentageOffController;
@@ -114,10 +123,13 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _selectedOfferCategory = OfferCategory.product;
     _selectedBusinessCategory = '';
     _selectedCity = '';
+    _cityController = TextEditingController();
     _applicableProducts = [];
     _applicableServices = [];
     _existingImageUrls = [];
     _selectedImages = [];
+
+    _fetchCities();
 
     // If editing, populate with existing data
     if (widget.offerToEdit != null) {
@@ -136,6 +148,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _selectedOfferCategory = offer.offerCategory;
     _selectedBusinessCategory = offer.businessCategory ?? '';
     _selectedCity = offer.city ?? '';
+    _cityController.text = offer.city ?? '';
     _existingImageUrls = offer.imageUrls ?? [];
 
     if (offer.percentageOff != null) {
@@ -178,7 +191,44 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _serviceController.dispose();
     _minimumPurchaseController.dispose();
     _maxUsagePerCustomerController.dispose();
+    _cityController.dispose();
+    if (_autocompleteCityController != null && _autocompleteListener != null) {
+      _autocompleteCityController!.removeListener(_autocompleteListener!);
+      _autocompleteListener = null;
+      _autocompleteCityController = null;
+    }
     super.dispose();
+  }
+
+  Future<void> _fetchCities() async {
+    setState(() {
+      _loadingCities = true;
+    });
+    try {
+      final res =
+          await Future.delayed(const Duration(milliseconds: 500), () async {
+        return await http.post(
+          Uri.parse('https://countriesnow.space/api/v0.1/countries/cities'),
+          headers: {'Content-Type': 'application/json'},
+          body: '{"country": "India"}',
+        );
+      });
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final List<dynamic> cities = data['data'] ?? [];
+        setState(() {
+          _citySuggestions = List<String>.from(cities);
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _citySuggestions = [];
+      });
+    } finally {
+      setState(() {
+        _loadingCities = false;
+      });
+    }
   }
 
   Future<void> _pickImages() async {
@@ -718,93 +768,127 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   }
 
   Widget _buildCityDropdown() {
-    // Get user's city from their profile
-    final auth = context.read<AuthService>();
-    final userCity = auth.currentUser?.location ?? '';
-
-    // Initialize city with user's city if not already set
-    if (_selectedCity.isEmpty && userCity.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() {
-          _selectedCity = userCity;
-        });
-      });
-    }
-
     return SizedBox(
       width: double.infinity,
-      child: DropdownButtonFormField<String>(
-        initialValue: _selectedCity.isNotEmpty ? _selectedCity : null,
-        isExpanded: true,
-        decoration: InputDecoration(
-          labelText: 'Location/City',
-          hintText: 'Select your business location',
-          prefixIcon: const Icon(Icons.location_on, color: AppColors.darkBlue),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          inputDecorationTheme: InputDecorationTheme(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
-        dropdownColor: Colors.white,
-        items: _generateCityList().map((city) {
-          return DropdownMenuItem(
-            value: city,
-            child: Text(
-              city,
+        child: Autocomplete<String>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (_loadingCities || textEditingValue.text.isEmpty) {
+              return const Iterable<String>.empty();
+            }
+            return _citySuggestions.where((city) => city
+                .toLowerCase()
+                .contains(textEditingValue.text.toLowerCase()));
+          },
+          optionsViewBuilder: (context, onSelected, options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: Container(
+                  width: 300,
+                  color: Colors.white,
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    itemBuilder: (context, index) {
+                      final option = options.elementAt(index);
+                      return InkWell(
+                        onTap: () => onSelected(option),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 12.0),
+                          child: Text(
+                            option,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+          fieldViewBuilder:
+              (context, cityFieldController, focusNode, onFieldSubmitted) {
+            // Keep a single listener attached to the Autocomplete controller
+            _autocompleteCityController ??= cityFieldController;
+            // initialize content
+            if (_autocompleteCityController!.text != _cityController.text) {
+              _autocompleteCityController!.text = _cityController.text;
+              _autocompleteCityController!.selection =
+                  _cityController.selection;
+            }
+            // Attach a single listener and store it so it can be removed on dispose
+            if (_autocompleteListener == null) {
+              _autocompleteListener = () {
+                if (_autocompleteCityController != null &&
+                    _cityController.text != _autocompleteCityController!.text) {
+                  _cityController.text = _autocompleteCityController!.text;
+                  _cityController.selection =
+                      _autocompleteCityController!.selection;
+                }
+              };
+              _autocompleteCityController!.addListener(_autocompleteListener!);
+            }
+            return TextFormField(
+              controller: cityFieldController,
+              focusNode: focusNode,
               style: const TextStyle(color: Colors.black),
-            ),
-          );
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            _selectedCity = value ?? '';
-          });
-        },
-        validator: (value) =>
-            value == null || value.isEmpty ? 'Please select a city' : null,
+              decoration: InputDecoration(
+                labelText: 'Location/City',
+                hintText: 'Start typing to search cities',
+                prefixIcon: const Icon(Icons.location_city_outlined,
+                    color: AppColors.darkBlue),
+                filled: true,
+                fillColor: Colors.white,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: AppColors.darkBlue, width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a city';
+                }
+                return null;
+              },
+            );
+          },
+          onSelected: (String selection) {
+            setState(() {
+              _selectedCity = selection;
+              _cityController.text = selection;
+            });
+          },
+        ),
       ),
     );
-  }
-
-  List<String> _generateCityList() {
-    // List of major Indian cities
-    return [
-      'Andhra Pradesh',
-      'Arunachal Pradesh',
-      'Assam',
-      'Bihar',
-      'Chhattisgarh',
-      'Goa',
-      'Gujarat',
-      'Haryana',
-      'Himachal Pradesh',
-      'Jharkhand',
-      'Karnataka',
-      'Kerala',
-      'Madhya Pradesh',
-      'Maharashtra',
-      'Manipur',
-      'Meghalaya',
-      'Mizoram',
-      'Nagaland',
-      'Odisha',
-      'Punjab',
-      'Rajasthan',
-      'Sikkim',
-      'Tamil Nadu',
-      'Telangana',
-      'Tripura',
-      'Uttar Pradesh',
-      'Uttarakhand',
-      'West Bengal',
-      'Chandigarh',
-      'Delhi',
-      'Ladakh',
-      'Lakshadweep',
-      'Puducherry',
-      'Andaman and Nicobar Islands',
-      'Dadra and Nagar Haveli',
-      'Daman and Diu',
-    ]..sort();
   }
 
   Widget _buildPercentageDiscountSection() {

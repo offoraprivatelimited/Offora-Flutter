@@ -266,13 +266,18 @@ class AuthService extends ChangeNotifier {
           'isVerified': false,
         };
 
-        // Save to clients/pending/clients/{uid} (hierarchical structure)
-        await FirebaseFirestore.instance
-            .collection('clients')
-            .doc('pending')
-            .collection('clients')
-            .doc(user.uid)
-            .set(clientData);
+        // Save to both locations for consistency:
+        // 1. Save to users/{uid} for primary user lookup
+        // 2. Save to clients/pending/clients/{uid} for approval workflow
+        await Future.wait([
+          _firestore.collection('users').doc(user.uid).set(clientData),
+          _firestore
+              .collection('clients')
+              .doc('pending')
+              .collection('clients')
+              .doc(user.uid)
+              .set(clientData),
+        ]);
 
         await _loadUserFromFirestore(user.uid);
         _loggedIn = true;
