@@ -50,6 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _bannerPageController.dispose();
     _autoScrollTimer?.cancel();
     _categoryScrollController.dispose();
+    _searchController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -57,6 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _categoryScrollController = ScrollController();
   Timer? _autoScrollTimer;
   bool _isAutoScrolling = true;
+  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  String _searchQuery = '';
+  String _locationQuery = '';
 
   final List<Map<String, dynamic>> _categories = [
     {
@@ -655,10 +661,136 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
+            // Search Bars Section
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Column(
+                  children: [
+                    // Location Search Bar
+                    TextField(
+                      controller: _locationController,
+                      onChanged: (value) {
+                        setState(() => _locationQuery = value.toLowerCase());
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search by location, city, or area...',
+                        hintStyle: const TextStyle(
+                          color: Color(0xFF999999),
+                          fontSize: 14,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.location_on_outlined,
+                          color: AppColors.darkBlue,
+                          size: 20,
+                        ),
+                        suffixIcon: _locationQuery.isNotEmpty
+                            ? GestureDetector(
+                                onTap: () {
+                                  _locationController.clear();
+                                  setState(() => _locationQuery = '');
+                                },
+                                child: const Icon(
+                                  Icons.clear,
+                                  color: AppColors.darkBlue,
+                                  size: 18,
+                                ),
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.darkBlue,
+                            width: 1.5,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Category Search Bar
+                    TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        setState(() => _searchQuery = value.toLowerCase());
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search offers, deals, or categories...',
+                        hintStyle: const TextStyle(
+                          color: Color(0xFF999999),
+                          fontSize: 14,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: AppColors.darkBlue,
+                          size: 20,
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? GestureDetector(
+                                onTap: () {
+                                  _searchController.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                                child: const Icon(
+                                  Icons.clear,
+                                  color: AppColors.darkBlue,
+                                  size: 18,
+                                ),
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.darkBlue,
+                            width: 1.5,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             // Offers Section Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
                 child: Row(
                   children: [
                     Container(
@@ -744,19 +876,46 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     final offers = snapshot.data ?? [];
 
-                    // Filter by category
-                    final filteredOffers = _selectedCategory == null
-                        ? offers
-                        : offers.where((offer) {
-                            final client = offer.client;
-                            final businessCategory = client != null &&
-                                    client['businessCategory'] != null
+                    // Filter by category, search query, and location
+                    final filteredOffers = offers.where((offer) {
+                      // Category filter
+                      if (_selectedCategory != null) {
+                        final client = offer.client;
+                        final businessCategory =
+                            client != null && client['businessCategory'] != null
                                 ? client['businessCategory'].toString()
                                 : null;
-                            return businessCategory != null &&
-                                businessCategory.toLowerCase() ==
-                                    _selectedCategory!.toLowerCase();
-                          }).toList();
+                        if (businessCategory == null ||
+                            businessCategory.toLowerCase() !=
+                                _selectedCategory!.toLowerCase()) {
+                          return false;
+                        }
+                      }
+
+                      // Search query filter
+                      if (_searchQuery.isNotEmpty) {
+                        final searchableText =
+                            '${offer.title} ${offer.description} ${offer.client?['businessName'] ?? ''}'
+                                .toLowerCase();
+                        if (!searchableText.contains(_searchQuery)) {
+                          return false;
+                        }
+                      }
+
+                      // Location filter
+                      if (_locationQuery.isNotEmpty) {
+                        final client = offer.client;
+                        final businessLocation =
+                            client != null && client['location'] != null
+                                ? client['location'].toString().toLowerCase()
+                                : '';
+                        if (!businessLocation.contains(_locationQuery)) {
+                          return false;
+                        }
+                      }
+
+                      return true;
+                    }).toList();
 
                     if (filteredOffers.isEmpty) {
                       return Center(

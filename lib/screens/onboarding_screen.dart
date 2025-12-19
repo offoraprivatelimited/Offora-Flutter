@@ -108,92 +108,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // Decorative orange circles
-            Positioned(
-              top: -80,
-              right: -80,
-              child: Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      onboardingGold.withOpacity(0.12),
-                      onboardingGold.withOpacity(0.05),
-                      Colors.transparent
-                    ],
-                    stops: const [0, 0.6, 1],
-                  ),
-                ),
-              ),
-            ),
-
-            Positioned(
-              bottom: -120,
-              left: -80,
-              child: Container(
-                width: 320,
-                height: 320,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      loginBlue.withOpacity(0.08),
-                      loginBlue.withOpacity(0.03),
-                      Colors.transparent
-                    ],
-                    stops: const [0, 0.6, 1],
-                  ),
-                ),
-              ),
-            ),
-
-            // Floating geometric shapes
-            Positioned(
-              right: 40,
-              top: MediaQuery.of(context).size.height * 0.25,
-              child: Transform.rotate(
-                angle: 15 * 3.14159 / 180,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    gradient: LinearGradient(
-                      colors: [
-                        onboardingGold.withOpacity(0.1),
-                        onboardingGold.withOpacity(0.05),
-                      ],
-                    ),
-                    border: Border.all(
-                      color: onboardingGold.withOpacity(0.15),
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            Positioned(
-              left: 30,
-              top: MediaQuery.of(context).size.height * 0.15,
-              child: Transform.rotate(
-                angle: -20 * 3.14159 / 180,
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: onboardingGold.withOpacity(0.2),
-                      width: 2,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
             Column(
               children: [
                 // Premium Logo Header
@@ -457,11 +371,12 @@ class _Slide extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Enhanced Icon Container with floating effect
               Container(
-                width: 90,
-                height: 90,
+                width: 80,
+                height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
@@ -471,16 +386,16 @@ class _Slide extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: accentColor.withOpacity(0.2),
-                      blurRadius: 16,
-                      offset: const Offset(0, 8),
+                      color: accentColor.withOpacity(0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Center(
                   child: Container(
-                    width: 70,
-                    height: 70,
+                    width: 62,
+                    height: 62,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withOpacity(0.08),
@@ -489,7 +404,7 @@ class _Slide extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
 
               // Title with decorative underline
               Column(
@@ -498,16 +413,16 @@ class _Slide extends StatelessWidget {
                     title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF1A1A1A),
-                      letterSpacing: -0.6,
+                      letterSpacing: -0.5,
                       height: 1.1,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Container(
-                    width: 32,
+                    width: 28,
                     height: 2,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -518,19 +433,21 @@ class _Slide extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
               // Subtitle with improved typography
               Text(
                 subtitle,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w400,
                   color: Color(0xFF666666),
-                  height: 1.4,
+                  height: 1.35,
                   letterSpacing: -0.1,
                 ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
