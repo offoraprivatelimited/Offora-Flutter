@@ -417,7 +417,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     if (confirmed != true) return;
                     await authService.signOut();
                     if (!mounted) return;
-                    context.goNamed('auth-gate');
+                    context.goNamed('role-selection');
                   },
                   icon: const Icon(Icons.logout, color: Color(0xFF1F477D)),
                   label: const Text('Logout',

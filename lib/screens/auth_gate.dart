@@ -74,7 +74,7 @@ class AuthGate extends StatelessWidget {
       // Convert route names to GoRouter names
       String goRouterName = routeName;
       if (routeName == '/main' || routeName.startsWith(MainScreen.routeName)) {
-        goRouterName = 'explore'; // Default to explore tab
+        goRouterName = 'home'; // Default to home tab
       } else if (routeName.startsWith('/client')) {
         goRouterName = 'client-dashboard';
       } else if (routeName == '/pending-approval') {

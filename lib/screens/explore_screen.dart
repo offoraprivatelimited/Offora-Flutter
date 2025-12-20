@@ -26,13 +26,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((offer) {
-        return offer.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            offer.description
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase()) ||
-            (offer.client?['businessName'] ?? '')
-                .toLowerCase()
-                .contains(_searchQuery.toLowerCase());
+        final searchableText =
+            '${offer.title} ${offer.description} ${offer.client?['businessName'] ?? ''} ${offer.city ?? ''} ${offer.client?['location'] ?? ''}'
+                .toLowerCase();
+        return searchableText.contains(_searchQuery.toLowerCase());
       }).toList();
     }
 
@@ -87,74 +84,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       color: AppColors.darkBlue,
                       fontWeight: FontWeight.bold,
                     ),
-              ),
-            ),
-          ),
-
-          // Search bar
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: TextField(
-                controller: _searchController,
-                cursorColor: AppColors.darkBlue,
-                style: const TextStyle(
-                  color: AppColors.darkBlue,
-                  fontWeight: FontWeight.w600,
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search offers...',
-                  hintStyle: TextStyle(
-                    color: AppColors.darkBlue.withOpacity(0.55),
-                    fontWeight: FontWeight.w500,
-                  ),
-                  prefixIcon:
-                      const Icon(Icons.search, color: AppColors.darkBlue),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear,
-                              color: AppColors.darkBlue),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _searchQuery = '';
-                            });
-                          },
-                        )
-                      : null,
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppColors.darkBlue,
-                      width: 1.2,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: AppColors.darkBlue.withOpacity(0.35),
-                      width: 1.1,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppColors.darkBlue,
-                      width: 1.5,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
               ),
             ),
           ),

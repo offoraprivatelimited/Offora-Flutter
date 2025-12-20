@@ -14,56 +14,63 @@ class RoleSelectionScreen extends StatelessWidget {
     const brightGold = Color(0xFFF0B84D);
     const darkerGold = Color(0xFFA3834D);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final maxWidth = constraints.maxWidth;
-            final maxHeight = constraints.maxHeight;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        // Prevent back navigation
+        if (didPop) return;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxWidth = constraints.maxWidth;
+              final maxHeight = constraints.maxHeight;
 
-            // Simple breakpoint for desktop / large screens
-            final bool isDesktop = maxWidth >= 900;
+              // Simple breakpoint for desktop / large screens
+              final bool isDesktop = maxWidth >= 900;
 
-            Widget content = _RoleSelectionContent(
-              darkBlue: darkBlue,
-              brightGold: brightGold,
-              darkerGold: darkerGold,
-              maxHeight: maxHeight,
-            );
-
-            if (isDesktop) {
-              // Center a fixed-width card on desktop so it looks good in wide view
-              return Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: 520,
-                    maxHeight: 720,
-                  ),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 40,
-                          offset: const Offset(0, 24),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(32),
-                      child: content,
-                    ),
-                  ),
-                ),
+              Widget content = _RoleSelectionContent(
+                darkBlue: darkBlue,
+                brightGold: brightGold,
+                darkerGold: darkerGold,
+                maxHeight: maxHeight,
               );
-            }
 
-            // Mobile / tablet full-screen
-            return content;
-          },
+              if (isDesktop) {
+                // Center a fixed-width card on desktop so it looks good in wide view
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: 520,
+                      maxHeight: 720,
+                    ),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 40,
+                            offset: const Offset(0, 24),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(32),
+                        child: content,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              // Mobile / tablet full-screen
+              return content;
+            },
+          ),
         ),
       ),
     );
