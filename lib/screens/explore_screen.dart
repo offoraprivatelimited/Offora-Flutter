@@ -27,7 +27,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((offer) {
         final searchableText =
-            '${offer.title} ${offer.description} ${offer.client?['businessName'] ?? ''} ${offer.city ?? ''} ${offer.client?['location'] ?? ''}'
+            '${offer.title} ${offer.description} ${offer.client?['businessName'] ?? ''} ${offer.client?['location'] ?? ''}'
                 .toLowerCase();
         return searchableText.contains(_searchQuery.toLowerCase());
       }).toList();
@@ -84,6 +84,59 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       color: AppColors.darkBlue,
                       fontWeight: FontWeight.bold,
                     ),
+              ),
+            ),
+          ),
+
+          // Search Bar
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search offers, stores, categories...',
+                  hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  prefixIcon:
+                      const Icon(Icons.search, color: AppColors.darkBlue),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear,
+                              color: AppColors.darkBlue),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppColors.darkBlue,
+                      width: 1.1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppColors.darkBlue,
+                      width: 1.5,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
               ),
             ),
           ),

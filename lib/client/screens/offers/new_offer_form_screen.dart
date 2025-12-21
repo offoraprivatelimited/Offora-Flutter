@@ -326,6 +326,14 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
       return;
     }
 
+    // Validate that dates are selected
+    if (_selectedStartDate == null || _selectedEndDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select both start and end dates')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -502,41 +510,83 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Header Section
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkBlue.withAlpha(20),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.offerToEdit == null
+                              ? '✨ Create New Offer'
+                              : '✏️ Edit Offer',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.darkBlue,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Fill in all required fields (*) to create your offer',
+                          style:
+                              TextStyle(color: Colors.grey[600], fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
                   // Basic Information Section
-                  _buildSectionTitle('Basic Information'),
+                  _buildSectionTitle('📋 Basic Details'),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tell customers what you\'re offering',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
                   const SizedBox(height: 16),
                   PremiumTextField(
                     controller: _titleController,
-                    labelText: 'Offer Title',
-                    hintText: 'e.g., Summer Sale',
+                    labelText: 'Offer Title *',
+                    hintText: 'e.g., 50% Off Laptops, Buy 1 Get 1 Free',
                     prefixIcon: Icons.title,
-                    validator: (value) =>
-                        value?.isEmpty ?? true ? 'Title is required' : null,
+                    validator: (value) => value?.isEmpty ?? true
+                        ? 'Please enter offer title'
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   PremiumTextField(
                     controller: _descriptionController,
-                    labelText: 'Description',
-                    hintText: 'Describe your offer in detail',
+                    labelText: 'Description *',
+                    hintText:
+                        'What\'s included? Example: Valid on winter clothes, excludes sale items',
                     prefixIcon: Icons.description,
                     maxLines: 4,
                     validator: (value) => value?.isEmpty ?? true
-                        ? 'Description is required'
+                        ? 'Please describe the offer'
                         : null,
                   ),
                   const SizedBox(height: 16),
                   PremiumTextField(
                     controller: _originalPriceController,
-                    labelText: 'Original Price',
+                    labelText: 'Original Price *',
+                    hintText: 'Regular price before discount',
                     prefixIcon: Icons.currency_rupee,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     validator: (value) {
                       if (value?.isEmpty ?? true) {
-                        return 'Required';
+                        return 'Enter the original price';
                       }
                       if (double.tryParse(value!) == null) {
-                        return 'Invalid price';
+                        return 'Enter valid price (e.g., 999.50)';
                       }
                       return null;
                     },
@@ -544,7 +594,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                   const SizedBox(height: 24),
 
                   // Offer Type Section
-                  _buildSectionTitle('Offer Type'),
+                  _buildSectionTitle('💰 How Much Discount?'),
                   const SizedBox(height: 16),
                   _buildOfferTypeDropdown(),
                   const SizedBox(height: 24),
@@ -566,23 +616,29 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                   const SizedBox(height: 24),
 
                   // Offer Category
-                  _buildSectionTitle('Offer Category'),
+                  _buildSectionTitle('📂 What Type of Offer?'),
                   const SizedBox(height: 16),
                   _buildOfferCategoryDropdown(),
                   const SizedBox(height: 24),
 
                   // Location Section
-                  _buildSectionTitle('Location'),
+                  _buildSectionTitle('📍 Where is Your Shop?'),
                   const SizedBox(height: 16),
                   _buildCityDropdown(),
                   const SizedBox(height: 24),
 
                   // Additional Options
-                  _buildSectionTitle('Additional Options'),
+                  _buildSectionTitle('⚙️ Extra Rules (Optional)'),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Add conditions for your offer',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
                   const SizedBox(height: 16),
                   PremiumTextField(
                     controller: _minimumPurchaseController,
-                    labelText: 'Minimum Purchase Amount (Optional)',
+                    labelText: 'Minimum Purchase Amount',
+                    hintText: 'Customer must buy at least this (e.g., 500)',
                     prefixIcon: Icons.shopping_cart,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
@@ -598,7 +654,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                   const SizedBox(height: 16),
                   PremiumTextField(
                     controller: _maxUsagePerCustomerController,
-                    labelText: 'Max Usage Per Customer (Optional)',
+                    labelText: 'How Many Times Can Customer Use?',
+                    hintText: 'Maximum times per customer (e.g., 1, 2, 5)',
                     prefixIcon: Icons.person,
                     keyboardType: TextInputType.number,
                     validator: (value) {
@@ -613,8 +670,33 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                   const SizedBox(height: 24),
 
                   // Date Section
-                  _buildSectionTitle('Offer Validity'),
-                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text(
+                        '📅 When is the Offer Active?',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.darkBlue,
+                                ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '*',
+                        style: TextStyle(
+                          color: Colors.red.shade600,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Select start and end dates',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
@@ -622,10 +704,12 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                           onPressed: () => _selectDate(true),
                           icon: const Icon(Icons.calendar_today),
                           label: Text(_selectedStartDate == null
-                              ? 'Start Date'
+                              ? 'Pick Start Date'
                               : _selectedStartDate!.toString().split(' ')[0]),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.brightGold,
+                            backgroundColor: _selectedStartDate == null
+                                ? Colors.red.shade100
+                                : AppColors.brightGold,
                             foregroundColor: AppColors.darkBlue,
                           ),
                         ),
@@ -636,10 +720,12 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                           onPressed: () => _selectDate(false),
                           icon: const Icon(Icons.calendar_today),
                           label: Text(_selectedEndDate == null
-                              ? 'End Date'
+                              ? 'Pick End Date'
                               : _selectedEndDate!.toString().split(' ')[0]),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.brightGold,
+                            backgroundColor: _selectedEndDate == null
+                                ? Colors.red.shade100
+                                : AppColors.brightGold,
                             foregroundColor: AppColors.darkBlue,
                           ),
                         ),
@@ -649,18 +735,24 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                   const SizedBox(height: 24),
 
                   // Terms & Conditions
-                  _buildSectionTitle('Terms & Conditions (Optional)'),
-                  const SizedBox(height: 16),
+                  _buildSectionTitle('📝 Rules & Restrictions (Optional)'),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Any special conditions customers should know',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 12),
                   PremiumTextField(
                     controller: _termsController,
                     labelText: 'Terms & Conditions',
-                    hintText: 'Add any terms or conditions for this offer',
+                    hintText:
+                        'Example: Not valid with other offers, Only for registered members',
                     maxLines: 4,
                   ),
                   const SizedBox(height: 24),
 
                   // Images Section
-                  _buildSectionTitle('Offer Images'),
+                  _buildSectionTitle('🖼️ Add Photos'),
                   const SizedBox(height: 16),
                   ImagePreviewWidget(
                     existingImageUrls: _existingImageUrls,
@@ -710,7 +802,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         initialValue: _selectedOfferType,
         isExpanded: true,
         decoration: InputDecoration(
-          labelText: 'Select Offer Type',
+          labelText: 'Select Discount Type *',
+          hintText: 'Choose how customers save',
           prefixIcon: const Icon(Icons.local_offer, color: AppColors.darkBlue),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -742,7 +835,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         initialValue: _selectedOfferCategory,
         isExpanded: true,
         decoration: InputDecoration(
-          labelText: 'Select Category',
+          labelText: 'Are You Selling Products or Services? *',
+          hintText: 'Products (like clothes) or Services (like haircut)',
           prefixIcon: const Icon(Icons.category, color: AppColors.darkBlue),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -848,8 +942,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
               focusNode: focusNode,
               style: const TextStyle(color: Colors.black),
               decoration: InputDecoration(
-                labelText: 'Location/City',
-                hintText: 'Start typing to search cities',
+                labelText: 'City/Town *',
+                hintText: 'Type city name (e.g., Mumbai, Delhi, Bangalore)',
                 prefixIcon: const Icon(Icons.location_city_outlined,
                     color: AppColors.darkBlue),
                 filled: true,
