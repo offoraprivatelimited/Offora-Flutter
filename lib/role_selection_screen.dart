@@ -197,7 +197,7 @@ class _RoleSelectionContent extends StatelessWidget {
                               'Discover and save the best local deals as a user.',
                           buttonText: 'Continue as User',
                           onPressed: () {
-                            context.goNamed('user-login');
+                            context.pushReplacementNamed('user-login');
                           },
                         ),
                         const SizedBox(height: 12),
@@ -208,7 +208,7 @@ class _RoleSelectionContent extends StatelessWidget {
                               'Manage your shop and publish exclusive offers.',
                           buttonText: 'Continue as Shop Owner',
                           onPressed: () {
-                            context.goNamed('client-login');
+                            context.pushReplacementNamed('client-login');
                           },
                         ),
                       ],

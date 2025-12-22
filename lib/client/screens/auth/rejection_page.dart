@@ -17,7 +17,8 @@ class _RejectionPageState extends State<RejectionPage> {
   Future<void> _signOut() async {
     await context.read<AuthService>().signOut();
     if (!mounted) return;
-    context.goNamed('client-login');
+    // Use go() instead of goNamed to clear the entire navigation stack
+    context.go('/role-selection');
   }
 
   @override

@@ -126,7 +126,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (confirmed == true && mounted) {
       await context.read<AuthService>().signOut();
       if (mounted) {
-        context.goNamed('role-selection');
+        // Use go() instead of pushReplacementNamed to clear the entire navigation stack
+        context.go('/role-selection');
       }
     }
   }

@@ -219,7 +219,8 @@ class SettingsScreen extends StatelessWidget {
                           if (confirmed == true && context.mounted) {
                             await context.read<AuthService>().signOut();
                             if (context.mounted) {
-                              context.goNamed('user-login');
+                              // Use go() instead of goNamed to clear the entire navigation stack
+                              context.go('/role-selection');
                             }
                           }
                         },

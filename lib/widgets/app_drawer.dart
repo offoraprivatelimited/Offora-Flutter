@@ -239,7 +239,8 @@ class AppDrawer extends StatelessWidget {
                     if (confirmed == true && context.mounted) {
                       await context.read<AuthService>().signOut();
                       if (context.mounted) {
-                        context.goNamed('role-selection');
+                        // Use go() instead of pushReplacementNamed to clear the entire navigation stack
+                        context.go('/role-selection');
                       }
                     }
                   },

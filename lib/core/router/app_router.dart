@@ -69,6 +69,23 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     initialLocation: '/',
+    // Custom handling for back button on the whole app
+    redirect: _redirectLogic,
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Page not found'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => context.go('/'),
+              child: const Text('Go Home'),
+            ),
+          ],
+        ),
+      ),
+    ),
     routes: [
       // ============ AUTH ROUTES ============
       GoRoute(
@@ -109,30 +126,39 @@ class AppRouter {
       ),
 
       // ============ USER ROUTES ============
-      GoRoute(
-        path: '/home',
-        name: 'home',
-        builder: (context, state) => const MainScreen(initialIndex: 0),
-      ),
-      GoRoute(
-        path: '/explore',
-        name: 'explore',
-        builder: (context, state) => const MainScreen(initialIndex: 1),
-      ),
-      GoRoute(
-        path: '/compare',
-        name: 'compare',
-        builder: (context, state) => const MainScreen(initialIndex: 2),
-      ),
-      GoRoute(
-        path: '/saved',
-        name: 'saved',
-        builder: (context, state) => const MainScreen(initialIndex: 3),
-      ),
-      GoRoute(
-        path: '/profile',
-        name: 'profile',
-        builder: (context, state) => const MainScreen(initialIndex: 4),
+      // Main app shell for logged in users - prevents back navigation to login
+      ShellRoute(
+        builder: (context, state, child) {
+          // Return child directly - the child will be one of the MainScreen routes
+          return child;
+        },
+        routes: [
+          GoRoute(
+            path: '/home',
+            name: 'home',
+            builder: (context, state) => const MainScreen(initialIndex: 0),
+          ),
+          GoRoute(
+            path: '/explore',
+            name: 'explore',
+            builder: (context, state) => const MainScreen(initialIndex: 1),
+          ),
+          GoRoute(
+            path: '/compare',
+            name: 'compare',
+            builder: (context, state) => const MainScreen(initialIndex: 2),
+          ),
+          GoRoute(
+            path: '/saved',
+            name: 'saved',
+            builder: (context, state) => const MainScreen(initialIndex: 3),
+          ),
+          GoRoute(
+            path: '/profile',
+            name: 'profile',
+            builder: (context, state) => const MainScreen(initialIndex: 4),
+          ),
+        ],
       ),
       GoRoute(
         path: '/offer-details',
@@ -183,51 +209,58 @@ class AppRouter {
         builder: (context, state) => const client.RejectionPage(),
       ),
 
-      // Client Dashboard Routes
-      GoRoute(
-        path: '/client-dashboard',
-        name: 'client-dashboard',
-        builder: (context, state) => const client.ClientMainScreen(
-          initialIndex: 1,
-        ),
-      ),
-      GoRoute(
-        path: '/client-add',
-        name: 'client-add',
-        builder: (context, state) => const client.ClientMainScreen(
-          initialIndex: 0,
-        ),
-      ),
-      GoRoute(
-        path: '/client-manage',
-        name: 'client-manage',
-        builder: (context, state) => const client.ClientMainScreen(
-          initialIndex: 1,
-        ),
-      ),
-      GoRoute(
-        path: '/client-enquiries',
-        name: 'client-enquiries',
-        builder: (context, state) => const client.ClientMainScreen(
-          initialIndex: 2,
-        ),
-      ),
-      GoRoute(
-        path: '/client-profile',
-        name: 'client-profile',
-        builder: (context, state) => const client.ClientMainScreen(
-          initialIndex: 3,
-        ),
-      ),
-      GoRoute(
-        path: '/new-offer',
-        name: 'new-offer',
-        builder: (context, state) => const client.NewOfferFormScreen(),
-      ),
-      GoRoute(
-        path: '/manage-offers',
-        name: 'manage-offers',
-        builder: (context, state) => const client.ManageOffersScreen(),
+      // Client Dashboard Routes - use ShellRoute to prevent back to auth
+      ShellRoute(
+        builder: (context, state, child) {
+          return child;
+        },
+        routes: [
+          GoRoute(
+            path: '/client-dashboard',
+            name: 'client-dashboard',
+            builder: (context, state) => const client.ClientMainScreen(
+              initialIndex: 1,
+            ),
+          ),
+          GoRoute(
+            path: '/client-add',
+            name: 'client-add',
+            builder: (context, state) => const client.ClientMainScreen(
+              initialIndex: 0,
+            ),
+          ),
+          GoRoute(
+            path: '/client-manage',
+            name: 'client-manage',
+            builder: (context, state) => const client.ClientMainScreen(
+              initialIndex: 1,
+            ),
+          ),
+          GoRoute(
+            path: '/client-enquiries',
+            name: 'client-enquiries',
+            builder: (context, state) => const client.ClientMainScreen(
+              initialIndex: 2,
+            ),
+          ),
+          GoRoute(
+            path: '/client-profile',
+            name: 'client-profile',
+            builder: (context, state) => const client.ClientMainScreen(
+              initialIndex: 3,
+            ),
+          ),
+          GoRoute(
+            path: '/new-offer',
+            name: 'new-offer',
+            builder: (context, state) => const client.NewOfferFormScreen(),
+          ),
+          GoRoute(
+            path: '/manage-offers',
+            name: 'manage-offers',
+            builder: (context, state) => const client.ManageOffersScreen(),
+          ),
+        ],
       ),
 
       // ============ INFO ROUTES ============
@@ -282,5 +315,24 @@ class AppRouter {
     }
 
     return null;
+  }
+
+  /// Clear the entire navigation stack and go to role selection after logout
+  /// This prevents back button from returning to logged-in screens
+  static void clearAndNavigateToRoleSelection(BuildContext context) {
+    // Clear entire navigation history by using go instead of push
+    context.go('/role-selection');
+  }
+
+  /// Clear the entire navigation stack and go to home after login
+  /// This prevents back button from returning to login screens
+  static void clearAndNavigateToHome(BuildContext context) {
+    context.go('/home');
+  }
+
+  /// Clear the entire navigation stack and go to client dashboard after login
+  /// This prevents back button from returning to login screens
+  static void clearAndNavigateToClientDashboard(BuildContext context) {
+    context.go('/client-dashboard');
   }
 }

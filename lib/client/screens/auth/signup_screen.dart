@@ -176,11 +176,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
       // Route based on approval stage
       if (auth.stage == ClientPanelStage.pendingApproval) {
-        context.goNamed('pending-approval');
+        context.pushReplacementNamed('pending-approval');
       } else if (auth.stage == ClientPanelStage.active) {
-        context.goNamed('client-dashboard');
+        context.pushReplacementNamed('client-dashboard');
       } else if (auth.stage == ClientPanelStage.rejected) {
-        context.goNamed('rejection');
+        context.pushReplacementNamed('rejection');
       }
     } catch (e) {
       if (!mounted) return;

@@ -71,18 +71,9 @@ class AuthGate extends StatelessWidget {
   /// Build a screen that transitions to the target route once mounted
   Widget _buildTransitionScreen(BuildContext context, String routeName) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Convert route names to GoRouter names
-      String goRouterName = routeName;
-      if (routeName == '/main' || routeName.startsWith(MainScreen.routeName)) {
-        goRouterName = 'home'; // Default to home tab
-      } else if (routeName.startsWith('/client')) {
-        goRouterName = 'client-dashboard';
-      } else if (routeName == '/pending-approval') {
-        goRouterName = 'pending-approval';
-      } else if (routeName == '/rejection') {
-        goRouterName = 'rejection';
-      }
-      context.goNamed(goRouterName);
+      // Use go() to replace the route and clear navigation stack
+      // This prevents back button from returning to auth screens
+      context.go(routeName);
     });
 
     return const Scaffold(

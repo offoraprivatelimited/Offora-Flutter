@@ -18,6 +18,7 @@ class ExploreScreen extends StatefulWidget {
 class _ExploreScreenState extends State<ExploreScreen> {
   String _searchQuery = '';
   String? _selectedCity;
+  String? _selectedCategory;
   String _sortBy = 'newest'; // newest, discount, price
   final TextEditingController _searchController = TextEditingController();
 
@@ -27,7 +28,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((offer) {
         final searchableText =
-            '${offer.title} ${offer.description} ${offer.client?['businessName'] ?? ''} ${offer.client?['location'] ?? ''}'
+            '${offer.title} ${offer.description} ${offer.client?['businessName'] ?? ''} ${offer.client?['location'] ?? ''} ${offer.city ?? ''}'
                 .toLowerCase();
         return searchableText.contains(_searchQuery.toLowerCase());
       }).toList();
@@ -37,6 +38,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
       filtered = filtered.where((offer) {
         final offerCity = offer.city ?? '';
         return offerCity.toLowerCase() == _selectedCity!.toLowerCase();
+      }).toList();
+    }
+
+    if (_selectedCategory != null) {
+      filtered = filtered.where((offer) {
+        final offerCategory = offer.businessCategory ?? '';
+        return offerCategory.toLowerCase() == _selectedCategory!.toLowerCase();
       }).toList();
     }
 
@@ -94,6 +102,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: TextField(
                 controller: _searchController,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 14,
+                ),
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value;
@@ -148,24 +160,34 @@ class _ExploreScreenState extends State<ExploreScreen> {
               builder: (context, snapshot) {
                 final allOffers = snapshot.data ?? [];
                 final cities = <String>{};
+                final categories = <String>{'All Categories'};
                 for (final offer in allOffers) {
                   if (offer.city != null && offer.city!.isNotEmpty) {
                     cities.add(offer.city!);
                   }
+                  if (offer.businessCategory != null &&
+                      offer.businessCategory!.isNotEmpty) {
+                    categories.add(offer.businessCategory!);
+                  }
                 }
                 final sortedCities = cities.toList()..sort();
+                final sortedCategories = categories.toList()..sort();
 
                 return SortFilterBar(
                   currentSortBy: _sortBy,
+                  selectedCategory: _selectedCategory,
                   selectedCity: _selectedCity,
                   onSortChanged: (value) {
                     setState(() => _sortBy = value);
                   },
-                  onCategoryChanged: (value) {},
+                  onCategoryChanged: (value) {
+                    setState(() => _selectedCategory = value);
+                  },
                   onCityChanged: (value) {
                     setState(() => _selectedCity = value);
                   },
                   availableCities: sortedCities,
+                  availableCategories: sortedCategories,
                 );
               },
             ),

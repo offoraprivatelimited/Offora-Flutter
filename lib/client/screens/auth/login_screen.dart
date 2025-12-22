@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
         '[LoginScreen] Back button pressed - attempting to navigate to role selection');
 
     try {
-      context.goNamed('role-selection');
+      context.pushReplacementNamed('role-selection');
       debugPrint('[LoginScreen] ✓ Successfully navigated to role selection');
     } catch (e) {
       debugPrint('[LoginScreen] ✗ Error navigating to role selection: $e');
@@ -64,11 +64,11 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (auth.stage == ClientPanelStage.active) {
-        context.goNamed('client-dashboard');
+        context.pushReplacementNamed('client-dashboard');
       } else if (auth.stage == ClientPanelStage.pendingApproval) {
-        context.goNamed('pending-approval');
+        context.pushReplacementNamed('pending-approval');
       } else if (auth.stage == ClientPanelStage.rejected) {
-        context.goNamed('rejection');
+        context.pushReplacementNamed('rejection');
       }
     });
   }

@@ -303,48 +303,95 @@ class _SortFilterBarState extends State<SortFilterBar> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: DropdownButton<String>(
-                  isExpanded: true,
-                  value: _cityController.text.isEmpty
-                      ? null
-                      : _cityController.text,
-                  hint: const Row(
-                    children: [
-                      Icon(Icons.location_city_outlined,
-                          color: AppColors.darkBlue, size: 18),
-                      SizedBox(width: 8),
-                      Text(
-                        'Select Location',
-                        style: TextStyle(
+                child: Autocomplete<String>(
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text.isEmpty) {
+                      return const Iterable<String>.empty();
+                    }
+                    return _citySuggestions.where((city) => city
+                        .toLowerCase()
+                        .contains(textEditingValue.text.toLowerCase()));
+                  },
+                  fieldViewBuilder:
+                      (context, fieldController, focusNode, onFieldSubmitted) {
+                    return TextFormField(
+                      controller: fieldController,
+                      focusNode: focusNode,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Select Location',
+                        hintStyle: const TextStyle(
                           color: AppColors.darkBlue,
                           fontSize: 14,
                         ),
+                        prefixIcon: const Icon(
+                          Icons.location_city_outlined,
+                          color: AppColors.darkBlue,
+                          size: 18,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: AppColors.darkBlue,
+                            width: 1.1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: AppColors.darkBlue,
+                            width: 1.5,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                       ),
-                    ],
-                  ),
-                  items: _citySuggestions
-                      .map((city) => DropdownMenuItem(
-                            value: city,
-                            child: Text(city),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _cityController.text = value;
-                      });
-                      widget.onCityChanged(value);
-                    }
+                    );
                   },
-                  underline: Container(
-                    height: 1.1,
-                    color: AppColors.darkBlue,
-                  ),
-                  style: const TextStyle(
-                    color: Colors.black87,
-                    fontSize: 14,
-                  ),
-                  iconEnabledColor: AppColors.darkBlue,
+                  onSelected: (String selection) {
+                    setState(() {
+                      _cityController.text = selection;
+                    });
+                    widget.onCityChanged(selection);
+                  },
+                  optionsViewBuilder: (context, onSelected, options) {
+                    return Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        elevation: 4,
+                        child: Container(
+                          constraints: const BoxConstraints(maxHeight: 220),
+                          color: Colors.white,
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            itemCount: options.length,
+                            itemBuilder: (context, index) {
+                              final option = options.elementAt(index);
+                              return ListTile(
+                                dense: true,
+                                title: Text(
+                                  option,
+                                  style: const TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                onTap: () => onSelected(option),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

@@ -46,12 +46,12 @@ class _UserSplashScreenState extends State<UserSplashScreen>
       if (authService.isLoggedIn && authService.currentUser != null) {
         final user = authService.currentUser!;
         if (!user.isProfileComplete) {
-          context.goNamed('profile-complete');
+          context.pushReplacementNamed('profile-complete');
         } else {
-          context.goNamed('main');
+          context.pushReplacementNamed('home');
         }
       } else {
-        context.goNamed('onboarding');
+        context.pushReplacementNamed('onboarding');
       }
     });
   }
