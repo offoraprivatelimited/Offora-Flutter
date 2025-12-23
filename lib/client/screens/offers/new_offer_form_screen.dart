@@ -503,8 +503,11 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     return LoadingOverlay(
       isLoading: _isLoading,
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         body: ResponsivePage(
           child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            physics: const ClampingScrollPhysics(),
             child: Form(
               key: _formKey,
               child: Column(
@@ -807,6 +810,15 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           prefixIcon: const Icon(Icons.local_offer, color: AppColors.darkBlue),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.darkBlue, width: 2),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.darkBlue, width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.darkBlue, width: 2.5),
           ),
         ),
         dropdownColor: Colors.white,
@@ -840,6 +852,15 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           prefixIcon: const Icon(Icons.category, color: AppColors.darkBlue),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.darkBlue, width: 2),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.darkBlue, width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.darkBlue, width: 2.5),
           ),
         ),
         dropdownColor: Colors.white,

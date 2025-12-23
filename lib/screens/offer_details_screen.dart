@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
@@ -78,20 +78,35 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
   }
 
   Future<void> _checkSavedStatus() async {
-    final auth = context.read<AuthService>();
-    if (auth.currentUser == null) return;
+    try {
+      final auth = context.read<AuthService>();
+      if (auth.currentUser == null) return;
 
-    final savedService = context.read<SavedOffersService>();
-    final isSaved =
-        await savedService.isOfferSaved(auth.currentUser!.uid, widget.offer.id);
-    if (mounted) {
-      setState(() => _isSaved = isSaved);
+      final savedService = context.read<SavedOffersService>();
+      final isSaved = await savedService.isOfferSaved(
+          auth.currentUser!.uid, widget.offer.id);
+      if (mounted) {
+        setState(() => _isSaved = isSaved);
+      }
+    } catch (e) {
+      // Provider may not be available in modal context, silently ignore
+      if (kDebugMode) {
+        print('Error checking saved status: $e');
+      }
     }
   }
 
   void _checkCompareStatus() {
-    final compareService = context.read<CompareService>();
-    setState(() => _isInCompare = compareService.isInCompare(widget.offer.id));
+    try {
+      final compareService = context.read<CompareService>();
+      setState(
+          () => _isInCompare = compareService.isInCompare(widget.offer.id));
+    } catch (e) {
+      // Provider may not be available in modal context, silently ignore
+      if (kDebugMode) {
+        print('Error checking compare status: $e');
+      }
+    }
   }
 
   @override
@@ -339,16 +354,23 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: AppColors.darkBlue,
         ),
-        backgroundColor: AppColors.darkBlue,
-      ),
-    );
+      );
+    } catch (e) {
+      // If ScaffoldMessenger is not available (e.g., in modal), log and continue
+      if (kDebugMode) {
+        print('Could not show message: $e');
+      }
+    }
   }
 
   void _showFullScreenImage(List<String> images, int initialIndex) {
@@ -403,6 +425,15 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
     final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
     final discount = ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
         .toStringAsFixed(0);
+
+    // Check if we're in a modal by looking for a ScaffoldMessenger
+    final isInModal = Navigator.of(context).canPop() &&
+        ModalRoute.of(context)?.settings.name == null;
+
+    // For modals, render without Scaffold
+    if (isInModal) {
+      return _buildModalContent(screenSize, offer, images, currency, discount);
+    }
 
     // For desktop, use a two-column layout
     if (screenSize == ScreenSizeCategory.desktop) {
@@ -511,8 +542,10 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: _getContentPadding(screenSize),
+                  padding: EdgeInsets.only(
+                    left: _getContentPadding(screenSize),
+                    right: _getContentPadding(screenSize),
+                    bottom: screenSize == ScreenSizeCategory.mobile ? 100 : 32,
                   ),
                   child: _buildContentSection(offer, screenSize),
                 ),
@@ -521,6 +554,63 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildModalContent(
+    ScreenSizeCategory screenSize,
+    Offer offer,
+    List<String> images,
+    NumberFormat currency,
+    String discount,
+  ) {
+    return Container(
+      color: const Color(0xFFF8FAFD),
+      child: screenSize == ScreenSizeCategory.desktop
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left column - Image section (fixed width)
+                Expanded(
+                  flex: 1,
+                  child: _buildHeroSection(offer, images, currency, discount),
+                ),
+
+                // Right column - Content section
+                Expanded(
+                  flex: 1,
+                  child: SingleChildScrollView(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: _getContentPadding(screenSize),
+                        vertical: 16,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 600),
+                        child: _buildContentSection(offer, screenSize),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildHeroSection(offer, images, currency, discount),
+                  Container(
+                    padding: EdgeInsets.only(
+                      left: _getContentPadding(screenSize),
+                      right: _getContentPadding(screenSize),
+                      top: 16,
+                      bottom:
+                          screenSize == ScreenSizeCategory.mobile ? 100 : 32,
+                    ),
+                    child: _buildContentSection(offer, screenSize),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 

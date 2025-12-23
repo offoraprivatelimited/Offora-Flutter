@@ -69,7 +69,11 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  child: OfferDetailsContent(offer: offer),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: OfferDetailsContent(offer: offer),
+                  ),
                 ),
               ),
             ],
@@ -198,7 +202,8 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
             children: [
               // Filter chips
               Container(
-                padding: const EdgeInsets.all(16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 color: Colors.white,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -231,6 +236,7 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
                         onTap: () => setState(() => _filterStatus = 'rejected'),
                         color: Colors.red,
                       ),
+                      const SizedBox(width: 8),
                     ],
                   ),
                 ),
@@ -591,7 +597,8 @@ class _FilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        constraints: const BoxConstraints(minWidth: 75),
         decoration: BoxDecoration(
           color: isSelected ? color : Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -600,12 +607,15 @@ class _FilterChip extends StatelessWidget {
             width: 1.5,
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : color,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : color,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
