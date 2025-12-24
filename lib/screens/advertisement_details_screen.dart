@@ -194,6 +194,11 @@ class AdvertisementDetailsScreen extends StatelessWidget {
               );
             }),
           ),
+          // Add bottom padding to prevent content from being hidden behind navbar
+          const SliverPadding(
+            padding: EdgeInsets.only(bottom: 80),
+            sliver: SliverToBoxAdapter(child: SizedBox.shrink()),
+          ),
         ],
       ),
     );

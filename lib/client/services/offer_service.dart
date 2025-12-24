@@ -10,21 +10,22 @@ class OfferService {
   /// Fetch all offers uploaded by a client from their offers subcollection, with optional status filter
   Stream<List<Offer>> watchClientOffersByStatus(String clientId,
       {String? status}) {
-    final offersRef =
-        _firestore.collection('clients').doc(clientId).collection('offers');
-    return offersRef.snapshots().asyncMap((snapshot) async {
-      final offerIds = snapshot.docs.map((doc) => doc.id).toList();
-      if (offerIds.isEmpty) return <Offer>[];
+    // Path: clients/approved/{clientId}/offers
+    final offersRef = _firestore
+        .collection('clients')
+        .doc('approved')
+        .collection('clients')
+        .doc(clientId)
+        .collection('offers');
 
-      // Fetch offer docs from all status collections
-      final statuses = ['pending', 'approved', 'rejected'];
+    return offersRef.snapshots().asyncMap((snapshot) async {
       final List<Offer> offers = [];
-      for (final s in statuses) {
-        if (status != null && s != status) continue;
-        final query = await _statusCollection(s)
-            .where(FieldPath.documentId, whereIn: offerIds)
-            .get();
-        offers.addAll(query.docs.map((doc) => Offer.fromFirestore(doc)));
+      for (final doc in snapshot.docs) {
+        final offer = Offer.fromFirestore(doc);
+        // Filter by status if provided
+        if (status == null || offer.status.name == status) {
+          offers.add(offer);
+        }
       }
       return offers;
     });
@@ -43,9 +44,13 @@ class OfferService {
 
   /// Watch all offers for a specific client (across all statuses for their dashboard)
   Stream<List<Offer>> watchClientOffers(String clientId) {
-    // Query across pending offers for this client
-    return _statusCollection('pending')
-        .where('clientId', isEqualTo: clientId)
+    // Query offers from clients/approved/{clientId}/offers
+    return _firestore
+        .collection('clients')
+        .doc('approved')
+        .collection('clients')
+        .doc(clientId)
+        .collection('offers')
         .orderBy('createdAt', descending: true)
         .withConverter<Offer>(
           fromFirestore: (snapshot, _) => Offer.fromFirestore(snapshot),
@@ -174,18 +179,28 @@ class OfferService {
       rejectionReason: null,
     );
 
-    // Create offer in the pending status collection (existing structure)
-    final docRef = await _statusCollection('pending').add(toSave.toJson());
-
-    // Also store the offer in the client's offers subcollection
+    // Store in client's folder: clients/approved/{clientId}/offers/{offerId}
     if (toSave.clientId.isNotEmpty) {
-      await _firestore
+      final clientDocRef = await _firestore
+          .collection('clients')
+          .doc('approved')
           .collection('clients')
           .doc(toSave.clientId)
           .collection('offers')
-          .doc(docRef.id)
-          .set(toSave.copyWith(id: docRef.id).toJson());
+          .add(toSave.toJson());
+
+      final docId = clientDocRef.id;
+
+      // Also store in offers/pending/offers/ for admin review
+      await _statusCollection('pending')
+          .doc(docId)
+          .set(toSave.copyWith(id: docId).toJson());
+
+      return docId;
     }
+
+    // Fallback: if clientId is empty, store in pending status collection
+    final docRef = await _statusCollection('pending').add(toSave.toJson());
     return docRef.id;
   }
 

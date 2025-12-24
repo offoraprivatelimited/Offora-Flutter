@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../../models/offer.dart';
 import '../../services/offer_service.dart';
 import '../../../services/auth_service.dart';
@@ -20,6 +19,7 @@ import 'widgets/discount_fields_widgets.dart';
 import 'widgets/advanced_discount_fields_widgets.dart';
 import 'widgets/category_specific_fields_widgets.dart';
 import 'widgets/image_preview_widget.dart';
+import 'dart:convert' as convert;
 
 class NewOfferFormScreen extends StatefulWidget {
   final String? clientId;
@@ -63,7 +63,42 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   TextEditingController? _autocompleteCityController;
   VoidCallback? _autocompleteListener;
   List<String> _citySuggestions = [];
-  bool _loadingCities = false;
+
+  // Business category autocomplete
+  late TextEditingController _businessCategoryController;
+  TextEditingController? _autocompleteBusinessCategoryController;
+  VoidCallback? _autocompleteBCListener;
+  List<String> _businessCategorySuggestions = [];
+
+  // Business categories from signup
+  final List<String> _categories = const [
+    'Grocery',
+    'Supermarket',
+    'Restaurant',
+    'Cafe & Bakery',
+    'Pharmacy',
+    'Electronics',
+    'Mobile & Accessories',
+    'Fashion & Apparel',
+    'Footwear',
+    'Jewelry',
+    'Home Decor',
+    'Furniture',
+    'Hardware',
+    'Automotive',
+    'Books & Stationery',
+    'Toys & Games',
+    'Sports & Fitness',
+    'Beauty & Cosmetics',
+    'Salon & Spa',
+    'Pet Supplies',
+    'Dairy & Produce',
+    'Electronics Repair',
+    'Optical',
+    'Travel & Tours',
+    'Department Store',
+    'Other',
+  ];
 
   // Discount fields
   late TextEditingController _percentageOffController;
@@ -124,6 +159,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _selectedBusinessCategory = '';
     _selectedCity = '';
     _cityController = TextEditingController();
+    _businessCategoryController = TextEditingController();
+    _businessCategorySuggestions = _categories;
     _applicableProducts = [];
     _applicableServices = [];
     _existingImageUrls = [];
@@ -137,6 +174,30 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     }
   }
 
+  Future<void> _fetchCities() async {
+    try {
+      final res =
+          await Future.delayed(const Duration(milliseconds: 500), () async {
+        return await http.post(
+          Uri.parse('https://countriesnow.space/api/v0.1/countries/cities'),
+          headers: {'Content-Type': 'application/json'},
+          body: '{"country": "India"}',
+        );
+      });
+      if (res.statusCode == 200) {
+        final data = convert.jsonDecode(res.body);
+        final List<dynamic> cities = data['data'] ?? [];
+        setState(() {
+          _citySuggestions = List<String>.from(cities);
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _citySuggestions = [];
+      });
+    }
+  }
+
   void _populateFormWithExistingOffer(Offer offer) {
     _titleController.text = offer.title;
     _descriptionController.text = offer.description;
@@ -147,6 +208,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _selectedOfferType = offer.offerType;
     _selectedOfferCategory = offer.offerCategory;
     _selectedBusinessCategory = offer.businessCategory ?? '';
+    _businessCategoryController.text = offer.businessCategory ?? '';
     _selectedCity = offer.city ?? '';
     _cityController.text = offer.city ?? '';
     _existingImageUrls = offer.imageUrls ?? [];
@@ -192,43 +254,20 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _minimumPurchaseController.dispose();
     _maxUsagePerCustomerController.dispose();
     _cityController.dispose();
+    _businessCategoryController.dispose();
     if (_autocompleteCityController != null && _autocompleteListener != null) {
       _autocompleteCityController!.removeListener(_autocompleteListener!);
       _autocompleteListener = null;
       _autocompleteCityController = null;
     }
-    super.dispose();
-  }
-
-  Future<void> _fetchCities() async {
-    setState(() {
-      _loadingCities = true;
-    });
-    try {
-      final res =
-          await Future.delayed(const Duration(milliseconds: 500), () async {
-        return await http.post(
-          Uri.parse('https://countriesnow.space/api/v0.1/countries/cities'),
-          headers: {'Content-Type': 'application/json'},
-          body: '{"country": "India"}',
-        );
-      });
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        final List<dynamic> cities = data['data'] ?? [];
-        setState(() {
-          _citySuggestions = List<String>.from(cities);
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _citySuggestions = [];
-      });
-    } finally {
-      setState(() {
-        _loadingCities = false;
-      });
+    if (_autocompleteBusinessCategoryController != null &&
+        _autocompleteBCListener != null) {
+      _autocompleteBusinessCategoryController!
+          .removeListener(_autocompleteBCListener!);
+      _autocompleteBCListener = null;
+      _autocompleteBusinessCategoryController = null;
     }
+    super.dispose();
   }
 
   Future<void> _pickImages() async {
@@ -624,6 +663,12 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                   _buildOfferCategoryDropdown(),
                   const SizedBox(height: 24),
 
+                  // Business Category Section
+                  _buildSectionTitle('🏪 What Industry Are You In?'),
+                  const SizedBox(height: 16),
+                  _buildBusinessCategoryDropdown(),
+                  const SizedBox(height: 24),
+
                   // Location Section
                   _buildSectionTitle('📍 Where is Your Shop?'),
                   const SizedBox(height: 16),
@@ -882,6 +927,132 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     );
   }
 
+  Widget _buildBusinessCategoryDropdown() {
+    return SizedBox(
+      width: double.infinity,
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          inputDecorationTheme: InputDecorationTheme(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        child: Autocomplete<String>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text.isEmpty) {
+              return const Iterable<String>.empty();
+            }
+            return _businessCategorySuggestions.where((category) => category
+                .toLowerCase()
+                .contains(textEditingValue.text.toLowerCase()));
+          },
+          optionsViewBuilder: (context, onSelected, options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: Container(
+                  width: 300,
+                  color: Colors.white,
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    itemBuilder: (context, index) {
+                      final option = options.elementAt(index);
+                      return InkWell(
+                        onTap: () => onSelected(option),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 12.0),
+                          child: Text(
+                            option,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+          fieldViewBuilder:
+              (context, categoryFieldController, focusNode, onFieldSubmitted) {
+            _autocompleteBusinessCategoryController ??= categoryFieldController;
+            if (_autocompleteBusinessCategoryController!.text !=
+                _businessCategoryController.text) {
+              _autocompleteBusinessCategoryController!.text =
+                  _businessCategoryController.text;
+              _autocompleteBusinessCategoryController!.selection =
+                  _businessCategoryController.selection;
+            }
+            if (_autocompleteBCListener == null) {
+              _autocompleteBCListener = () {
+                if (_autocompleteBusinessCategoryController != null &&
+                    _businessCategoryController.text !=
+                        _autocompleteBusinessCategoryController!.text) {
+                  _businessCategoryController.text =
+                      _autocompleteBusinessCategoryController!.text;
+                  _businessCategoryController.selection =
+                      _autocompleteBusinessCategoryController!.selection;
+                }
+              };
+              _autocompleteBusinessCategoryController!
+                  .addListener(_autocompleteBCListener!);
+            }
+            return TextFormField(
+              controller: categoryFieldController,
+              focusNode: focusNode,
+              style: const TextStyle(color: Colors.black),
+              decoration: InputDecoration(
+                labelText: 'Business Category *',
+                hintText: 'Type or select category (e.g., Grocery, Restaurant)',
+                prefixIcon:
+                    const Icon(Icons.business, color: AppColors.darkBlue),
+                filled: true,
+                fillColor: Colors.white,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: AppColors.darkBlue, width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a business category';
+                }
+                return null;
+              },
+            );
+          },
+          onSelected: (String selection) {
+            setState(() {
+              _selectedBusinessCategory = selection;
+              _businessCategoryController.text = selection;
+            });
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildCityDropdown() {
     return SizedBox(
       width: double.infinity,
@@ -895,7 +1066,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         ),
         child: Autocomplete<String>(
           optionsBuilder: (TextEditingValue textEditingValue) {
-            if (_loadingCities || textEditingValue.text.isEmpty) {
+            if (textEditingValue.text.isEmpty || _citySuggestions.isEmpty) {
               return const Iterable<String>.empty();
             }
             return _citySuggestions.where((city) => city

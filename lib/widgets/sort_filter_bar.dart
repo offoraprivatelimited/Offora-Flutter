@@ -22,35 +22,7 @@ class SortFilterBar extends StatefulWidget {
     required this.onCategoryChanged,
     required this.onCityChanged,
     required this.availableCities,
-    this.availableCategories = const [
-      'All Categories',
-      'Grocery',
-      'Supermarket',
-      'Restaurant',
-      'Cafe & Bakery',
-      'Pharmacy',
-      'Electronics',
-      'Mobile & Accessories',
-      'Fashion & Apparel',
-      'Footwear',
-      'Jewelry',
-      'Home Decor',
-      'Furniture',
-      'Hardware',
-      'Automotive',
-      'Books & Stationery',
-      'Toys & Games',
-      'Sports & Fitness',
-      'Beauty & Cosmetics',
-      'Salon & Spa',
-      'Pet Supplies',
-      'Dairy & Produce',
-      'Electronics Repair',
-      'Optical',
-      'Travel & Tours',
-      'Department Store',
-      'Other',
-    ],
+    required this.availableCategories,
   });
 
   @override
@@ -71,6 +43,21 @@ class _SortFilterBarState extends State<SortFilterBar> {
   }
 
   @override
+  void didUpdateWidget(SortFilterBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update selected category if it changed from parent
+    if (oldWidget.selectedCategory != widget.selectedCategory) {
+      setState(() {
+        _selectedCategory = widget.selectedCategory ?? 'All Categories';
+      });
+    }
+    // Update city controller if it changed from parent
+    if (oldWidget.selectedCity != widget.selectedCity) {
+      _cityController.text = widget.selectedCity ?? '';
+    }
+  }
+
+  @override
   void dispose() {
     _cityController.dispose();
     super.dispose();
@@ -86,7 +73,7 @@ class _SortFilterBarState extends State<SortFilterBar> {
           body: '{"country": "India"}',
         );
       });
-      if (res.statusCode == 200) {
+      if (res.statusCode == 200 && mounted) {
         final data = jsonDecode(res.body);
         final List<dynamic> cities = data['data'] ?? [];
         setState(() {
@@ -94,9 +81,11 @@ class _SortFilterBarState extends State<SortFilterBar> {
         });
       }
     } catch (e) {
-      setState(() {
-        _citySuggestions = [];
-      });
+      if (mounted) {
+        setState(() {
+          _citySuggestions = [];
+        });
+      }
     }
   }
 

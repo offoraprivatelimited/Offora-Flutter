@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:offora/widgets/premium_app_bar.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/custom_bottom_navbar.dart';
+import '../widgets/logout_warning_dialog.dart';
 import 'home_screen.dart';
 import 'explore_screen.dart';
 import 'compare_screen.dart';
@@ -72,9 +73,10 @@ class MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        // Prevent back navigation - don't allow popping
+      onPopInvokedWithResult: (didPop, result) async {
+        // Show logout warning dialog when user tries to go back
         if (didPop) return;
+        await LogoutWarningDialog.show(context);
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,

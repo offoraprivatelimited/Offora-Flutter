@@ -12,6 +12,7 @@ import '../../../services/auth_service.dart';
 import '../../../core/error_messages.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/premium_app_bar.dart';
+import '../../../widgets/logout_warning_dialog.dart';
 
 class ClientMainScreen extends StatefulWidget {
   static const String routeName = '/client-main';
@@ -123,9 +124,10 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
     const brightGold = Color(0xFFF0B84D);
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        // Prevent back navigation - don't allow popping
+      onPopInvokedWithResult: (didPop, result) async {
+        // Show logout warning dialog when user tries to go back
         if (didPop) return;
+        await LogoutWarningDialog.show(context);
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
