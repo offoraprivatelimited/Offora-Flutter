@@ -210,57 +210,50 @@ class AppRouter {
       ),
 
       // Client Dashboard Routes - use ShellRoute to prevent back to auth
-      ShellRoute(
-        builder: (context, state, child) {
-          return child;
-        },
-        routes: [
-          GoRoute(
-            path: '/client-dashboard',
-            name: 'client-dashboard',
-            builder: (context, state) => const client.ClientMainScreen(
-              initialIndex: 1,
-            ),
-          ),
-          GoRoute(
-            path: '/client-add',
-            name: 'client-add',
-            builder: (context, state) => const client.ClientMainScreen(
-              initialIndex: 0,
-            ),
-          ),
-          GoRoute(
-            path: '/client-manage',
-            name: 'client-manage',
-            builder: (context, state) => const client.ClientMainScreen(
-              initialIndex: 1,
-            ),
-          ),
-          GoRoute(
-            path: '/client-enquiries',
-            name: 'client-enquiries',
-            builder: (context, state) => const client.ClientMainScreen(
-              initialIndex: 2,
-            ),
-          ),
-          GoRoute(
-            path: '/client-profile',
-            name: 'client-profile',
-            builder: (context, state) => const client.ClientMainScreen(
-              initialIndex: 3,
-            ),
-          ),
-          GoRoute(
-            path: '/new-offer',
-            name: 'new-offer',
-            builder: (context, state) => const client.NewOfferFormScreen(),
-          ),
-          GoRoute(
-            path: '/manage-offers',
-            name: 'manage-offers',
-            builder: (context, state) => const client.ManageOffersScreen(),
-          ),
-        ],
+      GoRoute(
+        path: '/client-dashboard',
+        name: 'client-dashboard',
+        builder: (context, state) => const client.ClientMainScreen(
+          initialIndex: 1,
+        ),
+      ),
+      GoRoute(
+        path: '/client-add',
+        name: 'client-add',
+        builder: (context, state) => const client.ClientMainScreen(
+          initialIndex: 0,
+        ),
+      ),
+      GoRoute(
+        path: '/client-manage',
+        name: 'client-manage',
+        builder: (context, state) => const client.ClientMainScreen(
+          initialIndex: 1,
+        ),
+      ),
+      GoRoute(
+        path: '/client-enquiries',
+        name: 'client-enquiries',
+        builder: (context, state) => const client.ClientMainScreen(
+          initialIndex: 2,
+        ),
+      ),
+      GoRoute(
+        path: '/client-profile',
+        name: 'client-profile',
+        builder: (context, state) => const client.ClientMainScreen(
+          initialIndex: 3,
+        ),
+      ),
+      GoRoute(
+        path: '/new-offer',
+        name: 'new-offer',
+        builder: (context, state) => const client.NewOfferFormScreen(),
+      ),
+      GoRoute(
+        path: '/manage-offers',
+        name: 'manage-offers',
+        builder: (context, state) => const client.ManageOffersScreen(),
       ),
 
       // ============ INFO ROUTES ============
