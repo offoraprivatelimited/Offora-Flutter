@@ -12,6 +12,7 @@ import '../services/auth_service.dart';
 import '../services/saved_offers_service.dart';
 import '../services/compare_service.dart';
 import '../client/models/offer.dart';
+import '../client/models/offer_calculator.dart';
 import 'main_screen.dart';
 
 class OfferDetailsScreen extends StatefulWidget {
@@ -831,7 +832,16 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Price Now',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Text(
@@ -847,10 +857,10 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                       Text(
                         currency.format(offer.originalPrice),
                         style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 16,
+                          color: Colors.white.withOpacity(0.7),
                           decoration: TextDecoration.lineThrough,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                       const Spacer(),
@@ -962,6 +972,16 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
+                          'Price Now',
+                          style: TextStyle(
+                            fontSize: screenSize == ScreenSizeCategory.mobile
+                                ? 12
+                                : 13,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
                           currency.format(offer.discountPrice),
                           style: TextStyle(
                             fontSize: _getPriceFontSize(screenSize),
@@ -974,11 +994,11 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                           'Was ${currency.format(offer.originalPrice)}',
                           style: TextStyle(
                             fontSize: screenSize == ScreenSizeCategory.mobile
-                                ? 14
-                                : 16,
-                            color: Colors.grey.shade600,
+                                ? 12
+                                : 14,
+                            color: Colors.grey.shade500,
                             decoration: TextDecoration.lineThrough,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ],
@@ -1024,6 +1044,10 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
 
               // Highlights
               _buildHighlights(offer, screenSize),
+              const SizedBox(height: 32),
+
+              // Discount Explanation
+              _buildDiscountExplanation(offer, screenSize),
               const SizedBox(height: 32),
 
               // Description
@@ -1313,63 +1337,6 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 ),
                 const SizedBox(height: 32),
               ],
-
-              // Timeline
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.timeline_outlined,
-                        color: AppColors.darkBlue,
-                        size: screenSize == ScreenSizeCategory.mobile ? 20 : 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Timeline',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.darkBlue,
-                              fontSize: screenSize == ScreenSizeCategory.mobile
-                                  ? 18
-                                  : 22,
-                            ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFD),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        if (offer.createdAt != null)
-                          _InfoRow(
-                            icon: Icons.create_outlined,
-                            label: 'Created',
-                            value: DateFormat('MMM d, yyyy • hh:mm a')
-                                .format(offer.createdAt!),
-                            screenSize: screenSize,
-                          ),
-                        if (offer.updatedAt != null) ...[
-                          const SizedBox(height: 16),
-                          _InfoRow(
-                            icon: Icons.update_outlined,
-                            label: 'Last Updated',
-                            value: DateFormat('MMM d, yyyy • hh:mm a')
-                                .format(offer.updatedAt!),
-                            screenSize: screenSize,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
 
               const SizedBox(height: 32),
 
@@ -1757,100 +1724,60 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           ],
         ),
 
-        // Show offer details in simple language
-        const SizedBox(height: 24),
-        _buildOfferExplanation(offer, screenSize),
+        // Note: Offer explanation moved to _buildDiscountExplanation in content section
       ],
     );
   }
 
-  Widget _buildOfferExplanation(Offer offer, ScreenSizeCategory screenSize) {
-    String explanation = '';
-    IconData icon = Icons.info_outline;
-    Color bgColor = const Color(0xFFF0F9FF);
+  Widget _buildDiscountExplanation(Offer offer, ScreenSizeCategory screenSize) {
+    final result = OfferCalculator.calculate(offer);
 
-    switch (offer.offerType) {
-      case OfferType.percentageDiscount:
-        final discount =
-            ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
-                .toStringAsFixed(0);
-        explanation = 'Get $discount% discount on your purchase';
-        icon = Icons.percent;
-        break;
-      case OfferType.flatDiscount:
-        final flatOff =
-            (offer.originalPrice - offer.discountPrice).toStringAsFixed(0);
-        explanation = 'Save ₹$flatOff on this item';
-        icon = Icons.currency_rupee;
-        break;
-      case OfferType.buyXGetYPercentOff:
-        if (offer.buyQuantity != null && offer.percentageOff != null) {
-          explanation =
-              'Buy ${offer.buyQuantity} items, Get ${offer.percentageOff!.toStringAsFixed(0)}% off on the next item';
-          icon = Icons.shopping_cart;
-        }
-        break;
-      case OfferType.buyXGetYRupeesOff:
-        if (offer.buyQuantity != null && offer.flatDiscountAmount != null) {
-          explanation =
-              'Buy ${offer.buyQuantity} items, Get ₹${offer.flatDiscountAmount!.toStringAsFixed(0)} off on the next item';
-          icon = Icons.shopping_cart;
-        }
-        break;
-      case OfferType.bogo:
-        explanation =
-            'Buy 1 item and get 1 item FREE! Perfect for sharing with a friend';
-        icon = Icons.card_giftcard;
-        bgColor = const Color(0xFFFFF5E6);
-        break;
-      case OfferType.productSpecific:
-        explanation = 'This special discount applies to specific products';
-        icon = Icons.shopping_bag_outlined;
-        break;
-      case OfferType.serviceSpecific:
-        explanation = 'This special discount applies to specific services';
-        icon = Icons.room_service_outlined;
-        break;
-      case OfferType.bundleDeal:
-        explanation = 'Buy multiple items together and save more!';
-        icon = Icons.checkroom;
-        break;
+    if (result.summary.isEmpty || result.summary == 'No discount') {
+      return SizedBox.shrink();
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.darkBlue.withAlpha(100), width: 1),
+      padding: EdgeInsets.all(
+        screenSize == ScreenSizeCategory.mobile ? 16 : 20,
       ),
-      child: Row(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFFF8DC).withOpacity(0.6),
+            const Color(0xFFFFE4B5).withOpacity(0.6),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.brightGold.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.darkBlue.withAlpha(20),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              icon,
-              color: AppColors.darkBlue,
-              size: 24,
+          Text(
+            result.summary,
+            style: TextStyle(
+              fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF8B6914),
+              letterSpacing: 0.3,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              explanation,
+          if (result.details != null && result.details!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              result.details!,
               style: TextStyle(
-                fontSize: screenSize == ScreenSizeCategory.mobile ? 14 : 16,
-                color: AppColors.darkBlue,
-                fontWeight: FontWeight.w600,
+                fontSize: screenSize == ScreenSizeCategory.mobile ? 13 : 14,
+                color: const Color(0xFF6B5410),
                 height: 1.5,
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
