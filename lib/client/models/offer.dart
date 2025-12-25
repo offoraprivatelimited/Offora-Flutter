@@ -32,6 +32,8 @@ class Offer {
     this.offerCategory = OfferCategory.product,
     this.businessCategory,
     this.city,
+    this.address,
+    this.contactNumber,
     this.imageUrls,
     this.client,
     this.terms,
@@ -62,6 +64,8 @@ class Offer {
   final String?
       businessCategory; // Business category like Grocery, Restaurant, etc.
   final String? city; // City where the offer is valid
+  final String? address; // Address where the offer is applicable
+  final String? contactNumber; // Contact number for the offer
   final List<String>? imageUrls;
   final Map<String, dynamic>? client;
   final String? terms;
@@ -99,6 +103,8 @@ class Offer {
       'offerCategory': offerCategory.name,
       if (businessCategory != null) 'businessCategory': businessCategory,
       if (city != null) 'city': city,
+      if (address != null) 'address': address,
+      if (contactNumber != null) 'contactNumber': contactNumber,
       if (imageUrls != null) 'imageUrls': imageUrls,
       if (client != null) 'client': client,
       if (terms != null) 'terms': terms,
@@ -151,6 +157,8 @@ class Offer {
       ),
       businessCategory: data['businessCategory'] as String?,
       city: data['city'] as String?,
+      address: data['address'] as String?,
+      contactNumber: data['contactNumber'] as String?,
       imageUrls: (data['imageUrls'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -195,6 +203,8 @@ class Offer {
     OfferCategory? offerCategory,
     String? businessCategory,
     String? city,
+    String? address,
+    String? contactNumber,
     List<String>? imageUrls,
     Map<String, dynamic>? client,
     String? terms,
@@ -224,6 +234,8 @@ class Offer {
       offerCategory: offerCategory ?? this.offerCategory,
       businessCategory: businessCategory ?? this.businessCategory,
       city: city ?? this.city,
+      address: address ?? this.address,
+      contactNumber: contactNumber ?? this.contactNumber,
       imageUrls: imageUrls ?? this.imageUrls,
       client: client ?? this.client,
       terms: terms ?? this.terms,

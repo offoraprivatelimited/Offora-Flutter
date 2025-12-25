@@ -298,8 +298,18 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
                       );
                     }
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                    final width = MediaQuery.of(context).size.width;
+                    final crossCount = width < 500 ? 1 : (width < 800 ? 2 : 3);
+                    final childAspectRatio = width < 500 ? 1.35 : 0.95;
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(12),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossCount,
+                        childAspectRatio: childAspectRatio,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
                       itemCount: offers.length,
                       itemBuilder: (context, index) {
                         final offer = offers[index];
@@ -361,15 +371,14 @@ class _OfferCard extends StatelessWidget {
         .toStringAsFixed(0);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(20),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withAlpha(12),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -380,197 +389,182 @@ class _OfferCard extends StatelessWidget {
           if (offer.imageUrls != null && offer.imageUrls!.isNotEmpty)
             ClipRRect(
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+                  const BorderRadius.vertical(top: Radius.circular(12)),
               child: Image.network(
                 offer.imageUrls!.first,
-                height: 180,
+                height: 90,
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    height: 180,
+                    height: 90,
                     color: Colors.grey.shade200,
-                    child: const Icon(Icons.image_not_supported, size: 48),
+                    child: const Icon(Icons.image_not_supported, size: 28),
                   );
                 },
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        offer.title,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: darkBlue,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [brightGold, const Color(0xFFA3834D)],
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '$discount%',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  offer.description,
-                  style: TextStyle(
-                    color: Colors.grey.shade700,
-                    fontSize: 14,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        Text(
-                          'Status',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
+                        Expanded(
+                          child: Text(
+                            offer.title,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: darkBlue,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(width: 4),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
+                              horizontal: 6, vertical: 3),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(offer.status)
-                                .withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: _getStatusColor(offer.status),
-                              width: 1,
+                            gradient: LinearGradient(
+                              colors: [brightGold, const Color(0xFFA3834D)],
                             ),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
-                            offer.status.name.toUpperCase(),
-                            style: TextStyle(
-                              color: _getStatusColor(offer.status),
+                            '$discount%',
+                            style: const TextStyle(
+                              color: Colors.white,
                               fontWeight: FontWeight.w700,
-                              fontSize: 11,
+                              fontSize: 10,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    const SizedBox(height: 4),
+                    Text(
+                      offer.description,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 10,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
                       children: [
                         Text(
-                          'Price',
+                          'Status:',
                           style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: currency.format(offer.discountPrice),
-                                style: TextStyle(
-                                  color: brightGold,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16,
-                                ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(offer.status)
+                                  .withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(3),
+                              border: Border.all(
+                                color: _getStatusColor(offer.status),
+                                width: 0.6,
                               ),
-                              TextSpan(
-                                text:
-                                    ' / ${currency.format(offer.originalPrice)}',
-                                style: TextStyle(
-                                  color: Colors.grey.shade500,
-                                  fontSize: 12,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
+                            ),
+                            child: Text(
+                              offer.status.name.toUpperCase(),
+                              style: TextStyle(
+                                color: _getStatusColor(offer.status),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 8,
                               ),
-                            ],
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Price: ${currency.format(offer.discountPrice)}',
+                      style: TextStyle(
+                        color: brightGold,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 10,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: onViewDetails,
-                        icon: const Icon(Icons.visibility, size: 16),
-                        label: const Text('View'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: darkBlue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: onViewDetails,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
                       ),
-                      const SizedBox(width: 6),
-                      OutlinedButton.icon(
-                        onPressed: onEdit,
-                        icon: const Icon(Icons.edit, size: 16),
-                        label: const Text('Edit'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: darkBlue,
-                          side: BorderSide(color: darkBlue),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
+                      decoration: BoxDecoration(
+                        color: darkBlue,
+                        borderRadius: BorderRadius.circular(5),
                       ),
-                      const SizedBox(width: 6),
-                      OutlinedButton.icon(
-                        onPressed: onDelete,
-                        icon: const Icon(Icons.delete, size: 16),
-                        label: const Text('Delete'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                      ),
-                    ],
+                      child: const Icon(Icons.visibility,
+                          size: 12, color: Colors.white),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: onEdit,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: darkBlue, width: 0.8),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Icon(Icons.edit, size: 12, color: darkBlue),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: onDelete,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.red, width: 0.8),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child:
+                          const Icon(Icons.delete, size: 12, color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

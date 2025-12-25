@@ -371,7 +371,9 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                                         ),
                                         cursorColor: darkBlue,
                                         decoration: InputDecoration(
-                                          labelText: 'Password',
+                                          labelText: _isLogin
+                                              ? 'Password'
+                                              : 'Create Password',
                                           labelStyle: const TextStyle(
                                             color: Color(0xFF666666),
                                             fontWeight: FontWeight.w500,

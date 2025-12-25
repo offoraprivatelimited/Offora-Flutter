@@ -1131,6 +1131,189 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 const SizedBox(height: 32),
               ],
 
+              // Location and Contact Section - PROMINENT
+              if (offer.address != null || offer.contactNumber != null) ...[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          color: AppColors.darkBlue,
+                          size:
+                              screenSize == ScreenSizeCategory.mobile ? 20 : 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Where to Get This Offer',
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.darkBlue,
+                                    fontSize:
+                                        screenSize == ScreenSizeCategory.mobile
+                                            ? 18
+                                            : 22,
+                                  ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Address Card
+                    if (offer.address != null)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.brightGold,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(10),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.brightGold.withAlpha(30),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                Icons.location_on,
+                                color: AppColors.brightGold,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Visit Our Location',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    offer.address!,
+                                    style: TextStyle(
+                                      fontSize: screenSize ==
+                                              ScreenSizeCategory.mobile
+                                          ? 14
+                                          : 16,
+                                      color: AppColors.darkBlue,
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Contact Card
+                    if (offer.contactNumber != null)
+                      GestureDetector(
+                        onTap: () async {
+                          final url = 'tel:${offer.contactNumber}';
+                          if (await canLaunchUrl(Uri.parse(url))) {
+                            await launchUrl(Uri.parse(url));
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.green.shade400,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withAlpha(10),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withAlpha(30),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  Icons.phone,
+                                  color: Colors.green.shade400,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Tap to Call',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      offer.contactNumber!,
+                                      style: TextStyle(
+                                        fontSize: screenSize ==
+                                                ScreenSizeCategory.mobile
+                                            ? 14
+                                            : 16,
+                                        color: Colors.green.shade600,
+                                        fontWeight: FontWeight.w700,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.phone_in_talk,
+                                color: Colors.green.shade400,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+              ],
+
               // Timeline
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1190,7 +1373,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
 
               const SizedBox(height: 32),
 
-              // Validity
+              // Validity - When Can You Use This?
               if (offer.startDate != null || offer.endDate != null)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1205,7 +1388,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Offer Validity',
+                          'When Can You Use This?',
                           style:
                               Theme.of(context).textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.w800,
@@ -1219,41 +1402,183 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFD),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        children: [
-                          if (offer.startDate != null)
-                            _InfoRow(
-                              icon: Icons.play_circle_outline,
-                              label: 'Starts',
-                              value: DateFormat('MMM d, yyyy')
-                                  .format(offer.startDate!),
-                              screenSize: screenSize,
+
+                    // Timeline visualization
+                    if (offer.startDate != null && offer.endDate != null)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.darkBlue.withAlpha(100),
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            // Start Date
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade100,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green.shade600,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Offer Starts',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        DateFormat('MMM d, yyyy • hh:mm a')
+                                            .format(offer.startDate!),
+                                        style: TextStyle(
+                                          fontSize: screenSize ==
+                                                  ScreenSizeCategory.mobile
+                                              ? 14
+                                              : 15,
+                                          color: Colors.green.shade600,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                          if (offer.endDate != null) ...[
-                            const SizedBox(height: 16),
-                            _InfoRow(
-                              icon: Icons.stop_circle_outlined,
-                              label: 'Ends',
-                              value: DateFormat('MMM d, yyyy')
-                                  .format(offer.endDate!),
-                              screenSize: screenSize,
+                            const SizedBox(height: 12),
+                            Divider(
+                              color: AppColors.darkBlue.withAlpha(50),
+                              height: 1,
+                            ),
+                            const SizedBox(height: 12),
+                            // End Date
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade100,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.schedule,
+                                    color: Colors.red.shade600,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Offer Ends',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        DateFormat('MMM d, yyyy • hh:mm a')
+                                            .format(offer.endDate!),
+                                        style: TextStyle(
+                                          fontSize: screenSize ==
+                                                  ScreenSizeCategory.mobile
+                                              ? 14
+                                              : 15,
+                                          color: Colors.red.shade600,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
-                        ],
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.darkBlue.withAlpha(100),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.darkBlue.withAlpha(20),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.calendar_today,
+                                color: AppColors.darkBlue,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    offer.startDate != null ? 'Starts' : 'Ends',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    DateFormat('MMM d, yyyy').format(
+                                        offer.startDate ?? offer.endDate!),
+                                    style: TextStyle(
+                                      fontSize: screenSize ==
+                                              ScreenSizeCategory.mobile
+                                          ? 14
+                                          : 15,
+                                      color: AppColors.darkBlue,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
-
               const SizedBox(height: 32),
 
-              // Terms & Conditions
+              // Important Information / Terms & Conditions
               if (offer.terms != null && offer.terms!.isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1261,14 +1586,14 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                     Row(
                       children: [
                         Icon(
-                          Icons.gavel_outlined,
+                          Icons.info_outline,
                           color: AppColors.darkBlue,
                           size:
                               screenSize == ScreenSizeCategory.mobile ? 20 : 24,
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Terms & Conditions',
+                          'Important Information',
                           style:
                               Theme.of(context).textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.w800,
@@ -1283,20 +1608,49 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                     ),
                     const SizedBox(height: 16),
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFD),
+                        color: const Color(0xFFFFFAE6),
                         borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        offer.terms!,
-                        style: TextStyle(
-                          fontSize:
-                              screenSize == ScreenSizeCategory.mobile ? 14 : 16,
-                          color: Colors.grey.shade700,
-                          height: 1.6,
-                          letterSpacing: 0.2,
+                        border: Border.all(
+                          color: AppColors.brightGold,
+                          width: 1.5,
                         ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                color: AppColors.brightGold,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Before Buying, Please Read:',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.orange.shade700,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            offer.terms!,
+                            style: TextStyle(
+                              fontSize: screenSize == ScreenSizeCategory.mobile
+                                  ? 14
+                                  : 15,
+                              color: Colors.grey.shade800,
+                              height: 1.8,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -1355,7 +1709,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
             ),
             const SizedBox(width: 12),
             Text(
-              'Key Features',
+              'What You Get',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: AppColors.darkBlue,
@@ -1371,65 +1725,166 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           children: [
             _FeatureChip(
               icon: Icons.local_offer_outlined,
-              label: 'Type',
-              value: _formatOfferType(offer.offerType),
+              label: 'Offer Type',
+              value: _formatOfferTypeForUsers(offer.offerType),
               screenSize: screenSize,
             ),
             _FeatureChip(
-              icon: Icons.category_outlined,
-              label: 'Category',
-              value: _formatOfferCategory(offer.offerCategory),
+              icon: offer.offerCategory == OfferCategory.product
+                  ? Icons.shopping_bag_outlined
+                  : offer.offerCategory == OfferCategory.service
+                      ? Icons.room_service_outlined
+                      : Icons.apps_outlined,
+              label: 'Valid For',
+              value: _formatOfferCategoryForUsers(offer.offerCategory),
               screenSize: screenSize,
             ),
             if (offer.minimumPurchase != null)
               _FeatureChip(
                 icon: Icons.account_balance_wallet_outlined,
-                label: 'Min Spend',
+                label: 'Minimum Buy',
                 value: '₹${offer.minimumPurchase!.toStringAsFixed(0)}',
                 screenSize: screenSize,
               ),
             if (offer.maxUsagePerCustomer != null)
               _FeatureChip(
                 icon: Icons.repeat_one_outlined,
-                label: 'Per Customer',
-                value: '${offer.maxUsagePerCustomer} uses',
+                label: 'Can Use',
+                value:
+                    '${offer.maxUsagePerCustomer} time${offer.maxUsagePerCustomer! > 1 ? 's' : ''}',
                 screenSize: screenSize,
               ),
           ],
         ),
+
+        // Show offer details in simple language
+        const SizedBox(height: 24),
+        _buildOfferExplanation(offer, screenSize),
       ],
     );
   }
 
-  String _formatOfferType(OfferType type) {
+  Widget _buildOfferExplanation(Offer offer, ScreenSizeCategory screenSize) {
+    String explanation = '';
+    IconData icon = Icons.info_outline;
+    Color bgColor = const Color(0xFFF0F9FF);
+
+    switch (offer.offerType) {
+      case OfferType.percentageDiscount:
+        final discount =
+            ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
+                .toStringAsFixed(0);
+        explanation = 'Get $discount% discount on your purchase';
+        icon = Icons.percent;
+        break;
+      case OfferType.flatDiscount:
+        final flatOff =
+            (offer.originalPrice - offer.discountPrice).toStringAsFixed(0);
+        explanation = 'Save ₹$flatOff on this item';
+        icon = Icons.currency_rupee;
+        break;
+      case OfferType.buyXGetYPercentOff:
+        if (offer.buyQuantity != null && offer.percentageOff != null) {
+          explanation =
+              'Buy ${offer.buyQuantity} items, Get ${offer.percentageOff!.toStringAsFixed(0)}% off on the next item';
+          icon = Icons.shopping_cart;
+        }
+        break;
+      case OfferType.buyXGetYRupeesOff:
+        if (offer.buyQuantity != null && offer.flatDiscountAmount != null) {
+          explanation =
+              'Buy ${offer.buyQuantity} items, Get ₹${offer.flatDiscountAmount!.toStringAsFixed(0)} off on the next item';
+          icon = Icons.shopping_cart;
+        }
+        break;
+      case OfferType.bogo:
+        explanation =
+            'Buy 1 item and get 1 item FREE! Perfect for sharing with a friend';
+        icon = Icons.card_giftcard;
+        bgColor = const Color(0xFFFFF5E6);
+        break;
+      case OfferType.productSpecific:
+        explanation = 'This special discount applies to specific products';
+        icon = Icons.shopping_bag_outlined;
+        break;
+      case OfferType.serviceSpecific:
+        explanation = 'This special discount applies to specific services';
+        icon = Icons.room_service_outlined;
+        break;
+      case OfferType.bundleDeal:
+        explanation = 'Buy multiple items together and save more!';
+        icon = Icons.checkroom;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.darkBlue.withAlpha(100), width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.darkBlue.withAlpha(20),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.darkBlue,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              explanation,
+              style: TextStyle(
+                fontSize: screenSize == ScreenSizeCategory.mobile ? 14 : 16,
+                color: AppColors.darkBlue,
+                fontWeight: FontWeight.w600,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatOfferTypeForUsers(OfferType type) {
     switch (type) {
       case OfferType.percentageDiscount:
-        return 'Percent Off';
+        return '% Off';
       case OfferType.flatDiscount:
-        return 'Flat Discount';
+        return 'Flat Save';
       case OfferType.buyXGetYPercentOff:
-        return 'Buy X Get Y%';
+        return 'Buy & Save %';
       case OfferType.buyXGetYRupeesOff:
-        return 'Buy X Get ₹Y';
+        return 'Buy & Save ₹';
       case OfferType.bogo:
-        return 'BOGO';
+        return 'Buy 1 Get 1 Free';
       case OfferType.productSpecific:
-        return 'Product Specific';
+        return 'Product Deal';
       case OfferType.serviceSpecific:
-        return 'Service Specific';
+        return 'Service Deal';
       case OfferType.bundleDeal:
-        return 'Bundle Deal';
+        return 'Bundle Offer';
     }
   }
 
-  String _formatOfferCategory(OfferCategory category) {
+  String _formatOfferCategoryForUsers(OfferCategory category) {
     switch (category) {
       case OfferCategory.product:
-        return 'Product';
+        return '📦 Items';
       case OfferCategory.service:
-        return 'Service';
+        return '🔧 Services';
       case OfferCategory.both:
-        return 'Product & Service';
+        return '📦 Items & 🔧 Services';
     }
   }
 }
@@ -1601,12 +2056,14 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
   final ScreenSizeCategory screenSize;
+  // Removed unused isClickable parameter
 
   const _InfoRow({
     required this.icon,
     required this.label,
     required this.value,
     required this.screenSize,
+    // Removed unused isClickable parameter
   });
 
   @override

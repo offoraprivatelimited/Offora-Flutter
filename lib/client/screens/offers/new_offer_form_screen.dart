@@ -47,6 +47,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   late TextEditingController _descriptionController;
   late TextEditingController _originalPriceController;
   late TextEditingController _termsController;
+  late TextEditingController _addressController;
+  late TextEditingController _contactNumberController;
 
   // Date fields
   DateTime? _selectedStartDate;
@@ -143,6 +145,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _descriptionController = TextEditingController();
     _originalPriceController = TextEditingController();
     _termsController = TextEditingController();
+    _addressController = TextEditingController();
+    _contactNumberController = TextEditingController();
     _percentageOffController = TextEditingController();
     _flatDiscountController = TextEditingController();
     _buyQuantityController = TextEditingController();
@@ -184,17 +188,22 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           body: '{"country": "India"}',
         );
       });
+      if (!mounted) return;
       if (res.statusCode == 200) {
         final data = convert.jsonDecode(res.body);
         final List<dynamic> cities = data['data'] ?? [];
-        setState(() {
-          _citySuggestions = List<String>.from(cities);
-        });
+        if (mounted) {
+          setState(() {
+            _citySuggestions = List<String>.from(cities);
+          });
+        }
       }
     } catch (e) {
-      setState(() {
-        _citySuggestions = [];
-      });
+      if (mounted) {
+        setState(() {
+          _citySuggestions = [];
+        });
+      }
     }
   }
 
@@ -203,6 +212,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _descriptionController.text = offer.description;
     _originalPriceController.text = offer.originalPrice.toString();
     _termsController.text = offer.terms ?? '';
+    _addressController.text = offer.address ?? '';
+    _contactNumberController.text = offer.contactNumber ?? '';
     _selectedStartDate = offer.startDate;
     _selectedEndDate = offer.endDate;
     _selectedOfferType = offer.offerType;
@@ -243,6 +254,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _descriptionController.dispose();
     _originalPriceController.dispose();
     _termsController.dispose();
+    _addressController.dispose();
+    _contactNumberController.dispose();
     _percentageOffController.dispose();
     _flatDiscountController.dispose();
     _buyQuantityController.dispose();
@@ -413,6 +426,11 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
             ? _selectedBusinessCategory
             : null,
         city: _selectedCity.isNotEmpty ? _selectedCity : null,
+        address:
+            _addressController.text.isNotEmpty ? _addressController.text : null,
+        contactNumber: _contactNumberController.text.isNotEmpty
+            ? _contactNumberController.text
+            : null,
         imageUrls: allImageUrls,
         terms: _termsController.text.isNotEmpty ? _termsController.text : null,
         startDate: _selectedStartDate,
@@ -673,6 +691,36 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                   _buildSectionTitle('📍 Where is Your Shop?'),
                   const SizedBox(height: 16),
                   _buildCityDropdown(),
+                  const SizedBox(height: 16),
+                  PremiumTextField(
+                    controller: _addressController,
+                    labelText: 'Address *',
+                    hintText: 'Full address of your shop/location',
+                    prefixIcon: Icons.location_on,
+                    maxLines: 2,
+                    validator: (value) => value?.isEmpty ?? true
+                        ? 'Please enter your address'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  PremiumTextField(
+                    controller: _contactNumberController,
+                    labelText: 'Contact Number *',
+                    hintText: 'E.g., +91-9876543210 or 9876543210',
+                    prefixIcon: Icons.phone,
+                    keyboardType: TextInputType.phone,
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'Please enter your contact number';
+                      }
+                      // Simple validation - at least 10 digits
+                      final digits = value!.replaceAll(RegExp(r'[^\d]'), '');
+                      if (digits.length < 10) {
+                        return 'Contact number must have at least 10 digits';
+                      }
+                      return null;
+                    },
+                  ),
                   const SizedBox(height: 24),
 
                   // Additional Options
