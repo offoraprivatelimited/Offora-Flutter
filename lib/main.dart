@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_strategy/url_strategy.dart';
@@ -18,6 +20,14 @@ void main() async {
   setPathUrlStrategy();
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Enable persistence for web to maintain authentication state
+  if (Firebase.apps.isNotEmpty) {
+    try {
+      await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+    } catch (e) {
+      if (kDebugMode) print('Error setting persistence: $e');
+    }
+  }
   runApp(const OfforaApp());
 }
 
