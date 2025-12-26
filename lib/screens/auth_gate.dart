@@ -18,11 +18,18 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthService>(
       builder: (context, authService, _) {
-        // Wait for initial auth check to complete
+        // CRITICAL: Wait for initial auth check to complete
         if (!authService.initialCheckComplete) {
           return const Scaffold(
             body: Center(
-              child: CircularProgressIndicator(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading Offora...'),
+                ],
+              ),
             ),
           );
         }

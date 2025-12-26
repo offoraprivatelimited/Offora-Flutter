@@ -50,10 +50,44 @@ class AuthService extends ChangeNotifier {
   FirebaseFirestore get firestore => _firestore;
 
   AuthService() {
-    // Listen to Firebase Auth state changes
+    // Listen to Firebase Auth state changes (this fires immediately with current state)
     _auth.authStateChanges().listen(_handleAuthStateChanged);
-    // Check for persistent login on app start
-    _checkPersistentLogin();
+    // Also check for persistent login immediately on startup
+    // This ensures we have auth state before first route decision
+    _initializeAuthState();
+  }
+
+  Future<void> _initializeAuthState() async {
+    try {
+      // Wait for Firebase to determine current auth state
+      // This is important on app startup/reload
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Check if Firebase already has currentUser
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        // User is already authenticated by Firebase
+        await _loadUserFromFirestore(currentUser.uid);
+        _loggedIn = true;
+        await _determineStage(currentUser.uid);
+        notifyListeners();
+      } else {
+        // Firebase says not logged in, but check SharedPreferences just in case
+        final prefs = await SharedPreferences.getInstance();
+        final wasLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+        if (wasLoggedIn) {
+          // Stored flag says logged in, but Firebase says not - clear the flag
+          await prefs.setBool('isLoggedIn', false);
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error during auth initialization: $e');
+      }
+    } finally {
+      _initialCheckComplete = true;
+      notifyListeners();
+    }
   }
 
   Future<void> _checkPersistentLogin() async {

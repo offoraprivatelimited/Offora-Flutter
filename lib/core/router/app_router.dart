@@ -113,6 +113,7 @@ class AppRouter {
     },
     routes: [
       // ============ AUTH ROUTES ============
+      // Initial loading screen - shown while checking auth state
       GoRoute(
         path: '/',
         name: 'auth-gate',
