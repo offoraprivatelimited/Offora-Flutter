@@ -12,7 +12,7 @@ import '../../../services/auth_service.dart';
 import '../../../core/error_messages.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/premium_app_bar.dart';
-import '../../../widgets/logout_warning_dialog.dart';
+import '../../../widgets/app_exit_dialog.dart';
 
 class ClientMainScreen extends StatefulWidget {
   static const String routeName = '/client-main';
@@ -125,9 +125,13 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
-        // Show logout warning dialog when user tries to go back
+        // Show exit dialog when user tries to go back (browser back, swipe back, etc.)
         if (didPop) return;
-        await LogoutWarningDialog.show(context);
+        await AppExitDialog.show(
+          context,
+          userRole: 'shopowner',
+          isExiting: true,
+        );
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,

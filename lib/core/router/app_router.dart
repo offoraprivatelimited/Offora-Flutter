@@ -71,16 +71,27 @@ class AppRouter {
     initialLocation: '/',
     // Custom handling for back button on the whole app
     redirect: _redirectLogic,
+    // Handle navigation errors gracefully
+    onException: (context, state, exception) {
+      // If any exception occurs, stay on current route
+      // This prevents external navigation issues
+    },
     errorBuilder: (context, state) => Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Page not found'),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
-            ElevatedButton(
+            const Text(
+              'Page not found',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
               onPressed: () => context.go('/'),
-              child: const Text('Go Home'),
+              icon: const Icon(Icons.home),
+              label: const Text('Go to Home'),
             ),
           ],
         ),
