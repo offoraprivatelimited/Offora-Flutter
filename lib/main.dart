@@ -43,16 +43,20 @@ class OfforaApp extends StatelessWidget {
         Provider(create: (_) => OfferService()),
         Provider(create: (_) => SavedOffersService()),
       ],
-      child: MaterialApp.router(
-        // Wrap app content to provide desktop/tablet centering and padding
-        builder: (context, child) =>
-            ResponsiveApp(child: child ?? const SizedBox.shrink()),
-        title: 'Offora',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        routerConfig: AppRouter.router,
+      child: Consumer<AuthService>(
+        builder: (context, authService, _) {
+          return MaterialApp.router(
+            // Wrap app content to provide desktop/tablet centering and padding
+            builder: (context, child) =>
+                ResponsiveApp(child: child ?? const SizedBox.shrink()),
+            title: 'Offora',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.system,
+            routerConfig: AppRouter.router,
+          );
+        },
       ),
     );
   }

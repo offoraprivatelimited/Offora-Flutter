@@ -71,27 +71,46 @@ class AppRouter {
     initialLocation: '/',
     // Custom handling for back button on the whole app
     redirect: _redirectLogic,
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            const Text(
-              'Page not found',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    errorBuilder: (context, state) {
+      // Show a loading screen instead of error during initial auth check
+      final auth = Provider.of<AuthService>(context, listen: false);
+      if (!auth.initialCheckComplete) {
+        return const Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading app...'),
+              ],
             ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => context.go('/'),
-              icon: const Icon(Icons.home),
-              label: const Text('Go to Home'),
-            ),
-          ],
+          ),
+        );
+      }
+
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              const Text(
+                'Page not found',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => context.go('/'),
+                icon: const Icon(Icons.home),
+                label: const Text('Go to Home'),
+              ),
+            ],
+          ),
         ),
-      ),
-    ),
+      );
+    },
     routes: [
       // ============ AUTH ROUTES ============
       GoRoute(
@@ -328,12 +347,17 @@ class AppRouter {
 
     // If on root path and logged in, redirect to appropriate dashboard
     if (state.matchedLocation == '/') {
-      if (user != null && user.role == 'shopowner') {
-        return '/client-dashboard';
-      } else if (user != null && user.role == 'user') {
-        return '/home';
+      // IMPORTANT: Only redirect after initial auth check is complete
+      // This prevents showing error page during session restoration
+      if (auth.initialCheckComplete) {
+        if (user != null && user.role == 'shopowner') {
+          return '/client-dashboard';
+        } else if (user != null && user.role == 'user') {
+          return '/home';
+        }
       }
-      // Not logged in - stay on auth gate (root)
+      // During initial check OR not logged in - stay on auth gate (root)
+      // AuthGate will handle the transition once auth check completes
       return null;
     }
 

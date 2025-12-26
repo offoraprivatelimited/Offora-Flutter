@@ -71,15 +71,16 @@ class AuthGate extends StatelessWidget {
   /// Build a screen that transitions to the target route once mounted
   Widget _buildTransitionScreen(BuildContext context, String routeName) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Use go() to replace the route and clear navigation stack
-      // This prevents back button from returning to auth screens
-      context.go(routeName);
+      // Safely check context is still mounted before navigating
+      if (context.mounted) {
+        // Use go() to replace the route and clear navigation stack
+        // This prevents back button from returning to auth screens
+        context.go(routeName);
+      }
     });
 
     return const Scaffold(
       body: Center(child: CircularProgressIndicator()),
     );
   }
-
-  bool get mounted => true;
 }
