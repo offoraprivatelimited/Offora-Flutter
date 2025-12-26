@@ -381,6 +381,46 @@ class AppRouter {
       // AuthGate will handle the transition once auth check completes
       return null;
     }
+
+    // Handle invalid routes when user is logged in (e.g., /main doesn't exist)
+    // Redirect to appropriate dashboard instead of showing error page
+    if (auth.initialCheckComplete && user != null && state.error != null) {
+      final location = state.matchedLocation;
+      final validPaths = [
+        '/home',
+        '/explore',
+        '/compare',
+        '/saved',
+        '/profile',
+        '/offer-details',
+        '/notifications',
+        '/settings',
+        '/advertisement-details',
+        '/client-dashboard',
+        '/client-add',
+        '/client-manage',
+        '/client-enquiries',
+        '/client-profile',
+        '/new-offer',
+        '/manage-offers',
+        '/about-us',
+        '/contact-us',
+        '/terms-and-conditions',
+        '/privacy-policy'
+      ];
+      if (!validPaths.any((path) => location.startsWith(path))) {
+        // Invalid route but user is logged in - redirect to home
+        // ignore: avoid_print
+        print(
+            '[GoRouter][redirectLogic] Invalid route \'$location\' for logged-in user, redirecting to /home');
+        if (user.role == 'shopowner') {
+          return '/client-dashboard';
+        } else {
+          return '/home';
+        }
+      }
+    }
+
     // ignore: avoid_print
     print('[GoRouter][redirectLogic] No redirect for this route');
     return null;
