@@ -80,6 +80,7 @@ class AppRouter {
       // ignore: avoid_print
       print(
           '[GoRouter][errorBuilder] AuthService: initialCheckComplete=\'${auth.initialCheckComplete}\', isLoggedIn=\'${auth.isLoggedIn}\', user=\'${auth.currentUser}\');');
+
       if (!auth.initialCheckComplete) {
         // ignore: avoid_print
         print(
@@ -97,6 +98,35 @@ class AppRouter {
           ),
         );
       }
+
+      // If user is logged in but route is invalid, redirect to home instead of error page
+      if (auth.isLoggedIn && auth.currentUser != null) {
+        // ignore: avoid_print
+        print(
+            '[GoRouter][errorBuilder] User is logged in with invalid route, redirecting to home');
+        // Schedule redirect for next frame to avoid rebuilding during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (auth.currentUser?.role == 'shopowner') {
+            context.go('/client-dashboard');
+          } else {
+            context.go('/home');
+          }
+        });
+        // Show loading screen while redirecting
+        return const Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Redirecting...'),
+              ],
+            ),
+          ),
+        );
+      }
+
       // ignore: avoid_print
       print('[GoRouter][errorBuilder] Showing PAGE NOT FOUND screen');
       return Scaffold(
@@ -384,7 +414,8 @@ class AppRouter {
 
     // Handle invalid routes when user is logged in (e.g., /main doesn't exist)
     // Redirect to appropriate dashboard instead of showing error page
-    if (auth.initialCheckComplete && user != null && state.error != null) {
+    // Do this check without relying on state.error being set (it won't be at redirect time)
+    if (auth.initialCheckComplete && user != null) {
       final location = state.matchedLocation;
       final validPaths = [
         '/home',
@@ -406,13 +437,17 @@ class AppRouter {
         '/about-us',
         '/contact-us',
         '/terms-and-conditions',
-        '/privacy-policy'
+        '/privacy-policy',
+        '/' // root is handled above, but including for completeness
       ];
-      if (!validPaths.any((path) => location.startsWith(path))) {
-        // Invalid route but user is logged in - redirect to home
+      // Check if current location is valid
+      final isValidRoute = validPaths
+          .any((path) => location == path || location.startsWith(path + '/'));
+      if (!isValidRoute && location != '/') {
+        // Invalid route but user is logged in - redirect to appropriate dashboard
         // ignore: avoid_print
         print(
-            '[GoRouter][redirectLogic] Invalid route \'$location\' for logged-in user, redirecting to /home');
+            '[GoRouter][redirectLogic] Invalid route \'$location\' for logged-in user, redirecting');
         if (user.role == 'shopowner') {
           return '/client-dashboard';
         } else {

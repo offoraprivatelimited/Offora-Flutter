@@ -60,21 +60,37 @@ class AuthService extends ChangeNotifier {
   Future<void> _initializeAuthState() async {
     try {
       // Wait for Firebase to determine current auth state
-      // This is important on app startup/reload
-      await Future.delayed(const Duration(milliseconds: 100));
+      // This is important on app startup/reload - give Firebase more time on web
+      await Future.delayed(const Duration(milliseconds: 500));
 
       // Check if Firebase already has currentUser
       final currentUser = _auth.currentUser;
+      if (kDebugMode) {
+        print(
+            '[AuthService][_initializeAuthState] Firebase currentUser: ${currentUser?.email}');
+      }
       if (currentUser != null) {
         // User is already authenticated by Firebase
+        if (kDebugMode) {
+          print(
+              '[AuthService][_initializeAuthState] Loading user from Firestore');
+        }
         await _loadUserFromFirestore(currentUser.uid);
         _loggedIn = true;
         await _determineStage(currentUser.uid);
+        if (kDebugMode) {
+          print(
+              '[AuthService][_initializeAuthState] User loaded: ${_currentUser?.name}');
+        }
         notifyListeners();
       } else {
         // Firebase says not logged in, but check SharedPreferences just in case
         final prefs = await SharedPreferences.getInstance();
         final wasLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+        if (kDebugMode) {
+          print(
+              '[AuthService][_initializeAuthState] Firebase not logged in, wasLoggedIn=$wasLoggedIn');
+        }
         if (wasLoggedIn) {
           // Stored flag says logged in, but Firebase says not - clear the flag
           await prefs.setBool('isLoggedIn', false);
@@ -86,6 +102,10 @@ class AuthService extends ChangeNotifier {
       }
     } finally {
       _initialCheckComplete = true;
+      if (kDebugMode) {
+        print(
+            '[AuthService][_initializeAuthState] Complete: loggedIn=$_loggedIn, user=${_currentUser?.name}');
+      }
       notifyListeners();
     }
   }
