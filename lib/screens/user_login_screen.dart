@@ -74,8 +74,9 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
         // Wait a moment for the message to show, then navigate
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
-          // Navigate to AuthGate to route based on user type
-          context.goNamed('auth-gate');
+          // Use go with offset parameter to replace current route
+          // This prevents /user-login from being in browser history
+          context.go('/home');
         }
       }
     } catch (e) {
@@ -117,8 +118,9 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
       // Wait a moment for the message to show, then navigate
       await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
-        // Navigate to AuthGate to route based on user type
-        context.goNamed('auth-gate');
+        // Use go to navigate to home
+        // The redirect on user-login route will prevent going back to login
+        context.go('/home');
       }
     } catch (e) {
       if (mounted) {
@@ -144,8 +146,8 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
         // Wait a moment for the message to show, then navigate
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
-          // Navigate to AuthGate to route based on user type
-          context.goNamed('auth-gate');
+          // Use go to navigate to home
+          context.go('/home');
         }
       }
     } catch (e) {
@@ -236,9 +238,10 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
 
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        // Prevent back navigation - user must use the explicit back button
+      onPopInvokedWithResult: (didPop, result) async {
+        // Prevent back navigation - navigate to role selection instead
         if (didPop) return;
+        context.go('/role-selection');
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
@@ -252,7 +255,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                   left: 0,
                   child: SafeArea(
                     child: IconButton(
-                      onPressed: () => context.goNamed('role-selection'),
+                      onPressed: () => context.go('/role-selection'),
                       icon: const Icon(
                         Icons.arrow_back,
                         color: Color.fromARGB(255, 0, 0, 0),

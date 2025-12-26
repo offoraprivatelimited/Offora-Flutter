@@ -48,13 +48,17 @@ class _AuthScreenState extends State<AuthScreen> {
       // Check if user needs to complete profile
       if (user.role == 'shopowner') {
         // Redirect to shopowner login (which will handle approval logic)
-        context.goNamed('client-login');
+        // Use replace to prevent back navigation to this auth screen
+        context.replaceNamed('client-login');
       } else if (user.address.isEmpty ||
           user.gender.isEmpty ||
           user.dob.isEmpty) {
-        context.goNamed('profile-complete');
+        // Use replace to prevent back navigation to this auth screen
+        context.replaceNamed('profile-complete');
       } else {
-        context.goNamed('main');
+        // Use go to navigate to home
+        // This prevents browser back button from returning to login
+        context.go('/home');
       }
     } catch (e) {
       if (!mounted) return;

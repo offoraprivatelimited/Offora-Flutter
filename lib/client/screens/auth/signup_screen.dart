@@ -176,11 +176,14 @@ class _SignupScreenState extends State<SignupScreen> {
 
       // Route based on approval stage
       if (auth.stage == ClientPanelStage.pendingApproval) {
-        context.pushReplacementNamed('pending-approval');
+        // Use go to navigate to pending approval
+        context.go('/pending-approval');
       } else if (auth.stage == ClientPanelStage.active) {
-        context.pushReplacementNamed('client-dashboard');
+        // Use go to navigate to dashboard
+        context.go('/client-dashboard');
       } else if (auth.stage == ClientPanelStage.rejected) {
-        context.pushReplacementNamed('rejection');
+        // Use go to navigate to rejection
+        context.go('/rejection');
       }
     } catch (e) {
       if (!mounted) return;
@@ -294,7 +297,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         elevation: 4,
                         shape: const CircleBorder(),
                         child: IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () => context.go('/role-selection'),
                           icon: const Icon(Icons.arrow_back,
                               color: Color(0xFF1F477D), size: 28),
                           tooltip: 'Back',

@@ -28,14 +28,15 @@ class _LoginScreenState extends State<LoginScreen> {
         '[LoginScreen] Back button pressed - attempting to navigate to role selection');
 
     try {
-      context.pushReplacementNamed('role-selection');
+      // Use go to navigate to role selection
+      context.go('/role-selection');
       debugPrint('[LoginScreen] ✓ Successfully navigated to role selection');
     } catch (e) {
       debugPrint('[LoginScreen] ✗ Error navigating to role selection: $e');
-      // Fallback: try popping
-      if (mounted && Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-        debugPrint('[LoginScreen] Fallback: Used pop()');
+      // Fallback: try going to role-selection via go
+      if (mounted) {
+        context.go('/role-selection');
+        debugPrint('[LoginScreen] Fallback: Used go()');
       }
     }
   }
@@ -64,11 +65,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (auth.stage == ClientPanelStage.active) {
-        context.pushReplacementNamed('client-dashboard');
+        // Use go to navigate to dashboard
+        context.go('/client-dashboard');
       } else if (auth.stage == ClientPanelStage.pendingApproval) {
-        context.pushReplacementNamed('pending-approval');
+        // Use go to navigate to pending approval
+        context.go('/pending-approval');
       } else if (auth.stage == ClientPanelStage.rejected) {
-        context.pushReplacementNamed('rejection');
+        // Use go to navigate to rejection
+        context.go('/rejection');
       }
     });
   }

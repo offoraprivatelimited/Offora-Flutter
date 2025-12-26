@@ -64,7 +64,8 @@ class _ProfileCompleteScreenState extends State<ProfileCompleteScreen> {
       });
 
       if (mounted) {
-        context.goNamed('main');
+        // Use go to navigate to home
+        context.go('/home');
       }
     } catch (e) {
       if (mounted) {

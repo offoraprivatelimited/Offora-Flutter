@@ -52,7 +52,8 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
           // Approved! Refresh auth and navigate to dashboard
           await auth.refreshProfile();
           if (!mounted) return;
-          context.goNamed('client-dashboard');
+          // Use go to navigate to dashboard
+          context.go('/client-dashboard');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Your account has been approved! Welcome.'),
@@ -71,7 +72,8 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
           // Rejected! Refresh auth and navigate to rejection page
           await auth.refreshProfile();
           if (!mounted) return;
-          context.goNamed('rejection');
+          // Use go to navigate to rejection
+          context.go('/rejection');
           return;
         }
       }

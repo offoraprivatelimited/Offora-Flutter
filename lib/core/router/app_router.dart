@@ -71,11 +71,6 @@ class AppRouter {
     initialLocation: '/',
     // Custom handling for back button on the whole app
     redirect: _redirectLogic,
-    // Handle navigation errors gracefully
-    onException: (context, state, exception) {
-      // If any exception occurs, stay on current route
-      // This prevents external navigation issues
-    },
     errorBuilder: (context, state) => Scaffold(
       body: Center(
         child: Column(
@@ -128,6 +123,14 @@ class AppRouter {
       GoRoute(
         path: '/user-login',
         name: 'user-login',
+        redirect: (context, state) {
+          // If user is already logged in, redirect to home instead of showing login screen
+          final auth = Provider.of<AuthService>(context, listen: false);
+          if (auth.isLoggedIn) {
+            return '/home';
+          }
+          return null;
+        },
         builder: (context, state) => const UserLoginScreen(),
       ),
       GoRoute(
@@ -202,11 +205,27 @@ class AppRouter {
       GoRoute(
         path: '/client-login',
         name: 'client-login',
+        redirect: (context, state) {
+          // If user is already logged in as shop owner, redirect to appropriate dashboard
+          final auth = Provider.of<AuthService>(context, listen: false);
+          if (auth.isLoggedIn && auth.currentUser?.role == 'shopowner') {
+            return '/client-dashboard';
+          }
+          return null;
+        },
         builder: (context, state) => const client.LoginScreen(),
       ),
       GoRoute(
         path: '/client-signup',
         name: 'client-signup',
+        redirect: (context, state) {
+          // If user is already logged in as shop owner, redirect to appropriate dashboard
+          final auth = Provider.of<AuthService>(context, listen: false);
+          if (auth.isLoggedIn && auth.currentUser?.role == 'shopowner') {
+            return '/client-dashboard';
+          }
+          return null;
+        },
         builder: (context, state) => const client.SignupScreen(),
       ),
       GoRoute(
