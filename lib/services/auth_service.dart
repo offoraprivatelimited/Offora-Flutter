@@ -90,25 +90,7 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  Future<void> _checkPersistentLogin() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-      if (isLoggedIn && _auth.currentUser != null) {
-        // User is already authenticated, load profile
-        await _loadUserFromFirestore(_auth.currentUser!.uid);
-        _loggedIn = true;
-        await _determineStage(_auth.currentUser!.uid);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error during persistent login check: $e');
-      }
-    } finally {
-      _initialCheckComplete = true;
-      notifyListeners();
-    }
-  }
+  // ...existing code...
 
   Future<void> _savePersistentLogin(bool isLoggedIn) async {
     final prefs = await SharedPreferences.getInstance();

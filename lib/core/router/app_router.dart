@@ -72,9 +72,18 @@ class AppRouter {
     // Custom handling for back button on the whole app
     redirect: _redirectLogic,
     errorBuilder: (context, state) {
-      // Show a loading screen instead of error during initial auth check
       final auth = Provider.of<AuthService>(context, listen: false);
+      // Debug logging for errorBuilder
+      // ignore: avoid_print
+      print(
+          '[GoRouter][errorBuilder] uri: ${state.uri}, matched: ${state.matchedLocation}, error: ${state.error}');
+      // ignore: avoid_print
+      print(
+          '[GoRouter][errorBuilder] AuthService: initialCheckComplete=\'${auth.initialCheckComplete}\', isLoggedIn=\'${auth.isLoggedIn}\', user=\'${auth.currentUser}\');');
       if (!auth.initialCheckComplete) {
+        // ignore: avoid_print
+        print(
+            '[GoRouter][errorBuilder] Showing loading screen (auth check not complete)');
         return const Scaffold(
           body: Center(
             child: Column(
@@ -88,7 +97,8 @@ class AppRouter {
           ),
         );
       }
-
+      // ignore: avoid_print
+      print('[GoRouter][errorBuilder] Showing PAGE NOT FOUND screen');
       return Scaffold(
         body: Center(
           child: Column(
@@ -345,23 +355,34 @@ class AppRouter {
   static String? _redirectLogic(BuildContext context, GoRouterState state) {
     final auth = Provider.of<AuthService>(context, listen: false);
     final user = auth.currentUser;
-
+    // ignore: avoid_print
+    print(
+        '[GoRouter][redirectLogic] uri: ${state.uri}, matched: ${state.matchedLocation}, initialCheckComplete=${auth.initialCheckComplete}, isLoggedIn=${auth.isLoggedIn}, user=$user');
     // If on root path and logged in, redirect to appropriate dashboard
     if (state.matchedLocation == '/') {
       // IMPORTANT: Only redirect after initial auth check is complete
       // This prevents showing error page during session restoration
       if (auth.initialCheckComplete) {
         if (user != null && user.role == 'shopowner') {
+          // ignore: avoid_print
+          print(
+              '[GoRouter][redirectLogic] Redirecting to /client-dashboard for shopowner');
           return '/client-dashboard';
         } else if (user != null && user.role == 'user') {
+          // ignore: avoid_print
+          print('[GoRouter][redirectLogic] Redirecting to /home for user');
           return '/home';
         }
+      } else {
+        // ignore: avoid_print
+        print('[GoRouter][redirectLogic] Waiting for initial auth check');
       }
       // During initial check OR not logged in - stay on auth gate (root)
       // AuthGate will handle the transition once auth check completes
       return null;
     }
-
+    // ignore: avoid_print
+    print('[GoRouter][redirectLogic] No redirect for this route');
     return null;
   }
 
