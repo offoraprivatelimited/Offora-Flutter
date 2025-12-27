@@ -1140,13 +1140,6 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                             value: offer.client!['email'] ?? 'N/A',
                             screenSize: screenSize,
                           ),
-                          const SizedBox(height: 16),
-                          _InfoRow(
-                            icon: Icons.phone_outlined,
-                            label: 'Phone',
-                            value: offer.client!['phoneNumber'] ?? 'N/A',
-                            screenSize: screenSize,
-                          ),
                         ],
                       ),
                     ),

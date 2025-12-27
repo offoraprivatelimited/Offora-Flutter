@@ -424,7 +424,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                             _styledField(
                                               controller:
                                                   _contactNameController,
-                                              label: 'Primary contact person',
+                                              label:
+                                                  'Primary contact person Name',
                                               icon: Icons.person_outline,
                                               validator: (value) {
                                                 if (value == null ||

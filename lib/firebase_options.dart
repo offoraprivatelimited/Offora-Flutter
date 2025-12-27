@@ -45,7 +45,7 @@ class DefaultFirebaseOptions {
     appId: '1:266482313771:web:1816917f7eb0ba3c9b986e',
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
-    authDomain: 'offora-private-limited.firebaseapp.com',
+    authDomain: 'www.offora.in',
     storageBucket: 'offora-private-limited.firebasestorage.app',
     measurementId: 'G-LW1L9P3JVG',
   );
@@ -64,7 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
     storageBucket: 'offora-private-limited.firebasestorage.app',
-    iosClientId: '266482313771-rqh7v18rerklqjmjc8duiiqlgc270v2t.apps.googleusercontent.com',
+    iosClientId:
+        '266482313771-rqh7v18rerklqjmjc8duiiqlgc270v2t.apps.googleusercontent.com',
     iosBundleId: 'com.offora.app',
   );
 
@@ -74,7 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
     storageBucket: 'offora-private-limited.firebasestorage.app',
-    iosClientId: '266482313771-rqh7v18rerklqjmjc8duiiqlgc270v2t.apps.googleusercontent.com',
+    iosClientId:
+        '266482313771-rqh7v18rerklqjmjc8duiiqlgc270v2t.apps.googleusercontent.com',
     iosBundleId: 'com.offora.app',
   );
 
@@ -83,9 +85,8 @@ class DefaultFirebaseOptions {
     appId: '1:266482313771:web:1816917f7eb0ba3c9b986e',
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
-    authDomain: 'offora-private-limited.firebaseapp.com',
+    authDomain: 'www.offora.in',
     storageBucket: 'offora-private-limited.firebasestorage.app',
     measurementId: 'G-LW1L9P3JVG',
   );
-
 }
