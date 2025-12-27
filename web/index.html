@@ -13,9 +13,9 @@
   <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
   
   <!-- Security Headers -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://www.gstatic.com https://apis.google.com https://accounts.google.com https://www.google.com; connect-src 'self' blob: https: http: ws: wss: https://accounts.google.com https://www.google.com https://www.gstatic.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; frame-src 'self' https://accounts.google.com https://www.google.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://www.gstatic.com https://apis.google.com https://accounts.google.com https://www.google.com https://static.cloudflareinsights.com; connect-src 'self' blob: https: http: ws: wss: https://accounts.google.com https://www.google.com https://www.gstatic.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://offora-private-limited.firebaseapp.com; frame-src 'self' https://accounts.google.com https://www.google.com https://offora-private-limited.firebaseapp.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com;">
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
-  <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+  <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp; report-only">
   
   <!-- Google Sign-In configuration -->
   <meta name="google-signin-client_id" content="266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com">
@@ -126,78 +126,6 @@
       firebase.initializeApp(firebaseConfig);
     }
 
-    // Initialize Google APIs and Identity Services
-    window.onload = function() {
-      // Initialize GAPI client first
-      gapi.load('client', async function() {
-        try {
-          await gapi.client.init({
-            apiKey: 'AIzaSyApJI06ily-qq6USw-asz3CheG88ghamJ8',
-            clientId: '266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com',
-            scope: 'email profile openid'
-          });
-          console.log('GAPI client initialized');
-
-          // Then initialize Google Identity Services
-          window.google.accounts.id.initialize({
-            client_id: '266482313771-l0qdv7l9fob2akk599j5lgbt8rk3b84c.apps.googleusercontent.com',
-            callback: handleCredentialResponse,
-            auto_select: false,
-            cancel_on_tap_outside: true
-          });
-
-          // Create a custom button element for Google Sign In
-          const googleSignInButton = document.createElement('div');
-          googleSignInButton.id = 'g_id_signin';
-          googleSignInButton.style.display = 'none';
-          document.body.appendChild(googleSignInButton);
-
-          // Render the sign-in button (hidden but functional)
-          window.google.accounts.id.renderButton(
-            googleSignInButton,
-            { type: 'standard', theme: 'outline', size: 'large', width: '400' }
-          );
-        } catch (error) {
-          console.error('Error initializing Google APIs:', error);
-        }
-      });
-    };
-
-    function handleCredentialResponse(response) {
-      if (response.credential) {
-        // Create a Firebase credential with the Google ID token
-        const credential = firebase.auth.GoogleAuthProvider.credential(
-          response.credential
-        );
-
-        // Sign in with credential
-        firebase.auth().signInWithCredential(credential)
-          .then(function(result) {
-            console.log('Successfully signed in:', result.user);
-            // Dispatch a custom event that Flutter can listen to
-            window.dispatchEvent(new CustomEvent('gis-signed-in', {
-              detail: {
-                user: result.user,
-                credential: response.credential
-              }
-            }));
-          })
-          .catch(function(error) {
-            console.error('Error signing in with credential:', error);
-            window.dispatchEvent(new CustomEvent('gis-error', {
-              detail: error
-            }));
-          });
-      }
-    }
-
-    // Expose a function to trigger sign in programmatically
-    window.triggerGoogleSignIn = function() {
-      const buttonElement = document.getElementById('g_id_signin');
-      if (buttonElement) {
-        buttonElement.querySelector('div[role="button"]').click();
-      }
-    };
     // Monitor authentication state
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
