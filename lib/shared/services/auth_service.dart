@@ -461,7 +461,7 @@ class AuthService extends ChangeNotifier {
       UserCredential? userCred;
 
       if (kIsWeb) {
-        // Web: Use ONLY redirect method (more reliable than popup)
+        // Web: Use popup instead of redirect - popup completes immediately
         GoogleAuthProvider googleProvider = GoogleAuthProvider();
         googleProvider.addScope('email');
         googleProvider.addScope('profile');
@@ -470,18 +470,25 @@ class AuthService extends ChangeNotifier {
         });
 
         if (kDebugMode) {
-          print('[AuthService] Starting Google Sign-In with redirect...');
+          print('[AuthService] Starting Google Sign-In with popup...');
         }
 
-        // Redirect will cause a page reload after Google auth
-        // The result will be picked up in _initializeAuthState on page reload
-        await _auth.signInWithRedirect(googleProvider);
-
-        if (kDebugMode) {
-          print(
-              '[AuthService] Redirect initiated - page will reload after Google auth');
+        try {
+          userCred = await _auth.signInWithPopup(googleProvider);
+          if (kDebugMode) {
+            print('[AuthService] Google Sign-In popup successful');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('[AuthService] Google Sign-In popup error: $e');
+          }
+          // Retry with redirect as fallback
+          if (kDebugMode) {
+            print('[AuthService] Retrying with redirect method...');
+          }
+          await _auth.signInWithRedirect(googleProvider);
+          return; // Exit - redirect will handle authentication
         }
-        return; // Exit - redirect will handle authentication
       } else {
         // Mobile/Desktop flow using GoogleSignIn package
         final GoogleSignInAccount? account = await _googleSignIn.signIn();
@@ -546,6 +553,12 @@ class AuthService extends ChangeNotifier {
             );
           }
         }
+
+        // Load user profile and determine stage in parallel (consistent with email login)
+        await Future.wait([
+          _loadUserFromFirestore(user.uid),
+          _determineStage(user.uid),
+        ]);
 
         _loggedIn = true;
         await _savePersistentLogin(true);

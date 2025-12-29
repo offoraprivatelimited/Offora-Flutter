@@ -45,7 +45,7 @@ class DefaultFirebaseOptions {
     appId: '1:266482313771:web:1816917f7eb0ba3c9b986e',
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
-    authDomain: 'www.offora.in',
+    authDomain: 'offora-private-limited.firebaseapp.com',
     storageBucket: 'offora-private-limited.firebasestorage.app',
     measurementId: 'G-LW1L9P3JVG',
   );
@@ -85,7 +85,7 @@ class DefaultFirebaseOptions {
     appId: '1:266482313771:web:1816917f7eb0ba3c9b986e',
     messagingSenderId: '266482313771',
     projectId: 'offora-private-limited',
-    authDomain: 'www.offora.in',
+    authDomain: 'offora-private-limited.firebaseapp.com',
     storageBucket: 'offora-private-limited.firebasestorage.app',
     measurementId: 'G-LW1L9P3JVG',
   );

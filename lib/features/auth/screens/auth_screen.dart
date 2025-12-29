@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import '../../../shared/services/auth_service.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../shared/widgets/responsive_page.dart';
@@ -36,7 +37,13 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       final authService = context.read<AuthService>();
       // Pass the selected role to the sign-in logic (update AuthService as needed)
-      await authService.signInWithGoogle(role: _role);
+      await authService.signInWithGoogle(role: _role).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException(
+              'Google Sign-In took too long. Please try again.');
+        },
+      );
 
       if (!mounted) return;
 
@@ -60,6 +67,14 @@ class _AuthScreenState extends State<AuthScreen> {
         // This prevents browser back button from returning to login
         context.go('/home');
       }
+    } on TimeoutException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Request timed out'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

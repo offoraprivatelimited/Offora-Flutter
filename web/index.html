@@ -110,29 +110,54 @@
 <body>
   
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyApJI06ily-qq6USw-asz3CheG88ghamJ8",
-      authDomain: "offora-private-limited.firebaseapp.com",
-      projectId: "offora-private-limited",
-      storageBucket: "offora-private-limited.firebasestorage.app",
-      messagingSenderId: "266482313771",
-      appId: "1:266482313771:web:a7f4f46e0e226ead9b986e",
-      measurementId: "G-Z2TC531M2R"
-    };
+    // Load Firebase configuration from external config.json
+    let firebaseConfig = null;
 
-    // Initialize Firebase first
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    fetch('config.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to load config.json');
+        }
+        return response.json();
+      })
+      .then(config => {
+        firebaseConfig = {
+          apiKey: config.apiKey,
+          authDomain: config.authDomain,
+          projectId: config.projectId,
+          storageBucket: config.storageBucket,
+          messagingSenderId: config.messagingSenderId,
+          appId: config.appId,
+          measurementId: config.measurementId
+        };
 
-    // Monitor authentication state
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (user) {
-        console.log('User is signed in');
-      } else {
-        console.log('No user is signed in');
-      }
-    });
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+
+        // Enable offline persistence for better reliability
+        try {
+          firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        } catch (e) {
+          console.warn('Could not set persistence:', e);
+        }
+
+        // Monitor authentication state with better error handling
+        firebase.auth().onAuthStateChanged(function(user) {
+          if (user) {
+            console.log('User is signed in:', user.email);
+          } else {
+            console.log('No user is signed in');
+          }
+        }, function(error) {
+          console.error('Auth state change error:', error);
+        });
+      })
+      .catch(error => {
+        console.error('Error loading Firebase configuration:', error);
+        alert('Failed to load application configuration. Please refresh the page.');
+      });
   </script>
 
   <!-- Add a container for the Google Sign-In button -->
