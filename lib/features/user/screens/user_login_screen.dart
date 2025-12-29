@@ -168,25 +168,19 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
 
     try {
       final auth = context.read<AuthService>();
+
+      // Show message before redirect (for web, this will redirect to Google)
+      _showSuccess('Opening Google Sign-In...');
+
       await auth.signInWithGoogle();
 
-      if (mounted) {
-        // Check if user is actually logged in after signup
-        // (redirect method will cause page reload, so we may not reach here)
-        if (auth.isLoggedIn) {
-          _showSuccess('Google sign in successful!');
-          // Wait a moment for the message to show, then navigate
-          await Future.delayed(const Duration(milliseconds: 500));
-          if (mounted) {
-            // Use go to navigate to home
-            context.go('/home');
-          }
-        } else {
-          // Redirect method initiated - show loading message
-          _showSuccess('Redirecting to Google Sign-In...');
-          if (kDebugMode) {
-            print('[UserLoginScreen] Redirect method initiated');
-          }
+      // For web redirect flow, this code may not run as the page reloads
+      // For mobile, it will run after successful sign-in
+      if (mounted && auth.isLoggedIn) {
+        _showSuccess('Google sign in successful!');
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          context.go('/home');
         }
       }
     } catch (e) {

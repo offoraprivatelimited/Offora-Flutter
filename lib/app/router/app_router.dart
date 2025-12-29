@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:offora/features/auth/screens/auth_gate.dart';
 import 'package:offora/features/auth/screens/role_selection_screen.dart';
 import 'package:offora/features/user/screens/splash_screen.dart' as user;
@@ -31,7 +30,6 @@ import 'package:offora/features/client/screens/dashboard/manage_offers_screen.da
     as client;
 import 'package:offora/features/client/screens/offers/new_offer_form_screen.dart'
     as client;
-import 'package:offora/shared/services/auth_service.dart';
 
 class AppRouter {
   // User routes
@@ -73,78 +71,16 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     initialLocation: '/',
-    // Custom handling for back button on the whole app
-    redirect: _redirectLogic,
+    // Simple error handler - just show error page
     errorBuilder: (context, state) {
-      final auth = Provider.of<AuthService>(context, listen: false);
       final location = state.matchedLocation;
 
-      // Debug logging
-      // ignore: avoid_print
-      print('[GoRouter][errorBuilder] ERROR at $location: ${state.error}');
-      // ignore: avoid_print
-      print(
-          '[GoRouter][errorBuilder] Auth state: initialCheckComplete=${auth.initialCheckComplete}, isLoggedIn=${auth.isLoggedIn}');
-
-      // CASE 0: Firebase internal routes - MUST BE FIRST!
-      // Return empty widget immediately - Firebase handles these internally via iframe
+      // Firebase internal routes - return empty widget
       if (location.startsWith('/__/')) {
-        // ignore: avoid_print
-        print(
-            '[GoRouter][errorBuilder] Firebase internal route - returning empty widget');
         return const SizedBox.shrink();
       }
 
-      // CASE 1: Auth check still in progress - show loading
-      if (!auth.initialCheckComplete) {
-        // ignore: avoid_print
-        print(
-            '[GoRouter][errorBuilder] AUTH IN PROGRESS - showing loading screen');
-        return const Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Loading app...'),
-              ],
-            ),
-          ),
-        );
-      }
-
-      // CASE 2: User is logged in - NEVER show error page, redirect to dashboard
-      if (auth.isLoggedIn && auth.currentUser != null) {
-        // ignore: avoid_print
-        print(
-            '[GoRouter][errorBuilder] LOGGED-IN USER AT INVALID ROUTE - redirecting');
-        // Schedule redirect to avoid build-time issues
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final route = auth.currentUser!.role == 'shopowner'
-              ? '/client-dashboard'
-              : '/home';
-          context.go(route);
-        });
-        // Show loading while redirecting
-        return const Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Redirecting to dashboard...'),
-              ],
-            ),
-          ),
-        );
-      }
-
-      // CASE 3: User not logged in and accessing invalid route - show error
-      // ignore: avoid_print
-      print(
-          '[GoRouter][errorBuilder] INVALID ROUTE FOR ANONYMOUS USER - showing error');
+      // Show simple error page for invalid routes
       return Scaffold(
         body: Center(
           child: Column(
@@ -174,7 +110,6 @@ class AppRouter {
         path: '/',
         name: 'auth-gate',
         builder: (context, state) => const AuthGate(),
-        redirect: _redirectLogic,
       ),
       GoRoute(
         path: '/role-selection',
@@ -273,27 +208,11 @@ class AppRouter {
       GoRoute(
         path: '/client-login',
         name: 'client-login',
-        redirect: (context, state) {
-          // If user is already logged in as shop owner, redirect to appropriate dashboard
-          final auth = Provider.of<AuthService>(context, listen: false);
-          if (auth.isLoggedIn && auth.currentUser?.role == 'shopowner') {
-            return '/client-dashboard';
-          }
-          return null;
-        },
         builder: (context, state) => const client.LoginScreen(),
       ),
       GoRoute(
         path: '/client-signup',
         name: 'client-signup',
-        redirect: (context, state) {
-          // If user is already logged in as shop owner, redirect to appropriate dashboard
-          final auth = Provider.of<AuthService>(context, listen: false);
-          if (auth.isLoggedIn && auth.currentUser?.role == 'shopowner') {
-            return '/client-dashboard';
-          }
-          return null;
-        },
         builder: (context, state) => const client.SignupScreen(),
       ),
       GoRoute(
@@ -403,111 +322,6 @@ class AppRouter {
       ),
     ],
   );
-
-  static String? _redirectLogic(BuildContext context, GoRouterState state) {
-    final auth = Provider.of<AuthService>(context, listen: false);
-    final user = auth.currentUser;
-    final location = state.matchedLocation;
-
-    // Debug logging
-    // ignore: avoid_print
-    print(
-        '[GoRouter][_redirectLogic] location=$location, initialCheckComplete=${auth.initialCheckComplete}, isLoggedIn=${auth.isLoggedIn}, userRole=${user?.role}');
-
-    // PHASE 0: Allow Firebase internal authentication routes - MUST BE FIRST!
-    // Firebase uses /__/auth/iframe for Google Sign-In on web
-    // This check must happen BEFORE auth check to avoid blocking Firebase auth flow
-    if (location.startsWith('/__/')) {
-      // ignore: avoid_print
-      print(
-          '[GoRouter][_redirectLogic] Firebase internal route "$location" - allowing');
-      return null; // Allow Firebase to handle its internal routes
-    }
-
-    // PHASE 1: Auth check not complete - show loading
-    if (!auth.initialCheckComplete) {
-      // ignore: avoid_print
-      print('[GoRouter][_redirectLogic] AUTH CHECK IN PROGRESS - waiting');
-      return null; // Stay on current route (AuthGate will show loading)
-    }
-
-    // PHASE 2: Auth check complete
-    // Validate route - if invalid and user is logged in, redirect to dashboard
-    if (!isValidRoute(location)) {
-      if (user != null) {
-        // User is logged in but accessing invalid route - redirect to dashboard
-        final redirectTo =
-            user.role == 'shopowner' ? '/client-dashboard' : '/home';
-        // ignore: avoid_print
-        print(
-            '[GoRouter][_redirectLogic] INVALID ROUTE "$location" for logged-in user -> redirecting to $redirectTo');
-        return redirectTo;
-      } else {
-        // User not logged in and route is invalid - go to root (auth gate)
-        // ignore: avoid_print
-        print(
-            '[GoRouter][_redirectLogic] INVALID ROUTE "$location" for anonymous user -> redirecting to /');
-        return '/';
-      }
-    }
-
-    // PHASE 3: Route is valid - check auth-based redirects
-    if (location == '/') {
-      if (user != null) {
-        // User is logged in and on root - redirect to dashboard
-        final redirectTo =
-            user.role == 'shopowner' ? '/client-dashboard' : '/home';
-        // ignore: avoid_print
-        print(
-            '[GoRouter][_redirectLogic] ROOT "/" with logged-in user -> redirecting to $redirectTo');
-        return redirectTo;
-      }
-      // Not logged in and on root - stay on auth gate
-      // ignore: avoid_print
-      print(
-          '[GoRouter][_redirectLogic] ROOT "/" without login -> staying on auth gate');
-      return null;
-    }
-
-    // PHASE 4: Protected routes - ensure user is logged in
-    const protectedRoutes = [
-      '/home',
-      '/explore',
-      '/compare',
-      '/saved',
-      '/profile',
-      '/offer-details',
-      '/notifications',
-      '/settings',
-      '/client-dashboard',
-      '/client-add',
-      '/client-manage',
-      '/client-enquiries',
-      '/client-profile',
-      '/new-offer',
-      '/manage-offers',
-    ];
-
-    if (protectedRoutes.any((route) => location.startsWith(route))) {
-      if (user == null) {
-        // Trying to access protected route without login - go to auth
-        // ignore: avoid_print
-        print(
-            '[GoRouter][_redirectLogic] PROTECTED ROUTE "$location" without login -> redirecting to /');
-        return '/';
-      }
-      // User is logged in - allow access
-      // ignore: avoid_print
-      print(
-          '[GoRouter][_redirectLogic] PROTECTED ROUTE "$location" with valid user -> allowing');
-      return null;
-    }
-
-    // No redirect needed
-    // ignore: avoid_print
-    print('[GoRouter][_redirectLogic] ALLOWED -> no redirect');
-    return null;
-  }
 
   /// List of all valid routes in the application
   static const List<String> validRoutes = [

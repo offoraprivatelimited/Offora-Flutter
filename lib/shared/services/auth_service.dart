@@ -461,98 +461,27 @@ class AuthService extends ChangeNotifier {
       UserCredential? userCred;
 
       if (kIsWeb) {
-        // Web-specific sign in using Firebase Auth directly
+        // Web: Use ONLY redirect method (more reliable than popup)
         GoogleAuthProvider googleProvider = GoogleAuthProvider();
         googleProvider.addScope('email');
         googleProvider.addScope('profile');
-
-        // Set popup custom parameters for better UX
         googleProvider.setCustomParameters({
-          'prompt': 'select_account', // Always show account selection
-          'display': 'popup', // Explicitly request popup
+          'prompt': 'select_account',
         });
 
-        bool useRedirect = false;
-        try {
-          if (kDebugMode) {
-            print('[AuthService] Attempting Google Sign-In with popup...');
-          }
-          // Try popup first with a longer timeout
-          userCred = await _auth.signInWithPopup(googleProvider).timeout(
-            const Duration(seconds: 60),
-            onTimeout: () {
-              if (kDebugMode) {
-                print(
-                    '[AuthService] Popup timeout - trying redirect method...');
-              }
-              throw FirebaseAuthException(
-                code: 'popup-timeout',
-                message: 'Popup authentication timed out',
-              );
-            },
-          );
-
-          if (userCred.user != null) {
-            if (kDebugMode) {
-              print(
-                  '[AuthService] Popup sign-in successful: ${userCred.user?.email}');
-            }
-          } else {
-            // Popup completed but no user - try redirect
-            if (kDebugMode) {
-              print('[AuthService] Popup completed but no user returned');
-            }
-            useRedirect = true;
-          }
-        } catch (popupError) {
-          if (kDebugMode) {
-            print(
-                '[AuthService] Popup failed: $popupError, attempting redirect...');
-          }
-          // Any popup error - fall back to redirect
-          if (popupError is FirebaseAuthException) {
-            if (kDebugMode) {
-              print(
-                  '[AuthService] Firebase error in popup: ${popupError.code}');
-            }
-            // For popup-blocked, popup-closed-by-user, or any other firebase error
-            useRedirect = true;
-          } else {
-            // Non-Firebase errors - also try redirect as fallback
-            if (kDebugMode) {
-              print('[AuthService] Non-Firebase error in popup: $popupError');
-            }
-            useRedirect = true;
-          }
+        if (kDebugMode) {
+          print('[AuthService] Starting Google Sign-In with redirect...');
         }
 
-        // If popup failed, try redirect method
-        if (useRedirect) {
-          try {
-            if (kDebugMode) {
-              print('[AuthService] Starting Google Sign-In redirect flow...');
-            }
-            // Redirect will cause a page reload after Google auth
-            // The result will be picked up in _initializeAuthState on page reload
-            await _auth.signInWithRedirect(googleProvider);
+        // Redirect will cause a page reload after Google auth
+        // The result will be picked up in _initializeAuthState on page reload
+        await _auth.signInWithRedirect(googleProvider);
 
-            // This line is reached, but redirect will happen shortly
-            if (kDebugMode) {
-              print(
-                  '[AuthService] Redirect initiated - user will be redirected to Google auth');
-            }
-            return; // Exit - redirect will handle authentication
-          } catch (redirectError) {
-            if (kDebugMode) {
-              print(
-                  '[AuthService] Redirect method also failed: $redirectError');
-            }
-            _errorMessage =
-                'Google Sign-In failed. Please check your internet connection and try again.';
-            notifyListeners();
-            throw AuthException(_errorMessage!);
-          }
+        if (kDebugMode) {
+          print(
+              '[AuthService] Redirect initiated - page will reload after Google auth');
         }
+        return; // Exit - redirect will handle authentication
       } else {
         // Mobile/Desktop flow using GoogleSignIn package
         final GoogleSignInAccount? account = await _googleSignIn.signIn();
@@ -577,7 +506,7 @@ class AuthService extends ChangeNotifier {
         userCred = await _auth.signInWithCredential(credential);
       }
 
-      final user = userCred?.user;
+      final user = userCred.user;
 
       if (user != null) {
         final doc = await _firestore.collection('users').doc(user.uid).get();
