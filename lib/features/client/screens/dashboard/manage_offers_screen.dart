@@ -237,6 +237,13 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
                         color: Colors.red,
                       ),
                       const SizedBox(width: 8),
+                      _FilterChip(
+                        label: 'Expired',
+                        isSelected: _filterStatus == 'expired',
+                        onTap: () => setState(() => _filterStatus = 'expired'),
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 8),
                     ],
                   ),
                 ),
@@ -354,7 +361,8 @@ class _OfferCard extends StatelessWidget {
     required this.onViewDetails,
   });
 
-  Color _getStatusColor(OfferApprovalStatus status) {
+  Color _getStatusColor(OfferApprovalStatus status, {bool isExpired = false}) {
+    if (isExpired) return Colors.grey;
     switch (status) {
       case OfferApprovalStatus.pending:
         return Colors.orange;
@@ -363,6 +371,11 @@ class _OfferCard extends StatelessWidget {
       case OfferApprovalStatus.rejected:
         return Colors.red;
     }
+  }
+
+  String _getStatusText(OfferApprovalStatus status, {bool isExpired = false}) {
+    if (isExpired) return 'EXPIRED';
+    return status.name.toUpperCase();
   }
 
   @override
@@ -473,18 +486,22 @@ class _OfferCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: _getStatusColor(offer.status)
+                              color: _getStatusColor(offer.status,
+                                      isExpired: offer.isExpired)
                                   .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(3),
                               border: Border.all(
-                                color: _getStatusColor(offer.status),
+                                color: _getStatusColor(offer.status,
+                                    isExpired: offer.isExpired),
                                 width: 0.6,
                               ),
                             ),
                             child: Text(
-                              offer.status.name.toUpperCase(),
+                              _getStatusText(offer.status,
+                                  isExpired: offer.isExpired),
                               style: TextStyle(
-                                color: _getStatusColor(offer.status),
+                                color: _getStatusColor(offer.status,
+                                    isExpired: offer.isExpired),
                                 fontWeight: FontWeight.w700,
                                 fontSize: 8,
                               ),

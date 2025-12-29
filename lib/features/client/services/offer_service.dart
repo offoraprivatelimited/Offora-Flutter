@@ -8,6 +8,7 @@ import '../models/offer.dart';
 
 class OfferService {
   /// Fetch all offers uploaded by a client from their offers subcollection, with optional status filter
+  /// Supports 'expired' as a special status to filter only expired offers
   Stream<List<Offer>> watchClientOffersByStatus(String clientId,
       {String? status}) {
     // Path: clients/approved/{clientId}/offers
@@ -22,9 +23,19 @@ class OfferService {
       final List<Offer> offers = [];
       for (final doc in snapshot.docs) {
         final offer = Offer.fromFirestore(doc);
-        // Filter by status if provided
-        if (status == null || offer.status.name == status) {
+        // Handle 'expired' as a special filter
+        if (status == 'expired') {
+          if (offer.isExpired) {
+            offers.add(offer);
+          }
+        } else if (status == null) {
+          // 'all' - show all offers
           offers.add(offer);
+        } else {
+          // Filter by approval status, but exclude expired from non-expired views
+          if (offer.status.name == status && !offer.isExpired) {
+            offers.add(offer);
+          }
         }
       }
       return offers;
@@ -62,7 +73,23 @@ class OfferService {
 
   /// Watch all approved offers (for user explore screen)
   /// Fetches from offers/approved/offers subcollection
+  /// Automatically filters out expired offers
   Stream<List<Offer>> watchApprovedOffers() {
+    return _statusCollection('approved')
+        .orderBy('createdAt', descending: true)
+        .withConverter<Offer>(
+          fromFirestore: (snapshot, _) => Offer.fromFirestore(snapshot),
+          toFirestore: (Offer offer, _) => offer.toJson(),
+        )
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => doc.data())
+            .where((offer) => !offer.isExpired) // Filter out expired offers
+            .toList());
+  }
+
+  /// Watch all approved offers including expired ones (for admin purposes)
+  Stream<List<Offer>> watchAllApprovedOffers() {
     return _statusCollection('approved')
         .orderBy('createdAt', descending: true)
         .withConverter<Offer>(

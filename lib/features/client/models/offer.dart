@@ -91,6 +91,19 @@ class Offer {
   bool get isApproved => status == OfferApprovalStatus.approved;
   bool get isRejected => status == OfferApprovalStatus.rejected;
 
+  /// Returns true if the offer has expired (endDate is in the past)
+  bool get isExpired {
+    if (endDate == null) return false;
+    final now = DateTime.now();
+    // Compare dates only (ignore time) - offer expires at end of end date
+    final endOfDay =
+        DateTime(endDate!.year, endDate!.month, endDate!.day, 23, 59, 59);
+    return now.isAfter(endOfDay);
+  }
+
+  /// Returns true if the offer is currently active (approved and not expired)
+  bool get isActive => isApproved && !isExpired;
+
   Map<String, dynamic> toJson() {
     return {
       'clientId': clientId,
