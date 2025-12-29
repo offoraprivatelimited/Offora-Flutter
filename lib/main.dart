@@ -7,13 +7,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 import 'firebase_options.dart';
-import 'theme/app_theme.dart';
-import 'services/auth_service.dart';
-import 'services/saved_offers_service.dart';
-import 'services/compare_service.dart';
-import 'client/services/offer_service.dart';
-import 'widgets/responsive_wrapper.dart';
-import 'core/router/app_router.dart';
+import 'shared/theme/app_theme.dart';
+import 'shared/services/auth_service.dart';
+import 'shared/services/saved_offers_service.dart';
+import 'shared/services/compare_service.dart';
+import 'features/client/services/offer_service.dart';
+import 'shared/widgets/responsive_wrapper.dart';
+import 'app/router/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
