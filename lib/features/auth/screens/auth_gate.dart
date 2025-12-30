@@ -3,10 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/services/auth_service.dart';
 import '../../../shared/models/client_panel_stage.dart';
-import '../../user/screens/main_screen.dart';
-import '../../client/screens/main/client_main_screen.dart';
-import '../../client/screens/auth/pending_approval_page.dart';
-import '../../client/screens/auth/rejection_page.dart';
+import '../../../app/router/app_router.dart';
 import '../../user/screens/splash_screen.dart';
 
 class AuthGate extends StatelessWidget {
@@ -42,7 +39,7 @@ class AuthGate extends StatelessWidget {
           if (user.role == 'user') {
             return _buildTransitionScreen(
               context,
-              MainScreen.routeName,
+              AppRouter.home,
             );
           }
 
@@ -50,17 +47,17 @@ class AuthGate extends StatelessWidget {
           if (authService.stage == ClientPanelStage.active) {
             return _buildTransitionScreen(
               context,
-              ClientMainScreen.routeName,
+              AppRouter.clientDashboard,
             );
           } else if (authService.stage == ClientPanelStage.pendingApproval) {
             return _buildTransitionScreen(
               context,
-              PendingApprovalPage.routeName,
+              AppRouter.pendingApproval,
             );
           } else if (authService.stage == ClientPanelStage.rejected) {
             return _buildTransitionScreen(
               context,
-              RejectionPage.routeName,
+              AppRouter.rejection,
             );
           }
 
