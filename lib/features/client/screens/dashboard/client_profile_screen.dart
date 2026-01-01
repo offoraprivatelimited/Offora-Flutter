@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../shared/services/auth_service.dart';
 import '../../../../core/errors/error_messages.dart';
+import '../../../../core/utils/keyboard_utils.dart';
 
 class ClientProfileScreen extends StatefulWidget {
   const ClientProfileScreen({super.key});
@@ -137,300 +138,308 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       );
     }
 
-    return SafeArea(
-      child: Container(
-        color: const Color(0xFFF5F7FA),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Profile header card
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      darkBlue,
-                      // Replace deprecated withOpacity with withValues
-                      darkBlue.withValues(alpha: 0.8),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: darkBlue.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+    return GestureDetector(
+      onTap: () => KeyboardUtils.dismissKeyboard(context),
+      child: SafeArea(
+        child: Container(
+          color: const Color(0xFFF5F7FA),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              physics: const ClampingScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: [
+                // Profile header card
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        darkBlue,
+                        // Replace deprecated withOpacity with withValues
+                        darkBlue.withValues(alpha: 0.8),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 48,
-                      backgroundColor: brightGold,
-                      child: Text(
-                        (user.businessName.isNotEmpty
-                                ? user.businessName[0]
-                                : 'B')
-                            .toUpperCase(),
-                        style: TextStyle(
-                          color: darkBlue,
-                          fontSize: 36,
-                          fontWeight: FontWeight.w800,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: darkBlue.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 48,
+                        backgroundColor: brightGold,
+                        child: Text(
+                          (user.businessName.isNotEmpty
+                                  ? user.businessName[0]
+                                  : 'B')
+                              .toUpperCase(),
+                          style: TextStyle(
+                            color: darkBlue,
+                            fontSize: 36,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      (user.businessName.isNotEmpty
-                          ? user.businessName
-                          : 'Business Name'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
+                      const SizedBox(height: 16),
+                      Text(
+                        (user.businessName.isNotEmpty
+                            ? user.businessName
+                            : 'Business Name'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      (user.category.isNotEmpty ? user.category : 'Category'),
-                      style: TextStyle(
-                        color: brightGold,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(height: 4),
+                      Text(
+                        (user.category.isNotEmpty ? user.category : 'Category'),
+                        style: TextStyle(
+                          color: brightGold,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              // Edit / Save controls (moved here since AppBar is shared)
-              Padding(
-                padding: const EdgeInsets.only(right: 4, top: 8, bottom: 8),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: !_isEditing
-                      ? IconButton(
-                          icon: const Icon(Icons.edit),
-                          color: darkBlue,
-                          onPressed: () => setState(() => _isEditing = true),
-                          tooltip: 'Edit Profile',
-                        )
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
+                // Edit / Save controls (moved here since AppBar is shared)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4, top: 8, bottom: 8),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: !_isEditing
+                        ? IconButton(
+                            icon: const Icon(Icons.edit),
+                            color: darkBlue,
+                            onPressed: () => setState(() => _isEditing = true),
+                            tooltip: 'Edit Profile',
+                          )
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                onPressed: _cancelEditing,
+                                style: TextButton.styleFrom(
+                                    foregroundColor: darkBlue),
+                                child: const Text('Cancel'),
+                              ),
+                              const SizedBox(width: 8),
+                              TextButton(
+                                onPressed: _saveProfile,
+                                style: TextButton.styleFrom(
+                                    foregroundColor: darkBlue,
+                                    textStyle: const TextStyle(
+                                        fontWeight: FontWeight.w700)),
+                                child: const Text('Save'),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Business Information
+                _SectionHeader(
+                  title: 'Business Information',
+                  icon: Icons.business,
+                  darkBlue: darkBlue,
+                ),
+                const SizedBox(height: 12),
+                _ProfileField(
+                  label: 'Business Name',
+                  controller: _businessNameController,
+                  icon: Icons.store,
+                  enabled: _isEditing,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Business name is required';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                _ProfileField(
+                  label: 'Category',
+                  controller: _categoryController,
+                  icon: Icons.category,
+                  enabled: false,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Category is required';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                _ProfileField(
+                  label: 'Contact Person',
+                  controller: _contactPersonController,
+                  icon: Icons.person,
+                  enabled: _isEditing,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Contact person is required';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Contact Information
+                _SectionHeader(
+                  title: 'Contact Information',
+                  icon: Icons.contact_phone,
+                  darkBlue: darkBlue,
+                ),
+                const SizedBox(height: 12),
+                _ProfileField(
+                  label: 'Phone Number',
+                  controller: _phoneController,
+                  icon: Icons.phone,
+                  enabled: false,
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Phone number is required';
+                    }
+                    if (value.trim().length != 10) {
+                      return 'Phone number must be 10 digits';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                _ProfileField(
+                  label: 'Email',
+                  controller: _emailController,
+                  icon: Icons.email,
+                  enabled: false, // Email cannot be changed
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 12),
+                _ProfileField(
+                  label: 'Address',
+                  controller: _addressController,
+                  icon: Icons.home,
+                  enabled: false,
+                  maxLines: 3,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Address is required';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                _ProfileField(
+                  label: 'Location',
+                  controller: _locationController,
+                  icon: Icons.location_on,
+                  enabled: false,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Location is required';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Legal Information
+                _SectionHeader(
+                  title: 'Legal Information',
+                  icon: Icons.gavel,
+                  darkBlue: darkBlue,
+                ),
+                const SizedBox(height: 12),
+                _ProfileField(
+                  label: 'GST Number',
+                  controller: _gstController,
+                  icon: Icons.receipt_long,
+                  enabled: false,
+                  textCapitalization: TextCapitalization.characters,
+                ),
+                const SizedBox(height: 12),
+                _ProfileField(
+                  label: 'Shop License Number',
+                  controller: _shopLicenseController,
+                  icon: Icons.badge,
+                  enabled: false,
+                ),
+                const SizedBox(height: 12),
+                _ProfileField(
+                  label: 'Business Registration Number',
+                  controller: _businessRegController,
+                  icon: Icons.business_center,
+                  enabled: false,
+                ),
+                const SizedBox(height: 32),
+
+                // Logout button
+                if (!_isEditing)
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final authService = context.read<AuthService>();
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: Colors.white,
+                          title: const Text('Logout',
+                              style: TextStyle(color: Colors.black)),
+                          content: const Text(
+                              'Are you sure you want to logout?',
+                              style: TextStyle(color: Colors.black)),
+                          actions: [
                             TextButton(
-                              onPressed: _cancelEditing,
-                              style: TextButton.styleFrom(
-                                  foregroundColor: darkBlue),
-                              child: const Text('Cancel'),
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel',
+                                  style: TextStyle(color: Colors.black)),
                             ),
-                            const SizedBox(width: 8),
                             TextButton(
-                              onPressed: _saveProfile,
-                              style: TextButton.styleFrom(
-                                  foregroundColor: darkBlue,
-                                  textStyle: const TextStyle(
-                                      fontWeight: FontWeight.w700)),
-                              child: const Text('Save'),
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Logout',
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Business Information
-              _SectionHeader(
-                title: 'Business Information',
-                icon: Icons.business,
-                darkBlue: darkBlue,
-              ),
-              const SizedBox(height: 12),
-              _ProfileField(
-                label: 'Business Name',
-                controller: _businessNameController,
-                icon: Icons.store,
-                enabled: _isEditing,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Business name is required';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              _ProfileField(
-                label: 'Category',
-                controller: _categoryController,
-                icon: Icons.category,
-                enabled: false,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Category is required';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              _ProfileField(
-                label: 'Contact Person',
-                controller: _contactPersonController,
-                icon: Icons.person,
-                enabled: _isEditing,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Contact person is required';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // Contact Information
-              _SectionHeader(
-                title: 'Contact Information',
-                icon: Icons.contact_phone,
-                darkBlue: darkBlue,
-              ),
-              const SizedBox(height: 12),
-              _ProfileField(
-                label: 'Phone Number',
-                controller: _phoneController,
-                icon: Icons.phone,
-                enabled: false,
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Phone number is required';
-                  }
-                  if (value.trim().length != 10) {
-                    return 'Phone number must be 10 digits';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              _ProfileField(
-                label: 'Email',
-                controller: _emailController,
-                icon: Icons.email,
-                enabled: false, // Email cannot be changed
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 12),
-              _ProfileField(
-                label: 'Address',
-                controller: _addressController,
-                icon: Icons.home,
-                enabled: false,
-                maxLines: 3,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Address is required';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              _ProfileField(
-                label: 'Location',
-                controller: _locationController,
-                icon: Icons.location_on,
-                enabled: false,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Location is required';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // Legal Information
-              _SectionHeader(
-                title: 'Legal Information',
-                icon: Icons.gavel,
-                darkBlue: darkBlue,
-              ),
-              const SizedBox(height: 12),
-              _ProfileField(
-                label: 'GST Number',
-                controller: _gstController,
-                icon: Icons.receipt_long,
-                enabled: false,
-                textCapitalization: TextCapitalization.characters,
-              ),
-              const SizedBox(height: 12),
-              _ProfileField(
-                label: 'Shop License Number',
-                controller: _shopLicenseController,
-                icon: Icons.badge,
-                enabled: false,
-              ),
-              const SizedBox(height: 12),
-              _ProfileField(
-                label: 'Business Registration Number',
-                controller: _businessRegController,
-                icon: Icons.business_center,
-                enabled: false,
-              ),
-              const SizedBox(height: 32),
-
-              // Logout button
-              if (!_isEditing)
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final authService = context.read<AuthService>();
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        backgroundColor: Colors.white,
-                        title: const Text('Logout',
-                            style: TextStyle(color: Colors.black)),
-                        content: const Text('Are you sure you want to logout?',
-                            style: TextStyle(color: Colors.black)),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel',
-                                style: TextStyle(color: Colors.black)),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text('Logout',
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (!mounted) return;
-                    if (confirmed != true) return;
-                    await authService.signOut();
-                    if (!mounted) return;
-                    // Use go() instead of goNamed to clear the entire navigation stack
-                    context.go('/role-selection');
-                  },
-                  icon: const Icon(Icons.logout, color: Color(0xFF1F477D)),
-                  label: const Text('Logout',
-                      style: TextStyle(color: Color(0xFF1F477D))),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF1F477D),
-                    side: const BorderSide(color: Color(0xFF1F477D)),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                      );
+                      if (!mounted) return;
+                      if (confirmed != true) return;
+                      await authService.signOut();
+                      if (!mounted) return;
+                      // Use go() instead of goNamed to clear the entire navigation stack
+                      context.go('/role-selection');
+                    },
+                    icon: const Icon(Icons.logout, color: Color(0xFF1F477D)),
+                    label: const Text('Logout',
+                        style: TextStyle(color: Color(0xFF1F477D))),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF1F477D),
+                      side: const BorderSide(color: Color(0xFF1F477D)),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                   ),
-                ),
-              const SizedBox(height: 16),
-            ],
+                const SizedBox(height: 16),
+                // Add bottom padding for keyboard
+                const KeyboardBottomPadding(minPadding: 20),
+              ],
+            ),
           ),
         ),
       ),

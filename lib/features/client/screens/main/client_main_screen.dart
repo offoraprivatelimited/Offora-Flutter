@@ -13,6 +13,7 @@ import '../../../../core/errors/error_messages.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/premium_app_bar.dart';
 import '../../../../shared/widgets/app_exit_dialog.dart';
+import '../../../../core/utils/keyboard_utils.dart';
 
 class ClientMainScreen extends StatefulWidget {
   static const String routeName = '/client-main';
@@ -133,53 +134,127 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
           isExiting: true,
         );
       },
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        // Keep drawer for narrow screens
-        drawer: const AppDrawer(),
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(64),
-          child: Builder(
-            builder: (context) => PremiumAppBar(
-              showBack: _infoPage != null,
-              onBackTap: () => setState(() => _infoPage = null),
-              showMenu: _infoPage == null,
-              onMenuTap: () => Scaffold.of(context).openDrawer(),
+      child: GestureDetector(
+        onTap: () => KeyboardUtils.dismissKeyboard(context),
+        child: Scaffold(
+          resizeToAvoidBottomInset: true,
+          // Keep drawer for narrow screens
+          drawer: const AppDrawer(),
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(64),
+            child: Builder(
+              builder: (context) => PremiumAppBar(
+                showBack: _infoPage != null,
+                onBackTap: () => setState(() => _infoPage = null),
+                showMenu: _infoPage == null,
+                onMenuTap: () => Scaffold.of(context).openDrawer(),
+              ),
             ),
           ),
-        ),
-        body: LayoutBuilder(builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 920;
+          body: LayoutBuilder(builder: (context, constraints) {
+            final isWide = constraints.maxWidth > 920;
 
-          // Update the first screen with actual NewOfferFormScreen
-          if (_screens.isNotEmpty && _screens[0] is SizedBox) {
-            _screens[0] = NewOfferFormScreen(clientId: _clientId);
-          }
+            // Update the first screen with actual NewOfferFormScreen
+            if (_screens.isNotEmpty && _screens[0] is SizedBox) {
+              _screens[0] = NewOfferFormScreen(clientId: _clientId);
+            }
 
-          Widget content = _infoPage != null
-              ? _infoPage!
-              : Container(
-                  color: const Color(0xFFF5F7FA),
-                  child: IndexedStack(
-                    index: _currentIndex,
-                    children: _screens,
+            Widget content = _infoPage != null
+                ? _infoPage!
+                : Container(
+                    color: const Color(0xFFF5F7FA),
+                    child: IndexedStack(
+                      index: _currentIndex,
+                      children: _screens,
+                    ),
+                  );
+
+            if (!isWide) return content;
+
+            // Desktop layout: navigation rail + content
+            return Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: (i) {
+                    setState(() {
+                      _currentIndex = i;
+                      _infoPage = null;
+                    });
+                    // Update URL based on tab selection
+                    switch (i) {
+                      case 0:
+                        context.goNamed('client-add');
+                        break;
+                      case 1:
+                        context.goNamed('client-manage');
+                        break;
+                      case 2:
+                        context.goNamed('client-enquiries');
+                        break;
+                      case 3:
+                        context.goNamed('client-profile');
+                        break;
+                    }
+                  },
+                  labelType: NavigationRailLabelType.all,
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.add_circle_outline),
+                      selectedIcon: Icon(Icons.add_circle),
+                      label: Text('Add'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.campaign_outlined),
+                      selectedIcon: Icon(Icons.campaign),
+                      label: Text('Manage'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.question_answer_outlined),
+                      selectedIcon: Icon(Icons.question_answer),
+                      label: Text('Enquiries'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: Text('Profile'),
+                    ),
+                  ],
+                ),
+                const VerticalDivider(width: 1),
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1200),
+                      child: content,
+                    ),
                   ),
-                );
-
-          if (!isWide) return content;
-
-          // Desktop layout: navigation rail + content
-          return Row(
-            children: [
-              NavigationRail(
-                selectedIndex: _currentIndex,
-                onDestinationSelected: (i) {
+                ),
+              ],
+            );
+          }),
+          bottomNavigationBar: LayoutBuilder(builder: (context, constraints) {
+            if (constraints.maxWidth > 920) return const SizedBox.shrink();
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(25),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: BottomNavigationBar(
+                currentIndex: _currentIndex,
+                onTap: (index) {
                   setState(() {
-                    _currentIndex = i;
-                    _infoPage = null;
+                    _currentIndex = index;
+                    _infoPage = null; // Clear info page when switching tabs
                   });
                   // Update URL based on tab selection
-                  switch (i) {
+                  switch (index) {
                     case 0:
                       context.goNamed('client-add');
                       break;
@@ -194,111 +269,40 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
                       break;
                   }
                 },
-                labelType: NavigationRailLabelType.all,
-                destinations: const [
-                  NavigationRailDestination(
+                type: BottomNavigationBarType.fixed,
+                backgroundColor: Colors.white,
+                selectedItemColor: brightGold,
+                unselectedItemColor: Colors.grey.shade600,
+                selectedFontSize: 12,
+                unselectedFontSize: 11,
+                showUnselectedLabels: true,
+                elevation: 8,
+                items: const [
+                  BottomNavigationBarItem(
                     icon: Icon(Icons.add_circle_outline),
-                    selectedIcon: Icon(Icons.add_circle),
-                    label: Text('Add'),
+                    activeIcon: Icon(Icons.add_circle),
+                    label: 'Add',
                   ),
-                  NavigationRailDestination(
+                  BottomNavigationBarItem(
                     icon: Icon(Icons.campaign_outlined),
-                    selectedIcon: Icon(Icons.campaign),
-                    label: Text('Manage'),
+                    activeIcon: Icon(Icons.campaign),
+                    label: 'Manage',
                   ),
-                  NavigationRailDestination(
+                  BottomNavigationBarItem(
                     icon: Icon(Icons.question_answer_outlined),
-                    selectedIcon: Icon(Icons.question_answer),
-                    label: Text('Enquiries'),
+                    activeIcon: Icon(Icons.question_answer),
+                    label: 'Enquiries',
                   ),
-                  NavigationRailDestination(
+                  BottomNavigationBarItem(
                     icon: Icon(Icons.person_outline),
-                    selectedIcon: Icon(Icons.person),
-                    label: Text('Profile'),
+                    activeIcon: Icon(Icons.person),
+                    label: 'Profile',
                   ),
                 ],
               ),
-              const VerticalDivider(width: 1),
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1200),
-                    child: content,
-                  ),
-                ),
-              ),
-            ],
-          );
-        }),
-        bottomNavigationBar: LayoutBuilder(builder: (context, constraints) {
-          if (constraints.maxWidth > 920) return const SizedBox.shrink();
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(25),
-                  blurRadius: 20,
-                  offset: const Offset(0, -5),
-                ),
-              ],
-            ),
-            child: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                  _infoPage = null; // Clear info page when switching tabs
-                });
-                // Update URL based on tab selection
-                switch (index) {
-                  case 0:
-                    context.goNamed('client-add');
-                    break;
-                  case 1:
-                    context.goNamed('client-manage');
-                    break;
-                  case 2:
-                    context.goNamed('client-enquiries');
-                    break;
-                  case 3:
-                    context.goNamed('client-profile');
-                    break;
-                }
-              },
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: Colors.white,
-              selectedItemColor: brightGold,
-              unselectedItemColor: Colors.grey.shade600,
-              selectedFontSize: 12,
-              unselectedFontSize: 11,
-              showUnselectedLabels: true,
-              elevation: 8,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.add_circle_outline),
-                  activeIcon: Icon(Icons.add_circle),
-                  label: 'Add',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.campaign_outlined),
-                  activeIcon: Icon(Icons.campaign),
-                  label: 'Manage',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.question_answer_outlined),
-                  activeIcon: Icon(Icons.question_answer),
-                  label: 'Enquiries',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person_outline),
-                  activeIcon: Icon(Icons.person),
-                  label: 'Profile',
-                ),
-              ],
-            ),
-          );
-        }),
+            );
+          }),
+        ),
       ),
     );
   }

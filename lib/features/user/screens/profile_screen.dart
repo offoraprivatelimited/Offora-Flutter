@@ -9,6 +9,7 @@ import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/theme/colors.dart';
 import '../../../core/errors/error_messages.dart';
 import '../../../shared/widgets/responsive_page.dart';
+import '../../../core/utils/keyboard_utils.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -147,38 +148,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Future.microtask(() => auth.refreshProfile());
     }
 
-    return Scaffold(
-      drawer: const AppDrawer(),
-      backgroundColor: AppColors.surface,
-      body: SafeArea(
-        child: ResponsivePage(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFFF7F9FD), Color(0xFFEFF3FA)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+    return GestureDetector(
+      onTap: () => KeyboardUtils.dismissKeyboard(context),
+      child: Scaffold(
+        drawer: const AppDrawer(),
+        backgroundColor: AppColors.surface,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: ResponsivePage(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFFF7F9FD), Color(0xFFEFF3FA)],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeaderCard(context, user, avatarImage),
-                    const SizedBox(height: 16),
-                    _buildFormCard(context),
-                    const SizedBox(height: 16),
-                    _buildActions(context),
-                  ],
+                SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeaderCard(context, user, avatarImage),
+                      const SizedBox(height: 16),
+                      _buildFormCard(context),
+                      const SizedBox(height: 16),
+                      _buildActions(context),
+                      // Add bottom padding for keyboard
+                      const KeyboardBottomPadding(minPadding: 20),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

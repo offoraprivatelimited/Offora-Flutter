@@ -14,6 +14,7 @@ import '../../../../shared/widgets/premium_text_field.dart';
 import '../../../../shared/widgets/gradient_button.dart';
 import '../../../../shared/widgets/responsive_page.dart';
 import '../../../../shared/widgets/loading_overlay.dart';
+import '../../../../core/utils/keyboard_utils.dart';
 import 'models/image_models.dart';
 import 'widgets/discount_fields_widgets.dart';
 import 'widgets/advanced_discount_fields_widgets.dart';
@@ -559,319 +560,323 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   Widget build(BuildContext context) {
     return LoadingOverlay(
       isLoading: _isLoading,
-      child: Scaffold(
-        resizeToAvoidBottomInset: true,
-        body: ResponsivePage(
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            physics: const ClampingScrollPhysics(),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Section
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.darkBlue.withAlpha(20),
-                      borderRadius: BorderRadius.circular(12),
+      child: GestureDetector(
+        onTap: () => KeyboardUtils.dismissKeyboard(context),
+        child: Scaffold(
+          resizeToAvoidBottomInset: true,
+          body: ResponsivePage(
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              physics: const ClampingScrollPhysics(),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Section
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.darkBlue.withAlpha(20),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.offerToEdit == null
+                                ? '✨ Create New Offer'
+                                : '✏️ Edit Offer',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkBlue,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Fill in all required fields (*) to create your offer',
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 13),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(height: 24),
+
+                    // Basic Information Section
+                    _buildSectionTitle('📋 Basic Details'),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tell customers what you\'re offering',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 16),
+                    PremiumTextField(
+                      controller: _titleController,
+                      labelText: 'Offer Title *',
+                      hintText: 'e.g., 50% Off Laptops, Buy 1 Get 1 Free',
+                      prefixIcon: Icons.title,
+                      validator: (value) => value?.isEmpty ?? true
+                          ? 'Please enter offer title'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    PremiumTextField(
+                      controller: _descriptionController,
+                      labelText: 'Description *',
+                      hintText:
+                          'What\'s included? Example: Valid on winter clothes, excludes sale items',
+                      prefixIcon: Icons.description,
+                      maxLines: 4,
+                      validator: (value) => value?.isEmpty ?? true
+                          ? 'Please describe the offer'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    PremiumTextField(
+                      controller: _originalPriceController,
+                      labelText: 'Original Price *',
+                      hintText: 'Regular price before discount',
+                      prefixIcon: Icons.currency_rupee,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Enter the original price';
+                        }
+                        if (double.tryParse(value!) == null) {
+                          return 'Enter valid price (e.g., 999.50)';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Offer Type Section
+                    _buildSectionTitle('💰 How Much Discount?'),
+                    const SizedBox(height: 16),
+                    _buildOfferTypeDropdown(),
+                    const SizedBox(height: 24),
+
+                    // Discount Details Section
+                    if (_selectedOfferType == OfferType.percentageDiscount)
+                      _buildPercentageDiscountSection(),
+                    if (_selectedOfferType == OfferType.flatDiscount)
+                      _buildFlatDiscountSection(),
+                    if (_selectedOfferType == OfferType.buyXGetYPercentOff ||
+                        _selectedOfferType == OfferType.buyXGetYRupeesOff ||
+                        _selectedOfferType == OfferType.bogo)
+                      _buildAdvancedDiscountSection(),
+                    if (_selectedOfferType == OfferType.productSpecific)
+                      _buildProductSpecificSection(),
+                    if (_selectedOfferType == OfferType.serviceSpecific)
+                      _buildServiceSpecificSection(),
+
+                    const SizedBox(height: 24),
+
+                    // Offer Category
+                    _buildSectionTitle('📂 What Type of Offer?'),
+                    const SizedBox(height: 16),
+                    _buildOfferCategoryDropdown(),
+                    const SizedBox(height: 24),
+
+                    // Business Category Section
+                    _buildSectionTitle('🏪 What Industry Are You In?'),
+                    const SizedBox(height: 16),
+                    _buildBusinessCategoryDropdown(),
+                    const SizedBox(height: 24),
+
+                    // Location Section
+                    _buildSectionTitle('📍 Where is Your Shop?'),
+                    const SizedBox(height: 16),
+                    _buildCityDropdown(),
+                    const SizedBox(height: 16),
+                    PremiumTextField(
+                      controller: _addressController,
+                      labelText: 'Address *',
+                      hintText: 'Full address of your shop/location',
+                      prefixIcon: Icons.location_on,
+                      maxLines: 2,
+                      validator: (value) => value?.isEmpty ?? true
+                          ? 'Please enter your address'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    PremiumTextField(
+                      controller: _contactNumberController,
+                      labelText: 'Contact Number *',
+                      hintText: 'E.g., +91-9876543210 or 9876543210',
+                      prefixIcon: Icons.phone,
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Please enter your contact number';
+                        }
+                        // Simple validation - at least 10 digits
+                        final digits = value!.replaceAll(RegExp(r'[^\d]'), '');
+                        if (digits.length < 10) {
+                          return 'Contact number must have at least 10 digits';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Additional Options
+                    _buildSectionTitle('⚙️ Extra Rules (Optional)'),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Add conditions for your offer',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 16),
+                    PremiumTextField(
+                      controller: _minimumPurchaseController,
+                      labelText: 'Minimum Purchase Amount',
+                      hintText: 'Customer must buy at least this (e.g., 500)',
+                      prefixIcon: Icons.shopping_cart,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value?.isNotEmpty ?? false) {
+                          if (double.tryParse(value!) == null) {
+                            return 'Invalid amount';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    PremiumTextField(
+                      controller: _maxUsagePerCustomerController,
+                      labelText: 'How Many Times Can Customer Use?',
+                      hintText: 'Maximum times per customer (e.g., 1, 2, 5)',
+                      prefixIcon: Icons.person,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value?.isNotEmpty ?? false) {
+                          if (int.tryParse(value!) == null) {
+                            return 'Invalid number';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Date Section
+                    Row(
                       children: [
                         Text(
-                          widget.offerToEdit == null
-                              ? '✨ Create New Offer'
-                              : '✏️ Edit Offer',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.darkBlue,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Fill in all required fields (*) to create your offer',
+                          '📅 When is the Offer Active?',
                           style:
-                              TextStyle(color: Colors.grey[600], fontSize: 13),
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.darkBlue,
+                                  ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '*',
+                          style: TextStyle(
+                            color: Colors.red.shade600,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Basic Information Section
-                  _buildSectionTitle('📋 Basic Details'),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tell customers what you\'re offering',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 16),
-                  PremiumTextField(
-                    controller: _titleController,
-                    labelText: 'Offer Title *',
-                    hintText: 'e.g., 50% Off Laptops, Buy 1 Get 1 Free',
-                    prefixIcon: Icons.title,
-                    validator: (value) => value?.isEmpty ?? true
-                        ? 'Please enter offer title'
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  PremiumTextField(
-                    controller: _descriptionController,
-                    labelText: 'Description *',
-                    hintText:
-                        'What\'s included? Example: Valid on winter clothes, excludes sale items',
-                    prefixIcon: Icons.description,
-                    maxLines: 4,
-                    validator: (value) => value?.isEmpty ?? true
-                        ? 'Please describe the offer'
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  PremiumTextField(
-                    controller: _originalPriceController,
-                    labelText: 'Original Price *',
-                    hintText: 'Regular price before discount',
-                    prefixIcon: Icons.currency_rupee,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    validator: (value) {
-                      if (value?.isEmpty ?? true) {
-                        return 'Enter the original price';
-                      }
-                      if (double.tryParse(value!) == null) {
-                        return 'Enter valid price (e.g., 999.50)';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Offer Type Section
-                  _buildSectionTitle('💰 How Much Discount?'),
-                  const SizedBox(height: 16),
-                  _buildOfferTypeDropdown(),
-                  const SizedBox(height: 24),
-
-                  // Discount Details Section
-                  if (_selectedOfferType == OfferType.percentageDiscount)
-                    _buildPercentageDiscountSection(),
-                  if (_selectedOfferType == OfferType.flatDiscount)
-                    _buildFlatDiscountSection(),
-                  if (_selectedOfferType == OfferType.buyXGetYPercentOff ||
-                      _selectedOfferType == OfferType.buyXGetYRupeesOff ||
-                      _selectedOfferType == OfferType.bogo)
-                    _buildAdvancedDiscountSection(),
-                  if (_selectedOfferType == OfferType.productSpecific)
-                    _buildProductSpecificSection(),
-                  if (_selectedOfferType == OfferType.serviceSpecific)
-                    _buildServiceSpecificSection(),
-
-                  const SizedBox(height: 24),
-
-                  // Offer Category
-                  _buildSectionTitle('📂 What Type of Offer?'),
-                  const SizedBox(height: 16),
-                  _buildOfferCategoryDropdown(),
-                  const SizedBox(height: 24),
-
-                  // Business Category Section
-                  _buildSectionTitle('🏪 What Industry Are You In?'),
-                  const SizedBox(height: 16),
-                  _buildBusinessCategoryDropdown(),
-                  const SizedBox(height: 24),
-
-                  // Location Section
-                  _buildSectionTitle('📍 Where is Your Shop?'),
-                  const SizedBox(height: 16),
-                  _buildCityDropdown(),
-                  const SizedBox(height: 16),
-                  PremiumTextField(
-                    controller: _addressController,
-                    labelText: 'Address *',
-                    hintText: 'Full address of your shop/location',
-                    prefixIcon: Icons.location_on,
-                    maxLines: 2,
-                    validator: (value) => value?.isEmpty ?? true
-                        ? 'Please enter your address'
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  PremiumTextField(
-                    controller: _contactNumberController,
-                    labelText: 'Contact Number *',
-                    hintText: 'E.g., +91-9876543210 or 9876543210',
-                    prefixIcon: Icons.phone,
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (value?.isEmpty ?? true) {
-                        return 'Please enter your contact number';
-                      }
-                      // Simple validation - at least 10 digits
-                      final digits = value!.replaceAll(RegExp(r'[^\d]'), '');
-                      if (digits.length < 10) {
-                        return 'Contact number must have at least 10 digits';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Additional Options
-                  _buildSectionTitle('⚙️ Extra Rules (Optional)'),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Add conditions for your offer',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 16),
-                  PremiumTextField(
-                    controller: _minimumPurchaseController,
-                    labelText: 'Minimum Purchase Amount',
-                    hintText: 'Customer must buy at least this (e.g., 500)',
-                    prefixIcon: Icons.shopping_cart,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                    validator: (value) {
-                      if (value?.isNotEmpty ?? false) {
-                        if (double.tryParse(value!) == null) {
-                          return 'Invalid amount';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  PremiumTextField(
-                    controller: _maxUsagePerCustomerController,
-                    labelText: 'How Many Times Can Customer Use?',
-                    hintText: 'Maximum times per customer (e.g., 1, 2, 5)',
-                    prefixIcon: Icons.person,
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value?.isNotEmpty ?? false) {
-                        if (int.tryParse(value!) == null) {
-                          return 'Invalid number';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Date Section
-                  Row(
-                    children: [
-                      Text(
-                        '📅 When is the Offer Active?',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.darkBlue,
-                                ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '*',
-                        style: TextStyle(
-                          color: Colors.red.shade600,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Select start and end dates',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _selectDate(true),
-                          icon: const Icon(Icons.calendar_today),
-                          label: Text(_selectedStartDate == null
-                              ? 'Pick Start Date'
-                              : _selectedStartDate!.toString().split(' ')[0]),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _selectedStartDate == null
-                                ? Colors.red.shade100
-                                : AppColors.brightGold,
-                            foregroundColor: AppColors.darkBlue,
+                    const SizedBox(height: 8),
+                    Text(
+                      'Select start and end dates',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _selectDate(true),
+                            icon: const Icon(Icons.calendar_today),
+                            label: Text(_selectedStartDate == null
+                                ? 'Pick Start Date'
+                                : _selectedStartDate!.toString().split(' ')[0]),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _selectedStartDate == null
+                                  ? Colors.red.shade100
+                                  : AppColors.brightGold,
+                              foregroundColor: AppColors.darkBlue,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _selectDate(false),
-                          icon: const Icon(Icons.calendar_today),
-                          label: Text(_selectedEndDate == null
-                              ? 'Pick End Date'
-                              : _selectedEndDate!.toString().split(' ')[0]),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _selectedEndDate == null
-                                ? Colors.red.shade100
-                                : AppColors.brightGold,
-                            foregroundColor: AppColors.darkBlue,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _selectDate(false),
+                            icon: const Icon(Icons.calendar_today),
+                            label: Text(_selectedEndDate == null
+                                ? 'Pick End Date'
+                                : _selectedEndDate!.toString().split(' ')[0]),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _selectedEndDate == null
+                                  ? Colors.red.shade100
+                                  : AppColors.brightGold,
+                              foregroundColor: AppColors.darkBlue,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
-                  // Terms & Conditions
-                  _buildSectionTitle('📝 Rules & Restrictions (Optional)'),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Any special conditions customers should know',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 12),
-                  PremiumTextField(
-                    controller: _termsController,
-                    labelText: 'Terms & Conditions',
-                    hintText:
-                        'Example: Not valid with other offers, Only for registered members',
-                    maxLines: 4,
-                  ),
-                  const SizedBox(height: 24),
+                    // Terms & Conditions
+                    _buildSectionTitle('📝 Rules & Restrictions (Optional)'),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Any special conditions customers should know',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 12),
+                    PremiumTextField(
+                      controller: _termsController,
+                      labelText: 'Terms & Conditions',
+                      hintText:
+                          'Example: Not valid with other offers, Only for registered members',
+                      maxLines: 4,
+                    ),
+                    const SizedBox(height: 24),
 
-                  // Images Section
-                  _buildSectionTitle('🖼️ Add Photos'),
-                  const SizedBox(height: 16),
-                  ImagePreviewWidget(
-                    existingImageUrls: _existingImageUrls,
-                    selectedImages: _selectedImages,
-                    onPickImages: _pickImages,
-                    onCaptureImage: _captureImage,
-                    onRemoveSelectedImage: _removeSelectedImage,
-                    onRemoveExistingImage: _removeExistingImage,
-                    darkBlue: AppColors.darkBlue,
-                    brightGold: AppColors.brightGold,
-                  ),
-                  const SizedBox(height: 32),
+                    // Images Section
+                    _buildSectionTitle('🖼️ Add Photos'),
+                    const SizedBox(height: 16),
+                    ImagePreviewWidget(
+                      existingImageUrls: _existingImageUrls,
+                      selectedImages: _selectedImages,
+                      onPickImages: _pickImages,
+                      onCaptureImage: _captureImage,
+                      onRemoveSelectedImage: _removeSelectedImage,
+                      onRemoveExistingImage: _removeExistingImage,
+                      darkBlue: AppColors.darkBlue,
+                      brightGold: AppColors.brightGold,
+                    ),
+                    const SizedBox(height: 32),
 
-                  // Submit Button
-                  GradientButton(
-                    label: widget.offerToEdit == null
-                        ? 'Create Offer'
-                        : 'Update Offer',
-                    onPressed: _submitForm,
-                    isLoading: _isLoading,
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                    // Submit Button
+                    GradientButton(
+                      label: widget.offerToEdit == null
+                          ? 'Create Offer'
+                          : 'Update Offer',
+                      onPressed: _submitForm,
+                      isLoading: _isLoading,
+                    ),
+                    // Add bottom padding for keyboard
+                    const KeyboardBottomPadding(minPadding: 32),
+                  ],
+                ),
               ),
             ),
           ),

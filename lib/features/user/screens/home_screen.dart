@@ -8,6 +8,7 @@ import '../../../shared/theme/colors.dart';
 import '../../client/models/offer.dart';
 import '../../client/services/offer_service.dart';
 import '../../../shared/widgets/offer_card.dart';
+import '../../../core/utils/keyboard_utils.dart';
 import 'main_screen.dart';
 import '../services/offer_banner_service.dart';
 
@@ -290,14 +291,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Premium AppBar
+    return GestureDetector(
+      onTap: () => KeyboardUtils.dismissKeyboard(context),
+      child: Scaffold(
+        body: SafeArea(
+          child: CustomScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            physics: const ClampingScrollPhysics(),
+            slivers: [
+              // Premium AppBar
 
-            // Premium Hero Section
-            SliverToBoxAdapter(
+              // Premium Hero Section
+              SliverToBoxAdapter(
               child: StreamBuilder<List<OfferBanner>>(
                 stream: OfferBannerService().watchOfferBanners(),
                 builder: (context, snapshot) {
@@ -861,10 +866,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
-            ),
-          ],
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 100),
+              ),
+            ],
+          ),
         ),
       ),
     );
