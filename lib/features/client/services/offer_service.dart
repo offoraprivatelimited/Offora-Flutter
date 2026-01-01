@@ -380,15 +380,20 @@ class OfferService {
     }
   }
 
-  /// Delete an offer and its images (searches through pending/approved/rejected)
+  /// Delete an offer and its images from both main offers collection and client's offers subcollection
   Future<void> deleteOffer(String offerId) async {
     try {
       final statuses = ['pending', 'approved', 'rejected'];
+      String? clientId;
 
+      // First, find and delete from main offers collection (offers/{status}/offers/{offerId})
       for (final status in statuses) {
         final doc = await _statusCollection(status).doc(offerId).get();
         if (doc.exists) {
           final data = doc.data();
+          clientId = data?['clientId'] as String?;
+
+          // Delete images from Firebase Storage
           final imageUrls = data?['imageUrls'] as List?;
           if (imageUrls != null && imageUrls.isNotEmpty) {
             final storage = FirebaseStorage.instance;
@@ -402,12 +407,28 @@ class OfferService {
             }
           }
 
+          // Delete from main offers collection
           await _statusCollection(status).doc(offerId).delete();
-          return;
+          break;
         }
       }
 
-      throw Exception('Offer not found');
+      // Also delete from client's offers subcollection (clients/approved/clients/{clientId}/offers/{offerId})
+      if (clientId != null && clientId.isNotEmpty) {
+        try {
+          await _firestore
+              .collection('clients')
+              .doc('approved')
+              .collection('clients')
+              .doc(clientId)
+              .collection('offers')
+              .doc(offerId)
+              .delete();
+        } catch (e) {
+          // Continue even if client subcollection deletion fails
+          // The offer might not exist in this location
+        }
+      }
     } catch (e) {
       throw Exception('Failed to delete offer: $e');
     }

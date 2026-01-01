@@ -50,6 +50,7 @@ class Offer {
     this.applicableServices,
     this.minimumPurchase,
     this.maxUsagePerCustomer,
+    this.keywords,
   });
 
   final String id;
@@ -86,6 +87,7 @@ class Offer {
       applicableServices; // Specific services this offer applies to
   final double? minimumPurchase; // Minimum purchase amount required
   final int? maxUsagePerCustomer; // Maximum times a customer can use this offer
+  final List<String>? keywords; // Search keywords for the offer
 
   bool get isPending => status == OfferApprovalStatus.pending;
   bool get isApproved => status == OfferApprovalStatus.approved;
@@ -137,6 +139,7 @@ class Offer {
       if (minimumPurchase != null) 'minimumPurchase': minimumPurchase,
       if (maxUsagePerCustomer != null)
         'maxUsagePerCustomer': maxUsagePerCustomer,
+      if (keywords != null && keywords!.isNotEmpty) 'keywords': keywords,
     };
   }
 
@@ -194,6 +197,9 @@ class Offer {
           .toList(),
       minimumPurchase: (data['minimumPurchase'] as num?)?.toDouble(),
       maxUsagePerCustomer: data['maxUsagePerCustomer'] as int?,
+      keywords: (data['keywords'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
   }
 
@@ -234,6 +240,7 @@ class Offer {
     List<String>? applicableServices,
     double? minimumPurchase,
     int? maxUsagePerCustomer,
+    List<String>? keywords,
   }) {
     return Offer(
       id: id ?? this.id,
@@ -265,6 +272,7 @@ class Offer {
       applicableServices: applicableServices ?? this.applicableServices,
       minimumPurchase: minimumPurchase ?? this.minimumPurchase,
       maxUsagePerCustomer: maxUsagePerCustomer ?? this.maxUsagePerCustomer,
+      keywords: keywords ?? this.keywords,
     );
   }
 }

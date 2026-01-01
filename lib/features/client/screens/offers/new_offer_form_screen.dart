@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -122,6 +123,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   // Additional fields
   late TextEditingController _minimumPurchaseController;
   late TextEditingController _maxUsagePerCustomerController;
+  late TextEditingController _keywordsController;
+  late List<String> _keywords;
 
   // Image handling
   late List<String> _existingImageUrls;
@@ -158,6 +161,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _serviceController = TextEditingController();
     _minimumPurchaseController = TextEditingController();
     _maxUsagePerCustomerController = TextEditingController();
+    _keywordsController = TextEditingController();
+    _keywords = [];
 
     _selectedOfferType = OfferType.percentageDiscount;
     _selectedOfferCategory = OfferCategory.product;
@@ -247,6 +252,10 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
 
     _applicableProducts = offer.applicableProducts ?? [];
     _applicableServices = offer.applicableServices ?? [];
+    _keywords = offer.keywords ?? [];
+    if (_keywords.isNotEmpty) {
+      _keywordsController.text = _keywords.join(', ');
+    }
   }
 
   @override
@@ -267,6 +276,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _serviceController.dispose();
     _minimumPurchaseController.dispose();
     _maxUsagePerCustomerController.dispose();
+    _keywordsController.dispose();
     _cityController.dispose();
     _businessCategoryController.dispose();
     if (_autocompleteCityController != null && _autocompleteListener != null) {
@@ -350,6 +360,17 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     }
   }
 
+  List<String>? _parseKeywords() {
+    final text = _keywordsController.text.trim();
+    if (text.isEmpty) return null;
+    final keywords = text
+        .split(',')
+        .map((k) => k.trim().toLowerCase())
+        .where((k) => k.isNotEmpty)
+        .toList();
+    return keywords.isNotEmpty ? keywords : null;
+  }
+
   Future<void> _selectDate(bool isStartDate) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -430,7 +451,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         address:
             _addressController.text.isNotEmpty ? _addressController.text : null,
         contactNumber: _contactNumberController.text.isNotEmpty
-            ? _contactNumberController.text
+            ? '+91${_contactNumberController.text.trim().replaceAll(RegExp(r'[^0-9]'), '')}'
             : null,
         imageUrls: allImageUrls,
         terms: _termsController.text.isNotEmpty ? _termsController.text : null,
@@ -453,6 +474,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
             _applicableProducts.isNotEmpty ? _applicableProducts : null,
         applicableServices:
             _applicableServices.isNotEmpty ? _applicableServices : null,
+        keywords: _parseKeywords(),
       );
 
       // Submit the offer
@@ -706,20 +728,92 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                           : null,
                     ),
                     const SizedBox(height: 16),
-                    PremiumTextField(
+                    TextFormField(
                       controller: _contactNumberController,
-                      labelText: 'Contact Number *',
-                      hintText: 'E.g., +91-9876543210 or 9876543210',
-                      prefixIcon: Icons.phone,
                       keyboardType: TextInputType.phone,
+                      maxLength: 10,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      cursorColor: AppColors.darkBlue,
+                      decoration: InputDecoration(
+                        labelText: 'Contact Number *',
+                        hintText: 'Enter 10-digit mobile number',
+                        labelStyle: const TextStyle(
+                          color: Color(0xFF666666),
+                          fontWeight: FontWeight.w500,
+                        ),
+                        prefixIcon: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '+91',
+                                style: TextStyle(
+                                  color: AppColors.darkBlue,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                '|',
+                                style: TextStyle(
+                                  color: Color(0xFFE0E0E0),
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        prefixIconConstraints:
+                            const BoxConstraints(minWidth: 0, minHeight: 0),
+                        filled: true,
+                        fillColor: Colors.white,
+                        counterText: '',
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE0E0E0),
+                            width: 1.5,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.darkBlue,
+                            width: 2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Colors.red,
+                            width: 1.5,
+                          ),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Colors.red,
+                            width: 2,
+                          ),
+                        ),
+                      ),
                       validator: (value) {
                         if (value?.isEmpty ?? true) {
                           return 'Please enter your contact number';
                         }
-                        // Simple validation - at least 10 digits
                         final digits = value!.replaceAll(RegExp(r'[^\d]'), '');
-                        if (digits.length < 10) {
-                          return 'Contact number must have at least 10 digits';
+                        if (digits.length != 10) {
+                          return 'Enter a valid 10-digit phone number';
                         }
                         return null;
                       },
@@ -847,6 +941,24 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       hintText:
                           'Example: Not valid with other offers, Only for registered members',
                       maxLines: 4,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Keywords Section
+                    _buildSectionTitle('🔍 Search Keywords (Optional)'),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Help customers find your offer easily',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 12),
+                    PremiumTextField(
+                      controller: _keywordsController,
+                      labelText: 'Keywords',
+                      hintText:
+                          'Enter keywords separated by commas (e.g., sale, discount, summer, fashion)',
+                      prefixIcon: Icons.search,
+                      maxLines: 2,
                     ),
                     const SizedBox(height: 24),
 

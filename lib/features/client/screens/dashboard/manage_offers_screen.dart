@@ -147,12 +147,28 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Offer'),
-        content: Text('Are you sure you want to delete "${offer.title}"?'),
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Delete Offer',
+          style: TextStyle(
+            color: Color(0xFF1F477D),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${offer.title}"?',
+          style: const TextStyle(
+            color: Colors.black87,
+            fontSize: 16,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),

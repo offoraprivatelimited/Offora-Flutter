@@ -303,569 +303,649 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Premium Hero Section
               SliverToBoxAdapter(
-              child: StreamBuilder<List<OfferBanner>>(
-                stream: OfferBannerService().watchOfferBanners(),
-                builder: (context, snapshot) {
-                  final banners = snapshot.data ?? [];
-                  if (banners.isEmpty) {
-                    return const SizedBox(height: 0);
-                  }
-                  return Column(
-                    children: [
-                      SizedBox(
-                        height: 150,
-                        child: PageView.builder(
-                          controller: _bannerPageController,
-                          itemCount: banners.length,
-                          onPageChanged: (i) {
-                            setState(() => _bannerIndex = i);
-                          },
-                          itemBuilder: (context, i) {
-                            final banner = banners[i];
-                            return GestureDetector(
-                              onTap: () {
-                                final mainScreenState = context
-                                    .findAncestorStateOfType<MainScreenState>();
-                                if (mainScreenState != null) {
-                                  mainScreenState.showInfoPage(
-                                    AdvertisementDetailsScreen(
-                                      title: banner.title ?? '',
-                                      description: banner.description ?? '',
-                                      email: banner.email ?? '',
-                                      phone: banner.phone ?? '',
-                                      link: banner.link ?? '',
-                                      imageUrl: banner.url,
-                                    ),
-                                  );
-                                }
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 350),
-                                margin: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(18),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.08),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                clipBehavior: Clip.antiAlias,
-                                child: banner.url.isNotEmpty
-                                    ? Image.network(
-                                        banner.url,
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        loadingBuilder:
-                                            (context, child, progress) {
-                                          if (progress == null) return child;
-                                          return Center(
-                                            child: CircularProgressIndicator(
-                                              value: progress
-                                                          .expectedTotalBytes !=
-                                                      null
-                                                  ? progress
-                                                          .cumulativeBytesLoaded /
-                                                      (progress
-                                                              .expectedTotalBytes ??
-                                                          1)
-                                                  : null,
-                                            ),
-                                          );
-                                        },
-                                      )
-                                    : const SizedBox.shrink(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(banners.length, (i) {
-                          final isActive = i == _bannerIndex;
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: isActive ? 18 : 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: isActive
-                                  ? const Color(0xFF1F477D)
-                                  : Colors.grey[300],
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                          );
-                        }),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-
-            // Categories Section Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0B84D),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Browse by Category',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.darkBlue,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Premium Category Cards - Horizontal Scrollable
-            SliverToBoxAdapter(
-              child: Consumer<OfferService>(
-                builder: (context, offerService, _) {
-                  return StreamBuilder<List<Offer>>(
-                    stream: offerService.watchApprovedOffers(),
-                    builder: (context, snapshot) {
-                      final offers = snapshot.data ?? [];
-                      final counts = _getCategoryCounts(offers);
-
-                      return SizedBox(
-                        height: 90,
-                        child: NotificationListener<ScrollNotification>(
-                          onNotification: (notification) {
-                            _onCategoryScroll(notification);
-                            return false;
-                          },
-                          child: ListView.builder(
-                            controller: _categoryScrollController,
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: _categories.length,
-                            itemBuilder: (context, index) {
-                              final category = _categories[index];
-                              final isSelected =
-                                  _selectedCategory == category['name'] ||
-                                      (_selectedCategory == null &&
-                                          category['name'] == 'All');
-                              final offerCount = counts[category['name']] ?? 0;
-
-                              // Custom style for 'All' card: white background, split blue/orange icon
-                              final isAll = category['name'] == 'All';
-                              final cardDecoration = isSelected
-                                  ? BoxDecoration(
-                                      color:
-                                          const Color(0xFFF9E5B2), // light gold
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.06),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 3),
-                                        ),
-                                      ],
-                                    )
-                                  : isAll
-                                      ? BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black
-                                                  .withOpacity(0.06),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 3),
-                                            ),
-                                          ],
-                                        )
-                                      : BoxDecoration(
-                                          color: Colors.transparent,
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                        );
-                              final iconColor = isSelected
-                                  ? AppColors.darkBlue
-                                  : (isAll ? Colors.white : category['color']);
-                              final textColor = isSelected
-                                  ? AppColors.darkBlue
-                                  : (isAll ? Colors.black : AppColors.darkBlue);
-
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedCategory =
-                                          category['name'] == 'All'
-                                              ? null
-                                              : category['name'];
-                                    });
-                                  },
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    width: 72,
-                                    height: 75,
-                                    decoration: cardDecoration,
-                                    child: Stack(
-                                      children: [
-                                        Center(
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.all(6),
-                                                decoration: BoxDecoration(
-                                                  color: isSelected && isAll
-                                                      ? Colors.white
-                                                          .withOpacity(0.12)
-                                                      : Colors.transparent,
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: isAll
-                                                    ? ShaderMask(
-                                                        shaderCallback: (bounds) =>
-                                                            const LinearGradient(
-                                                          colors: [
-                                                            AppColors.darkBlue,
-                                                            AppColors.darkBlue,
-                                                            AppColors
-                                                                .brightGold,
-                                                            AppColors
-                                                                .brightGold,
-                                                          ],
-                                                          stops: [
-                                                            0,
-                                                            0.5,
-                                                            0.5,
-                                                            1
-                                                          ],
-                                                          begin: Alignment
-                                                              .centerLeft,
-                                                          end: Alignment
-                                                              .centerRight,
-                                                        ).createShader(bounds),
-                                                        blendMode:
-                                                            BlendMode.srcIn,
-                                                        child: Icon(
-                                                          category['icon'],
-                                                          color: iconColor,
-                                                          size: 20,
-                                                        ),
-                                                      )
-                                                    : Icon(
-                                                        category['icon'],
-                                                        color: iconColor,
-                                                        size: 20,
-                                                      ),
-                                              ),
-                                              const SizedBox(height: 3),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 2),
-                                                child: Text(
-                                                  category['name'],
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    fontSize: 11.5,
-                                                    fontWeight: FontWeight.w800,
-                                                    color: textColor,
-                                                    letterSpacing: 0.1,
-                                                    height: 1.13,
-                                                  ),
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        if (offerCount > 0)
-                                          Positioned(
-                                            top: 6,
-                                            right: 6,
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 6,
-                                                vertical: 3,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: isSelected
-                                                    ? Colors.white
-                                                    : (isAll
-                                                        ? AppColors.brightGold
-                                                        : AppColors.brightGold),
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withAlpha((0.15 * 255)
-                                                            .toInt()),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 2),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Text(
-                                                offerCount > 99
-                                                    ? '99+'
-                                                    : offerCount.toString(),
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: isSelected
-                                                      ? (isAll
-                                                          ? AppColors.darkBlue
-                                                          : category['color'])
-                                                      : Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
+                child: StreamBuilder<List<OfferBanner>>(
+                  stream: OfferBannerService().watchOfferBanners(),
+                  builder: (context, snapshot) {
+                    final banners = snapshot.data ?? [];
+                    if (banners.isEmpty) {
+                      return const SizedBox(height: 0);
+                    }
+                    return Column(
+                      children: [
+                        SizedBox(
+                          height: 150,
+                          child: PageView.builder(
+                            controller: _bannerPageController,
+                            itemCount: banners.length,
+                            onPageChanged: (i) {
+                              setState(() => _bannerIndex = i);
+                            },
+                            itemBuilder: (context, i) {
+                              final banner = banners[i];
+                              return GestureDetector(
+                                onTap: () {
+                                  final mainScreenState =
+                                      context.findAncestorStateOfType<
+                                          MainScreenState>();
+                                  if (mainScreenState != null) {
+                                    mainScreenState.showInfoPage(
+                                      AdvertisementDetailsScreen(
+                                        title: banner.title ?? '',
+                                        description: banner.description ?? '',
+                                        email: banner.email ?? '',
+                                        phone: banner.phone ?? '',
+                                        link: banner.link ?? '',
+                                        imageUrl: banner.url,
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 350),
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(18),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.08),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: banner.url.isNotEmpty
+                                      ? Image.network(
+                                          banner.url,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          loadingBuilder:
+                                              (context, child, progress) {
+                                            if (progress == null) return child;
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                value: progress
+                                                            .expectedTotalBytes !=
+                                                        null
+                                                    ? progress
+                                                            .cumulativeBytesLoaded /
+                                                        (progress
+                                                                .expectedTotalBytes ??
+                                                            1)
+                                                    : null,
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      : const SizedBox.shrink(),
                                 ),
                               );
                             },
                           ),
                         ),
-                      );
-                    },
-                  );
-                },
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(banners.length, (i) {
+                            final isActive = i == _bannerIndex;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: isActive ? 18 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? const Color(0xFF1F477D)
+                                    : Colors.grey[300],
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
-            ),
 
-            // Offers Section Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0B84D),
-                        borderRadius: BorderRadius.circular(2),
+              // Categories Section Header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0B84D),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _selectedCategory == null
-                            ? 'Latest Offers'
-                            : '$_selectedCategory Offers',
-                        style: const TextStyle(
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Browse by Category',
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                           color: AppColors.darkBlue,
                           letterSpacing: -0.5,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Offers Grid
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverToBoxAdapter(
-                child: StreamBuilder<List<Offer>>(
-                  stream: context.read<OfferService>().watchApprovedOffers(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 48),
-                          child: CircularProgressIndicator(
-                            color: AppColors.darkBlue,
-                          ),
-                        ),
-                      );
-                    }
+              // Premium Category Cards - Horizontal Scrollable
+              SliverToBoxAdapter(
+                child: Consumer<OfferService>(
+                  builder: (context, offerService, _) {
+                    return StreamBuilder<List<Offer>>(
+                      stream: offerService.watchApprovedOffers(),
+                      builder: (context, snapshot) {
+                        final offers = snapshot.data ?? [];
+                        final counts = _getCategoryCounts(offers);
 
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 48),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 64,
-                                color: Colors.red.shade300,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Oops! Something went wrong',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      color: AppColors.darkBlue,
-                                      fontWeight: FontWeight.w700,
+                        return SizedBox(
+                          height: 90,
+                          child: NotificationListener<ScrollNotification>(
+                            onNotification: (notification) {
+                              _onCategoryScroll(notification);
+                              return false;
+                            },
+                            child: ListView.builder(
+                              controller: _categoryScrollController,
+                              scrollDirection: Axis.horizontal,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              itemCount: _categories.length,
+                              itemBuilder: (context, index) {
+                                final category = _categories[index];
+                                final isSelected =
+                                    _selectedCategory == category['name'] ||
+                                        (_selectedCategory == null &&
+                                            category['name'] == 'All');
+                                final offerCount =
+                                    counts[category['name']] ?? 0;
+
+                                // Custom style for 'All' card: white background, split blue/orange icon
+                                final isAll = category['name'] == 'All';
+                                final cardDecoration = isSelected
+                                    ? BoxDecoration(
+                                        color: const Color(
+                                            0xFFF9E5B2), // light gold
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.06),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                      )
+                                    : isAll
+                                        ? BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.06),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
+                                          )
+                                        : BoxDecoration(
+                                            color: Colors.transparent,
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          );
+                                final iconColor = isSelected
+                                    ? AppColors.darkBlue
+                                    : (isAll
+                                        ? Colors.white
+                                        : category['color']);
+                                final textColor = isSelected
+                                    ? AppColors.darkBlue
+                                    : (isAll
+                                        ? Colors.black
+                                        : AppColors.darkBlue);
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedCategory =
+                                            category['name'] == 'All'
+                                                ? null
+                                                : category['name'];
+                                      });
+                                    },
+                                    child: AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 200),
+                                      width: 72,
+                                      height: 75,
+                                      decoration: cardDecoration,
+                                      child: Stack(
+                                        children: [
+                                          Center(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(6),
+                                                  decoration: BoxDecoration(
+                                                    color: isSelected && isAll
+                                                        ? Colors.white
+                                                            .withOpacity(0.12)
+                                                        : Colors.transparent,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                  ),
+                                                  child: isAll
+                                                      ? ShaderMask(
+                                                          shaderCallback:
+                                                              (bounds) =>
+                                                                  const LinearGradient(
+                                                            colors: [
+                                                              AppColors
+                                                                  .darkBlue,
+                                                              AppColors
+                                                                  .darkBlue,
+                                                              AppColors
+                                                                  .brightGold,
+                                                              AppColors
+                                                                  .brightGold,
+                                                            ],
+                                                            stops: [
+                                                              0,
+                                                              0.5,
+                                                              0.5,
+                                                              1
+                                                            ],
+                                                            begin: Alignment
+                                                                .centerLeft,
+                                                            end: Alignment
+                                                                .centerRight,
+                                                          ).createShader(
+                                                                      bounds),
+                                                          blendMode:
+                                                              BlendMode.srcIn,
+                                                          child: Icon(
+                                                            category['icon'],
+                                                            color: iconColor,
+                                                            size: 20,
+                                                          ),
+                                                        )
+                                                      : Icon(
+                                                          category['icon'],
+                                                          color: iconColor,
+                                                          size: 20,
+                                                        ),
+                                                ),
+                                                const SizedBox(height: 3),
+                                                Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(horizontal: 2),
+                                                  child: Text(
+                                                    category['name'],
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                      fontSize: 11.5,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: textColor,
+                                                      letterSpacing: 0.1,
+                                                      height: 1.13,
+                                                    ),
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (offerCount > 0)
+                                            Positioned(
+                                              top: 6,
+                                              right: 6,
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 6,
+                                                  vertical: 3,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : (isAll
+                                                          ? AppColors.brightGold
+                                                          : AppColors
+                                                              .brightGold),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black
+                                                          .withAlpha(
+                                                              (0.15 * 255)
+                                                                  .toInt()),
+                                                      blurRadius: 4,
+                                                      offset:
+                                                          const Offset(0, 2),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Text(
+                                                  offerCount > 99
+                                                      ? '99+'
+                                                      : offerCount.toString(),
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: isSelected
+                                                        ? (isAll
+                                                            ? AppColors.darkBlue
+                                                            : category['color'])
+                                                        : Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Please try again later',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(color: Colors.grey),
-                              ),
-                            ],
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      );
-                    }
-
-                    final offers = snapshot.data ?? [];
-
-                    // Filter by category and search query
-                    final filteredOffers = offers.where((offer) {
-                      // Category filter
-                      if (_selectedCategory != null) {
-                        final client = offer.client;
-                        final businessCategory =
-                            client != null && client['businessCategory'] != null
-                                ? client['businessCategory'].toString()
-                                : null;
-                        if (businessCategory == null ||
-                            businessCategory.toLowerCase() !=
-                                _selectedCategory!.toLowerCase()) {
-                          return false;
-                        }
-                      }
-
-                      // Search query filter
-                      if (_searchQuery.isNotEmpty) {
-                        final searchableText =
-                            '${offer.title} ${offer.description} ${offer.client?['businessName'] ?? ''} ${offer.city ?? ''} ${offer.client?['location'] ?? ''}'
-                                .toLowerCase();
-                        if (!searchableText.contains(_searchQuery)) {
-                          return false;
-                        }
-                      }
-
-                      return true;
-                    }).toList();
-
-                    if (filteredOffers.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 48),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.shopping_bag_outlined,
-                                size: 64,
-                                color: AppColors.darkBlue.withAlpha(51),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                _selectedCategory == null
-                                    ? 'No offers available yet'
-                                    : 'No $_selectedCategory offers',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      color: AppColors.darkBlue,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Check back soon for amazing deals!',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-
-                    return GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.55,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                      ),
-                      itemCount: filteredOffers.length,
-                      itemBuilder: (context, i) {
-                        final offer = filteredOffers[i];
-                        final client = offer.client;
-                        final businessName =
-                            client != null && client['businessName'] != null
-                                ? client['businessName'].toString()
-                                : offer.clientId;
-                        final imageUrls = offer.imageUrls;
-                        final image =
-                            (imageUrls != null && imageUrls.isNotEmpty)
-                                ? imageUrls[0]
-                                : '';
-                        final offerMap = <String, dynamic>{
-                          'title': offer.title,
-                          'store': businessName,
-                          'image': image,
-                          'discount':
-                              '${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF',
-                        };
-                        return OfferCard(
-                          offer: offerMap,
-                          offerData: offer,
-                          onTap: () {
-                            final mainScreenState = context
-                                .findAncestorStateOfType<MainScreenState>();
-                            if (mainScreenState != null) {
-                              mainScreenState.showOfferDetails(offer);
-                            }
-                          },
                         );
                       },
                     );
                   },
                 ),
               ),
-            ),
+
+              // Offers Section Header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0B84D),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _selectedCategory == null
+                              ? 'Latest Offers'
+                              : '$_selectedCategory Offers',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.darkBlue,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Offers Grid
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverToBoxAdapter(
+                  child: StreamBuilder<List<Offer>>(
+                    stream: context.read<OfferService>().watchApprovedOffers(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 48),
+                            child: CircularProgressIndicator(
+                              color: AppColors.darkBlue,
+                            ),
+                          ),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 48),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 64,
+                                  color: Colors.red.shade300,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Oops! Something went wrong',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        color: AppColors.darkBlue,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Please try again later',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      final offers = snapshot.data ?? [];
+
+                      // Filter by category and search query
+                      final filteredOffers = offers.where((offer) {
+                        // Category filter
+                        if (_selectedCategory != null) {
+                          // Check offer's own businessCategory first
+                          String? businessCategory = offer.businessCategory;
+
+                          // Fallback to client's businessCategory if offer doesn't have one
+                          if (businessCategory == null ||
+                              businessCategory.isEmpty) {
+                            final client = offer.client;
+                            businessCategory = client != null &&
+                                    client['businessCategory'] != null
+                                ? client['businessCategory'].toString()
+                                : null;
+                          }
+
+                          if (businessCategory == null ||
+                              businessCategory.toLowerCase() !=
+                                  _selectedCategory!.toLowerCase()) {
+                            return false;
+                          }
+                        }
+
+                        // Search query filter
+                        if (_searchQuery.isNotEmpty) {
+                          final searchLower = _searchQuery.toLowerCase();
+
+                          // Build comprehensive searchable text from all available fields
+                          final client = offer.client;
+                          final searchableFields = [
+                            offer.title,
+                            offer.description,
+                            offer.address ?? '',
+                            offer.city ?? '',
+                            offer.businessCategory ?? '',
+                            offer.contactNumber ?? '',
+                            offer.terms ?? '',
+                            offer.offerType.name,
+                            offer.offerCategory.name,
+                            // Client data
+                            client?['businessName'] ?? '',
+                            client?['email'] ?? '',
+                            client?['phoneNumber'] ?? '',
+                            client?['location'] ?? '',
+                            client?['contactPerson'] ?? '',
+                            client?['address'] ?? '',
+                          ];
+
+                          final searchableText =
+                              searchableFields.join(' ').toLowerCase();
+
+                          // Check if search query matches any field
+                          if (searchableText.contains(searchLower)) {
+                            return true;
+                          }
+
+                          // Check if search query matches any keyword
+                          if (offer.keywords != null &&
+                              offer.keywords!.isNotEmpty) {
+                            for (final keyword in offer.keywords!) {
+                              if (keyword.toLowerCase().contains(searchLower) ||
+                                  searchLower.contains(keyword.toLowerCase())) {
+                                return true;
+                              }
+                            }
+                          }
+
+                          // Check applicable products
+                          if (offer.applicableProducts != null) {
+                            for (final product in offer.applicableProducts!) {
+                              if (product.toLowerCase().contains(searchLower)) {
+                                return true;
+                              }
+                            }
+                          }
+
+                          // Check applicable services
+                          if (offer.applicableServices != null) {
+                            for (final service in offer.applicableServices!) {
+                              if (service.toLowerCase().contains(searchLower)) {
+                                return true;
+                              }
+                            }
+                          }
+
+                          return false;
+                        }
+
+                        return true;
+                      }).toList();
+
+                      if (filteredOffers.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 48),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.shopping_bag_outlined,
+                                  size: 64,
+                                  color: AppColors.darkBlue.withAlpha(51),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _selectedCategory == null
+                                      ? 'No offers available yet'
+                                      : 'No $_selectedCategory offers',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        color: AppColors.darkBlue,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Check back soon for amazing deals!',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.55,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                        itemCount: filteredOffers.length,
+                        itemBuilder: (context, i) {
+                          final offer = filteredOffers[i];
+                          final client = offer.client;
+                          final businessName =
+                              client != null && client['businessName'] != null
+                                  ? client['businessName'].toString()
+                                  : offer.clientId;
+                          final imageUrls = offer.imageUrls;
+                          final image =
+                              (imageUrls != null && imageUrls.isNotEmpty)
+                                  ? imageUrls[0]
+                                  : '';
+                          final offerMap = <String, dynamic>{
+                            'title': offer.title,
+                            'store': businessName,
+                            'image': image,
+                            'discount':
+                                '${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF',
+                          };
+                          return OfferCard(
+                            offer: offerMap,
+                            offerData: offer,
+                            onTap: () {
+                              final mainScreenState = context
+                                  .findAncestorStateOfType<MainScreenState>();
+                              if (mainScreenState != null) {
+                                mainScreenState.showOfferDetails(offer);
+                              }
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
               const SliverToBoxAdapter(
                 child: SizedBox(height: 100),
               ),

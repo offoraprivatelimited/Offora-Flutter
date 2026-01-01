@@ -28,10 +28,65 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((offer) {
-        final searchableText =
-            '${offer.title} ${offer.description} ${offer.client?['businessName'] ?? ''} ${offer.client?['location'] ?? ''} ${offer.city ?? ''}'
-                .toLowerCase();
-        return searchableText.contains(_searchQuery.toLowerCase());
+        final searchLower = _searchQuery.toLowerCase();
+
+        // Build comprehensive searchable text from all available fields
+        final client = offer.client;
+        final searchableFields = [
+          offer.title,
+          offer.description,
+          offer.address ?? '',
+          offer.city ?? '',
+          offer.businessCategory ?? '',
+          offer.contactNumber ?? '',
+          offer.terms ?? '',
+          offer.offerType.name,
+          offer.offerCategory.name,
+          // Client data
+          client?['businessName'] ?? '',
+          client?['email'] ?? '',
+          client?['phoneNumber'] ?? '',
+          client?['location'] ?? '',
+          client?['contactPerson'] ?? '',
+          client?['address'] ?? '',
+        ];
+
+        final searchableText = searchableFields.join(' ').toLowerCase();
+
+        // Check if search query matches any field
+        if (searchableText.contains(searchLower)) {
+          return true;
+        }
+
+        // Check if search query matches any keyword
+        if (offer.keywords != null && offer.keywords!.isNotEmpty) {
+          for (final keyword in offer.keywords!) {
+            if (keyword.toLowerCase().contains(searchLower) ||
+                searchLower.contains(keyword.toLowerCase())) {
+              return true;
+            }
+          }
+        }
+
+        // Check applicable products
+        if (offer.applicableProducts != null) {
+          for (final product in offer.applicableProducts!) {
+            if (product.toLowerCase().contains(searchLower)) {
+              return true;
+            }
+          }
+        }
+
+        // Check applicable services
+        if (offer.applicableServices != null) {
+          for (final service in offer.applicableServices!) {
+            if (service.toLowerCase().contains(searchLower)) {
+              return true;
+            }
+          }
+        }
+
+        return false;
       }).toList();
     }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -144,12 +145,17 @@ class _SignupScreenState extends State<SignupScreen> {
 
     final auth = Provider.of<AuthService>(context, listen: false);
     try {
+      // Format phone number with +91 prefix
+      final phoneDigits =
+          _phoneController.text.trim().replaceAll(RegExp(r'[^0-9]'), '');
+      final formattedPhone = '+91$phoneDigits';
+
       await auth.registerClient(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         businessName: _businessNameController.text.trim(),
         contactPerson: _contactNameController.text.trim(),
-        phoneNumber: _phoneController.text.trim(),
+        phoneNumber: formattedPhone,
         address: _addressController.text.trim(),
         location: _locationController.text.trim(),
         city: _cityController.text.trim(),
@@ -222,6 +228,7 @@ class _SignupScreenState extends State<SignupScreen> {
           backgroundColor: Colors.white,
           body: SafeArea(
             child: ResponsivePage(
+              padding: EdgeInsets.zero,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth > 760;
@@ -292,29 +299,13 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                       ),
-                      Positioned(
-                        top: 32,
-                        left: 16,
-                        child: Material(
-                          color: Colors.transparent,
-                          elevation: 4,
-                          shape: const CircleBorder(),
-                          child: IconButton(
-                            onPressed: () => context.go('/role-selection'),
-                            icon: const Icon(Icons.arrow_back,
-                                color: Color(0xFF1F477D), size: 28),
-                            tooltip: 'Back',
-                            padding: const EdgeInsets.all(8),
-                          ),
-                        ),
-                      ),
                       Center(
                         child: ConstrainedBox(
                           constraints:
                               BoxConstraints(maxWidth: isWide ? 720 : 560),
                           child: Padding(
                             padding: EdgeInsets.symmetric(
-                                horizontal: isWide ? 28 : 16, vertical: 28),
+                                horizontal: isWide ? 28 : 8, vertical: 8),
                             child: Container(
                               decoration: BoxDecoration(
                                 color: Colors.white.withAlpha(250),
@@ -329,12 +320,40 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 28, vertical: 28),
+                                    horizontal: 16, vertical: 16),
                                 child: SingleChildScrollView(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      // Back button row
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: GestureDetector(
+                                          onTap: () =>
+                                              context.go('/client-login'),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.arrow_back,
+                                                color: darkBlue,
+                                                size: 24,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                'Back to Login',
+                                                style: TextStyle(
+                                                  color: darkBlue,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
                                       Row(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -442,12 +461,111 @@ class _SignupScreenState extends State<SignupScreen> {
                                                 },
                                               ),
                                               const SizedBox(height: 14),
-                                              _styledField(
+                                              TextFormField(
                                                 controller: _phoneController,
-                                                label: 'Phone number',
-                                                icon: Icons.phone_outlined,
                                                 keyboardType:
                                                     TextInputType.phone,
+                                                maxLength: 10,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter
+                                                      .digitsOnly,
+                                                  LengthLimitingTextInputFormatter(
+                                                      10),
+                                                ],
+                                                style: const TextStyle(
+                                                  color: Colors.black87,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                cursorColor:
+                                                    const Color(0xFF1F477D),
+                                                decoration: InputDecoration(
+                                                  labelText: 'Phone number',
+                                                  labelStyle: const TextStyle(
+                                                    color: Color(0xFF666666),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  prefixIcon: Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 12),
+                                                    child: const Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          '+91',
+                                                          style: TextStyle(
+                                                            color: Color(
+                                                                0xFF1F477D),
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            fontSize: 15,
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 8),
+                                                        Text(
+                                                          '|',
+                                                          style: TextStyle(
+                                                            color: Color(
+                                                                0xFFE0E0E0),
+                                                            fontSize: 20,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  prefixIconConstraints:
+                                                      const BoxConstraints(
+                                                          minWidth: 0,
+                                                          minHeight: 0),
+                                                  filled: true,
+                                                  fillColor: Colors.white,
+                                                  enabledBorder:
+                                                      OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    borderSide:
+                                                        const BorderSide(
+                                                      color: Color(0xFFE0E0E0),
+                                                      width: 1.5,
+                                                    ),
+                                                  ),
+                                                  focusedBorder:
+                                                      OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    borderSide:
+                                                        const BorderSide(
+                                                      color: Color(0xFF1F477D),
+                                                      width: 2,
+                                                    ),
+                                                  ),
+                                                  errorBorder:
+                                                      OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    borderSide:
+                                                        const BorderSide(
+                                                      color: Colors.red,
+                                                      width: 1.5,
+                                                    ),
+                                                  ),
+                                                  focusedErrorBorder:
+                                                      OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    borderSide:
+                                                        const BorderSide(
+                                                      color: Colors.red,
+                                                      width: 2,
+                                                    ),
+                                                  ),
+                                                ),
                                                 validator: (value) {
                                                   if (value == null ||
                                                       value.trim().isEmpty) {
@@ -455,13 +573,15 @@ class _SignupScreenState extends State<SignupScreen> {
                                                   }
                                                   final digitsOnly =
                                                       value.replaceAll(
-                                                          RegExp(r'[^0-9+]'),
+                                                          RegExp(r'[^0-9]'),
                                                           '');
-                                                  if (digitsOnly.length < 7) {
-                                                    return 'Enter a valid phone number';
+                                                  if (digitsOnly.length != 10) {
+                                                    return 'Enter a valid 10-digit phone number';
                                                   }
                                                   return null;
                                                 },
+                                                textInputAction:
+                                                    TextInputAction.next,
                                               ),
                                               const SizedBox(height: 14),
                                               DropdownButtonFormField<String>(
