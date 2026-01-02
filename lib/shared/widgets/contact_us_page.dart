@@ -191,10 +191,11 @@ class _ContactUsPageState extends State<ContactUsPage> {
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
+                crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 1,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 3,
+                childAspectRatio:
+                    MediaQuery.of(context).size.width > 600 ? 2.2 : 3,
                 children: [
                   _buildPremiumContactCard(
                     Icons.email_outlined,
@@ -205,12 +206,20 @@ class _ContactUsPageState extends State<ContactUsPage> {
                     primaryDark,
                   ),
                   _buildPremiumContactCard(
+                    Icons.phone_outlined,
+                    'Phone Support',
+                    '+91 83002 77969',
+                    'Call us for quick assistance',
+                    primaryDark,
+                    accentGold,
+                  ),
+                  _buildPremiumContactCard(
                     Icons.schedule_outlined,
                     'Business Hours',
                     'Mon - Fri, 9AM - 6PM',
-                    'GMT +1 Timezone',
-                    primaryDark,
+                    'IST Timezone',
                     accentGold,
+                    primaryDark,
                   ),
                 ],
               ),
