@@ -21,6 +21,7 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
   final _businessNameController = TextEditingController();
   final _contactNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -39,6 +40,20 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscureConfirmPassword = true;
   String? _selectedCategory;
   bool _hasRedirected = false;
+
+  // Focus nodes for proper keyboard handling
+  final _businessNameFocus = FocusNode();
+  final _locationFocus = FocusNode();
+  final _contactNameFocus = FocusNode();
+  final _phoneFocus = FocusNode();
+  final _addressFocus = FocusNode();
+  final _cityFocus = FocusNode();
+  final _gstFocus = FocusNode();
+  final _shopLicenseFocus = FocusNode();
+  final _registrationFocus = FocusNode();
+  final _emailFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  final _confirmPasswordFocus = FocusNode();
 
   List<String> _citySuggestions = [];
   bool _loadingCities = false;
@@ -79,6 +94,45 @@ class _SignupScreenState extends State<SignupScreen> {
   void initState() {
     super.initState();
     _fetchCities();
+    // Add focus listeners for all fields to ensure scroll visibility
+    _businessNameFocus
+        .addListener(() => _handleFocusChange(_businessNameFocus));
+    _locationFocus.addListener(() => _handleFocusChange(_locationFocus));
+    _contactNameFocus.addListener(() => _handleFocusChange(_contactNameFocus));
+    _phoneFocus.addListener(_onPhoneFocusChange);
+    _addressFocus.addListener(() => _handleFocusChange(_addressFocus));
+    _cityFocus.addListener(() => _handleFocusChange(_cityFocus));
+    _gstFocus.addListener(() => _handleFocusChange(_gstFocus));
+    _shopLicenseFocus.addListener(() => _handleFocusChange(_shopLicenseFocus));
+    _registrationFocus
+        .addListener(() => _handleFocusChange(_registrationFocus));
+    _emailFocus.addListener(() => _handleFocusChange(_emailFocus));
+    _passwordFocus.addListener(_onPasswordFocusChange);
+    _confirmPasswordFocus.addListener(_onConfirmPasswordFocusChange);
+  }
+
+  void _handleFocusChange(FocusNode focusNode) {
+    if (focusNode.hasFocus) {
+      _scrollToFocused(focusNode);
+    }
+  }
+
+  void _onPhoneFocusChange() {
+    if (_phoneFocus.hasFocus) {
+      _scrollToFocused(_phoneFocus);
+    }
+  }
+
+  void _onPasswordFocusChange() {
+    if (_passwordFocus.hasFocus) {
+      _scrollToFocused(_passwordFocus);
+    }
+  }
+
+  void _onConfirmPasswordFocusChange() {
+    if (_confirmPasswordFocus.hasFocus) {
+      _scrollToFocused(_confirmPasswordFocus);
+    }
   }
 
   Future<void> _fetchCities() async {
@@ -115,6 +169,12 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
+    // Remove focus listeners before disposing
+    _phoneFocus.removeListener(_onPhoneFocusChange);
+    _passwordFocus.removeListener(_onPasswordFocusChange);
+    _confirmPasswordFocus.removeListener(_onConfirmPasswordFocusChange);
+
+    _scrollController.dispose();
     _businessNameController.dispose();
     _contactNameController.dispose();
     _phoneController.dispose();
@@ -134,6 +194,19 @@ class _SignupScreenState extends State<SignupScreen> {
       _autocompleteListener = null;
       _autocompleteCityController = null;
     }
+    // Dispose focus nodes
+    _businessNameFocus.dispose();
+    _locationFocus.dispose();
+    _contactNameFocus.dispose();
+    _phoneFocus.dispose();
+    _addressFocus.dispose();
+    _cityFocus.dispose();
+    _gstFocus.dispose();
+    _shopLicenseFocus.dispose();
+    _registrationFocus.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    _confirmPasswordFocus.dispose();
     super.dispose();
   }
 
@@ -322,6 +395,10 @@ class _SignupScreenState extends State<SignupScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 16),
                                 child: SingleChildScrollView(
+                                  controller: _scrollController,
+                                  keyboardDismissBehavior:
+                                      ScrollViewKeyboardDismissBehavior.onDrag,
+                                  physics: const ClampingScrollPhysics(),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -419,9 +496,13 @@ class _SignupScreenState extends State<SignupScreen> {
                                               _styledField(
                                                 controller:
                                                     _businessNameController,
+                                                focusNode: _businessNameFocus,
                                                 label: 'Business name',
                                                 icon: Icons
                                                     .store_mall_directory_outlined,
+                                                onFieldSubmitted: (_) =>
+                                                    _locationFocus
+                                                        .requestFocus(),
                                                 validator: (value) {
                                                   if (value == null ||
                                                       value.trim().isEmpty) {
@@ -433,10 +514,14 @@ class _SignupScreenState extends State<SignupScreen> {
                                               const SizedBox(height: 14),
                                               _styledField(
                                                 controller: _locationController,
+                                                focusNode: _locationFocus,
                                                 label:
                                                     'Shop location (Area / Landmark)',
                                                 icon:
                                                     Icons.location_on_outlined,
+                                                onFieldSubmitted: (_) =>
+                                                    _contactNameFocus
+                                                        .requestFocus(),
                                                 validator: (value) {
                                                   if (value == null ||
                                                       value.trim().isEmpty) {
@@ -449,9 +534,12 @@ class _SignupScreenState extends State<SignupScreen> {
                                               _styledField(
                                                 controller:
                                                     _contactNameController,
+                                                focusNode: _contactNameFocus,
                                                 label:
                                                     'Primary contact person Name',
                                                 icon: Icons.person_outline,
+                                                onFieldSubmitted: (_) =>
+                                                    _phoneFocus.requestFocus(),
                                                 validator: (value) {
                                                   if (value == null ||
                                                       value.trim().isEmpty) {
@@ -463,6 +551,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                               const SizedBox(height: 14),
                                               TextFormField(
                                                 controller: _phoneController,
+                                                focusNode: _phoneFocus,
                                                 keyboardType:
                                                     TextInputType.phone,
                                                 maxLength: 10,
@@ -641,6 +730,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                               const SizedBox(height: 14),
                                               _styledField(
                                                 controller: _addressController,
+                                                focusNode: _addressFocus,
                                                 label: 'Complete address',
                                                 icon: Icons.home_outlined,
                                                 maxLines: 3,
@@ -854,10 +944,14 @@ class _SignupScreenState extends State<SignupScreen> {
                                               const SizedBox(height: 20),
                                               _styledField(
                                                 controller: _emailController,
+                                                focusNode: _emailFocus,
                                                 label: 'Work email',
                                                 icon: Icons.email_outlined,
                                                 keyboardType:
                                                     TextInputType.emailAddress,
+                                                onFieldSubmitted: (_) =>
+                                                    _passwordFocus
+                                                        .requestFocus(),
                                                 validator: (value) {
                                                   if (value == null ||
                                                       value.trim().isEmpty) {
@@ -875,6 +969,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                               const SizedBox(height: 14),
                                               TextFormField(
                                                 controller: _passwordController,
+                                                focusNode: _passwordFocus,
                                                 obscureText: _obscurePassword,
                                                 style: const TextStyle(
                                                   color: Colors.black87,
@@ -930,9 +1025,34 @@ class _SignupScreenState extends State<SignupScreen> {
                                                       width: 2,
                                                     ),
                                                   ),
+                                                  errorBorder:
+                                                      OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    borderSide:
+                                                        const BorderSide(
+                                                      color: Colors.red,
+                                                      width: 1.5,
+                                                    ),
+                                                  ),
+                                                  focusedErrorBorder:
+                                                      OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    borderSide:
+                                                        const BorderSide(
+                                                      color: Colors.red,
+                                                      width: 2,
+                                                    ),
+                                                  ),
                                                 ),
                                                 textInputAction:
                                                     TextInputAction.next,
+                                                onFieldSubmitted: (_) =>
+                                                    _confirmPasswordFocus
+                                                        .requestFocus(),
                                                 validator: (value) {
                                                   if (value == null ||
                                                       value.trim().isEmpty) {
@@ -948,6 +1068,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                               TextFormField(
                                                 controller:
                                                     _confirmPasswordController,
+                                                focusNode:
+                                                    _confirmPasswordFocus,
                                                 obscureText:
                                                     _obscureConfirmPassword,
                                                 style: const TextStyle(
@@ -1121,6 +1243,21 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
+  // Helper method to scroll to a specific widget
+  void _scrollToFocused(FocusNode? focusNode) {
+    if (focusNode == null) return;
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted && focusNode.context != null) {
+        Scrollable.ensureVisible(
+          focusNode.context!,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: 0.5,
+        );
+      }
+    });
+  }
+
   // Small helper to keep input styling consistent
   Widget _styledField({
     required TextEditingController controller,
@@ -1129,9 +1266,12 @@ class _SignupScreenState extends State<SignupScreen> {
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
     String? Function(String?)? validator,
+    FocusNode? focusNode,
+    void Function(String)? onFieldSubmitted,
   }) {
     return TextFormField(
       controller: controller,
+      focusNode: focusNode,
       keyboardType: maxLines > 1 ? TextInputType.multiline : keyboardType,
       maxLines: maxLines,
       style: const TextStyle(
@@ -1184,6 +1324,7 @@ class _SignupScreenState extends State<SignupScreen> {
       validator: validator,
       textInputAction:
           maxLines > 1 ? TextInputAction.newline : TextInputAction.next,
+      onFieldSubmitted: onFieldSubmitted,
     );
   }
 }

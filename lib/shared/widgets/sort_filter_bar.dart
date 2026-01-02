@@ -90,177 +90,221 @@ class _SortFilterBarState extends State<SortFilterBar> {
   }
 
   void _showFilterOptions() {
+    // Use local state for the bottom sheet
+    String tempSortBy = widget.currentSortBy;
+    String tempCategory = _selectedCategory;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
+      isScrollControlled: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (builderContext, setSheetState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Filter header
-                    Text(
-                      'Filters',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.darkBlue,
-                          ),
-                    ),
-                    const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Filter header
+                      Text(
+                        'Filters',
+                        style: Theme.of(builderContext)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.darkBlue,
+                            ),
+                      ),
+                      const SizedBox(height: 24),
 
-                    // Sort By Section
-                    Text(
-                      'Sort By',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.darkBlue,
-                          ),
-                    ),
-                    const SizedBox(height: 12),
-                    _SortOption(
-                      title: 'Newest First',
-                      value: 'newest',
-                      groupValue: widget.currentSortBy,
-                      onChanged: (value) {
-                        widget.onSortChanged(value!);
-                      },
-                    ),
-                    _SortOption(
-                      title: 'Highest Discount',
-                      value: 'discount',
-                      groupValue: widget.currentSortBy,
-                      onChanged: (value) {
-                        widget.onSortChanged(value!);
-                      },
-                    ),
-                    _SortOption(
-                      title: 'Lowest Price',
-                      value: 'price',
-                      groupValue: widget.currentSortBy,
-                      onChanged: (value) {
-                        widget.onSortChanged(value!);
-                      },
-                    ),
-                    const SizedBox(height: 24),
+                      // Sort By Section
+                      Text(
+                        'Sort By',
+                        style: Theme.of(builderContext)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.darkBlue,
+                            ),
+                      ),
+                      const SizedBox(height: 12),
+                      _SortOptionTile(
+                        title: 'Newest First',
+                        value: 'newest',
+                        groupValue: tempSortBy,
+                        onChanged: (value) {
+                          setSheetState(() {
+                            tempSortBy = value!;
+                          });
+                        },
+                      ),
+                      _SortOptionTile(
+                        title: 'Highest Discount',
+                        value: 'discount',
+                        groupValue: tempSortBy,
+                        onChanged: (value) {
+                          setSheetState(() {
+                            tempSortBy = value!;
+                          });
+                        },
+                      ),
+                      _SortOptionTile(
+                        title: 'Lowest Price',
+                        value: 'price',
+                        groupValue: tempSortBy,
+                        onChanged: (value) {
+                          setSheetState(() {
+                            tempSortBy = value!;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 24),
 
-                    // Category Filter
-                    Text(
-                      'Business Category',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.darkBlue,
-                          ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: widget.availableCategories.map((category) {
-                        final isSelected = _selectedCategory == category;
-                        return FilterChip(
-                          label: Text(
-                            category,
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCategory = category;
-                            });
-                            widget.onCategoryChanged(
-                              category == 'All Categories' ? null : category,
-                            );
-                          },
-                          backgroundColor: Colors.white,
-                          selectedColor: AppColors.brightGold,
-                          labelStyle: TextStyle(
-                            color:
-                                isSelected ? Colors.black87 : Colors.grey[700],
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                          side: BorderSide(
-                            color: isSelected
-                                ? AppColors.brightGold
-                                : Colors.grey[300]!,
-                            width: isSelected ? 2 : 1,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Reset and Apply buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedCategory = 'All Categories';
+                      // Category Filter
+                      Text(
+                        'Business Category',
+                        style: Theme.of(builderContext)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.darkBlue,
+                            ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: widget.availableCategories.map((category) {
+                          final isSelected = tempCategory == category;
+                          return GestureDetector(
+                            onTap: () {
+                              setSheetState(() {
+                                tempCategory = category;
                               });
-                              widget.onCategoryChanged(null);
                             },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.darkBlue,
-                              side: const BorderSide(
-                                color: AppColors.darkBlue,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.brightGold
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? AppColors.brightGold
+                                      : Colors.grey[300]!,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                              ),
+                              child: Text(
+                                category,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.black87
+                                      : Colors.grey[700],
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
-                            child: const Text(
-                              'Reset',
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Reset and Apply buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setSheetState(() {
+                                  tempCategory = 'All Categories';
+                                  tempSortBy = 'newest';
+                                });
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.darkBlue,
+                                side: const BorderSide(
+                                  color: AppColors.darkBlue,
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: const Text(
+                                'Reset',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.darkBlue,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                // Apply changes when closing
+                                if (tempSortBy != widget.currentSortBy) {
+                                  widget.onSortChanged(tempSortBy);
+                                }
+                                if (tempCategory != _selectedCategory) {
+                                  setState(() {
+                                    _selectedCategory = tempCategory;
+                                  });
+                                  widget.onCategoryChanged(
+                                    tempCategory == 'All Categories'
+                                        ? null
+                                        : tempCategory,
+                                  );
+                                }
+                                Navigator.pop(builderContext);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.darkBlue,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
-                            ),
-                            child: const Text(
-                              'Apply',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
+                              child: const Text(
+                                'Apply',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -391,13 +435,13 @@ class _SortFilterBarState extends State<SortFilterBar> {
   }
 }
 
-class _SortOption extends StatelessWidget {
+class _SortOptionTile extends StatelessWidget {
   final String title;
   final String value;
   final String groupValue;
   final void Function(String?) onChanged;
 
-  const _SortOption({
+  const _SortOptionTile({
     required this.title,
     required this.value,
     required this.groupValue,
@@ -408,32 +452,44 @@ class _SortOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final selected = value == groupValue;
 
-    return ListTile(
+    return InkWell(
       onTap: () => onChanged(value),
-      leading: Container(
-        width: 20,
-        height: 20,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: selected ? AppColors.darkBlue : Colors.transparent,
-          border: Border.all(
-            color: selected ? AppColors.darkBlue : Colors.grey.shade400,
-            width: 1.4,
-          ),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: selected ? AppColors.darkBlue : Colors.transparent,
+                border: Border.all(
+                  color: selected ? AppColors.darkBlue : Colors.grey.shade400,
+                  width: 2,
+                ),
+              ),
+              child: selected
+                  ? const Icon(
+                      Icons.check,
+                      size: 14,
+                      color: Colors.white,
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+                color: selected ? AppColors.darkBlue : Colors.black87,
+              ),
+            ),
+          ],
         ),
-        child: selected
-            ? const Icon(
-                Icons.check,
-                size: 12,
-                color: Colors.white,
-              )
-            : null,
       ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      contentPadding: EdgeInsets.zero,
     );
   }
 }

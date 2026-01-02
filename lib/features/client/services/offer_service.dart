@@ -385,7 +385,6 @@ class OfferService {
     try {
       final statuses = ['pending', 'approved', 'rejected'];
       String? clientId;
-
       // First, find and delete from main offers collection (offers/{status}/offers/{offerId})
       for (final status in statuses) {
         final doc = await _statusCollection(status).doc(offerId).get();
