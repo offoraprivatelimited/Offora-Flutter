@@ -661,18 +661,16 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                     const SizedBox(height: 16),
                     PremiumTextField(
                       controller: _originalPriceController,
-                      labelText: 'Original Price *',
+                      labelText: 'Original Price (optional)',
                       hintText: 'Regular price before discount',
                       prefixIcon: Icons.currency_rupee,
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Enter the original price';
-                        }
-                        if (double.tryParse(value!) == null) {
+                        if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
                           return 'Enter valid price (e.g., 999.50)';
                         }
+                        // No required validation
                         return null;
                       },
                     ),
@@ -775,48 +773,48 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                         ),
                         prefixIconConstraints:
                             const BoxConstraints(minWidth: 0, minHeight: 0),
-                        filled: true,
-                        fillColor: Colors.white,
-                        counterText: '',
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFE0E0E0),
-                            width: 1.5,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: AppColors.darkBlue,
-                            width: 2,
-                          ),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Colors.red,
-                            width: 1.5,
-                          ),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Colors.red,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'Please enter your contact number';
-                        }
-                        final digits = value!.replaceAll(RegExp(r'[^\d]'), '');
-                        if (digits.length != 10) {
-                          return 'Enter a valid 10-digit phone number';
-                        }
-                        return null;
-                      },
+                          final offer = Offer(
+                          id: widget.offerToEdit?.id ?? '',
+                          clientId: _clientId,
+                          title: _titleController.text,
+                          description: _descriptionController.text,
+                          originalPrice: _originalPriceController.text.isNotEmpty ? double.parse(_originalPriceController.text) : 0,
+                          discountPrice: _originalPriceController.text.isNotEmpty ? double.parse(_originalPriceController.text) : 0,
+                          status: OfferApprovalStatus.pending,
+                          offerType: _selectedOfferType,
+                          offerCategory: _selectedOfferCategory,
+                          businessCategory: _selectedBusinessCategory.isNotEmpty
+                            ? _selectedBusinessCategory
+                            : null,
+                          city: _selectedCity.isNotEmpty ? _selectedCity : null,
+                          address:
+                            _addressController.text.isNotEmpty ? _addressController.text : null,
+                          contactNumber: _contactNumberController.text.isNotEmpty
+                            ? '+91${_contactNumberController.text.trim().replaceAll(RegExp(r'[^0-9]'), '')}'
+                            : null,
+                          imageUrls: allImageUrls,
+                          terms: _termsController.text.isNotEmpty ? _termsController.text : null,
+                          startDate: _selectedStartDate,
+                          endDate: _selectedEndDate,
+                          createdAt: widget.offerToEdit?.createdAt ?? DateTime.now(),
+                          percentageOff: _percentageOffController.text.isNotEmpty
+                            ? double.tryParse(_percentageOffController.text)
+                            : null,
+                          flatDiscountAmount: _flatDiscountController.text.isNotEmpty
+                            ? double.tryParse(_flatDiscountController.text)
+                            : null,
+                          buyQuantity: _buyQuantityController.text.isNotEmpty
+                            ? int.tryParse(_buyQuantityController.text)
+                            : null,
+                          getQuantity: _getQuantityController.text.isNotEmpty
+                            ? int.tryParse(_getQuantityController.text)
+                            : null,
+                          applicableProducts:
+                            _applicableProducts.isNotEmpty ? _applicableProducts : null,
+                          applicableServices:
+                            _applicableServices.isNotEmpty ? _applicableServices : null,
+                          keywords: _parseKeywords(),
+                          );
                     ),
                     const SizedBox(height: 24),
 
