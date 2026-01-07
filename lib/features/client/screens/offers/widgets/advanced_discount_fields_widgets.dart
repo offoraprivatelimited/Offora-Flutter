@@ -119,9 +119,9 @@ class BuyXGetYFields extends StatelessWidget {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             style: TextStyle(color: darkBlue),
             decoration: InputDecoration(
-              labelText: 'Percentage Off on "Get" Items',
+              labelText: 'Percentage Off',
               labelStyle: TextStyle(color: darkBlue),
-              hintText: 'e.g., 50 for 50% off',
+              hintText: 'e.g., 50 for 50%',
               hintStyle: const TextStyle(color: Colors.grey),
               prefixIcon: Icon(Icons.percent, color: brightGold),
               filled: true,
