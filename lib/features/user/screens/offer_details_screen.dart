@@ -1047,7 +1047,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
               const SizedBox(height: 32),
 
               // Discount Explanation
-              _buildDiscountExplanation(offer, screenSize),
+              _buildTypeSpecificExplanation(offer, screenSize),
               const SizedBox(height: 32),
 
               // Description
@@ -1719,6 +1719,82 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
 
         // Note: Offer explanation moved to _buildDiscountExplanation in content section
       ],
+    );
+  }
+
+  Widget _buildTypeSpecificExplanation(
+      Offer offer, ScreenSizeCategory screenSize) {
+    switch (offer.offerType) {
+      case OfferType.percentageDiscount:
+        return _buildDiscountExplanation(offer, screenSize);
+      case OfferType.flatDiscount:
+        return _buildDiscountExplanation(offer, screenSize);
+      case OfferType.buyXGetYPercentOff:
+        return _buildInfoCard([
+          'Buy ${offer.buyQuantity ?? '-'} item(s), get ${offer.percentageOff?.toStringAsFixed(0) ?? '-'}% off next item.'
+        ], screenSize);
+      case OfferType.buyXGetYRupeesOff:
+        return _buildInfoCard([
+          'Buy ${offer.buyQuantity ?? '-'} item(s), get ₹${offer.flatDiscountAmount?.toStringAsFixed(0) ?? '-'} off next item.'
+        ], screenSize);
+      case OfferType.bogo:
+        return _buildInfoCard([
+          'Buy ${offer.buyQuantity ?? '1'}, get ${offer.getQuantity ?? '1'} FREE!'
+        ], screenSize);
+      case OfferType.productSpecific:
+        return _buildInfoCard([
+          'Product-specific offer:',
+          if (offer.applicableProducts != null &&
+              offer.applicableProducts!.isNotEmpty)
+            ...offer.applicableProducts!.map((p) => '• $p')
+        ], screenSize);
+      case OfferType.serviceSpecific:
+        return _buildInfoCard([
+          'Service-specific offer:',
+          if (offer.applicableServices != null &&
+              offer.applicableServices!.isNotEmpty)
+            ...offer.applicableServices!.map((s) => '• $s')
+        ], screenSize);
+      case OfferType.bundleDeal:
+        return _buildInfoCard([
+          'Bundle offer:',
+          if (offer.applicableProducts != null &&
+              offer.applicableProducts!.isNotEmpty)
+            ...offer.applicableProducts!.map((p) => '• $p'),
+          if (offer.applicableServices != null &&
+              offer.applicableServices!.isNotEmpty)
+            ...offer.applicableServices!.map((s) => '• $s')
+        ], screenSize);
+    }
+  }
+
+  Widget _buildInfoCard(List<String> lines, ScreenSizeCategory screenSize) {
+    return Container(
+      padding:
+          EdgeInsets.all(screenSize == ScreenSizeCategory.mobile ? 16 : 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8DC),
+        borderRadius: BorderRadius.circular(12),
+        border:
+            Border.all(color: AppColors.brightGold.withOpacity(0.3), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: lines
+            .map((line) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    line,
+                    style: TextStyle(
+                      fontSize:
+                          screenSize == ScreenSizeCategory.mobile ? 15 : 16,
+                      color: const Color(0xFF8B6914),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ))
+            .toList(),
+      ),
     );
   }
 
