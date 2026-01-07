@@ -44,6 +44,7 @@ class Offer {
     this.rejectionReason,
     this.buyQuantity,
     this.getQuantity,
+    this.getPercentage,
     this.percentageOff,
     this.flatDiscountAmount,
     this.applicableProducts,
@@ -78,7 +79,9 @@ class Offer {
 
   // New fields for advanced offer types
   final int? buyQuantity; // For BOGO and Buy X Get Y offers
-  final int? getQuantity; // For BOGO and Buy X Get Y offers
+  final int? getQuantity; // For BOGO and Buy X Get Y quantity-based offers
+  final double?
+      getPercentage; // For Buy X Get Y% off (percentage on "get" items)
   final double? percentageOff; // For percentage-based discounts
   final double? flatDiscountAmount; // For flat rupee discounts
   final List<String>?
@@ -132,6 +135,7 @@ class Offer {
       if (rejectionReason != null) 'rejectionReason': rejectionReason,
       if (buyQuantity != null) 'buyQuantity': buyQuantity,
       if (getQuantity != null) 'getQuantity': getQuantity,
+      if (getPercentage != null) 'getPercentage': getPercentage,
       if (percentageOff != null) 'percentageOff': percentageOff,
       if (flatDiscountAmount != null) 'flatDiscountAmount': flatDiscountAmount,
       if (applicableProducts != null) 'applicableProducts': applicableProducts,
@@ -187,6 +191,7 @@ class Offer {
       rejectionReason: data['rejectionReason'] as String?,
       buyQuantity: data['buyQuantity'] as int?,
       getQuantity: data['getQuantity'] as int?,
+      getPercentage: (data['getPercentage'] as num?)?.toDouble(),
       percentageOff: (data['percentageOff'] as num?)?.toDouble(),
       flatDiscountAmount: (data['flatDiscountAmount'] as num?)?.toDouble(),
       applicableProducts: (data['applicableProducts'] as List<dynamic>?)
@@ -234,6 +239,7 @@ class Offer {
     String? rejectionReason,
     int? buyQuantity,
     int? getQuantity,
+    double? getPercentage,
     double? percentageOff,
     double? flatDiscountAmount,
     List<String>? applicableProducts,
@@ -266,6 +272,7 @@ class Offer {
       rejectionReason: rejectionReason ?? this.rejectionReason,
       buyQuantity: buyQuantity ?? this.buyQuantity,
       getQuantity: getQuantity ?? this.getQuantity,
+      getPercentage: getPercentage ?? this.getPercentage,
       percentageOff: percentageOff ?? this.percentageOff,
       flatDiscountAmount: flatDiscountAmount ?? this.flatDiscountAmount,
       applicableProducts: applicableProducts ?? this.applicableProducts,

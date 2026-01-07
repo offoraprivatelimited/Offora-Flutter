@@ -236,6 +236,9 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     if (offer.flatDiscountAmount != null) {
       _flatDiscountController.text = offer.flatDiscountAmount.toString();
     }
+    if (offer.getPercentage != null) {
+      _advancedPercentageController.text = offer.getPercentage.toString();
+    }
     if (offer.buyQuantity != null) {
       _buyQuantityController.text = offer.buyQuantity.toString();
     }
@@ -469,6 +472,9 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
             : null,
         getQuantity: _getQuantityController.text.isNotEmpty
             ? int.tryParse(_getQuantityController.text)
+            : null,
+        getPercentage: _advancedPercentageController.text.isNotEmpty
+            ? double.tryParse(_advancedPercentageController.text)
             : null,
         applicableProducts:
             _applicableProducts.isNotEmpty ? _applicableProducts : null,

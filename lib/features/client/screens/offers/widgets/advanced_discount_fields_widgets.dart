@@ -26,63 +26,92 @@ class BuyXGetYFields extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: buyQuantityController,
-                keyboardType: TextInputType.number,
-                style: TextStyle(color: darkBlue),
-                decoration: InputDecoration(
-                  labelText: 'Buy Quantity',
-                  labelStyle: TextStyle(color: darkBlue),
-                  hintText: 'e.g., 2',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.shopping_cart, color: brightGold),
-                  filled: true,
-                  fillColor: Colors.white,
+        // For BOGO show both buy and get quantities. For Buy X Get Y (percent/rupees)
+        // only show the buy quantity and the corresponding percent/rupee field below.
+        if (selectedOfferType == OfferType.bogo)
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: buyQuantityController,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(color: darkBlue),
+                  decoration: InputDecoration(
+                    labelText: 'Buy Quantity',
+                    labelStyle: TextStyle(color: darkBlue),
+                    hintText: 'Usually 1',
+                    hintStyle: const TextStyle(color: Colors.grey),
+                    prefixIcon: Icon(Icons.shopping_bag, color: brightGold),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Required';
+                    }
+                    final num = int.tryParse(value);
+                    if (num == null || num <= 0) {
+                      return 'Enter valid quantity';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Required';
-                  }
-                  final num = int.tryParse(value);
-                  if (num == null || num <= 0) {
-                    return 'Enter valid quantity';
-                  }
-                  return null;
-                },
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextFormField(
-                controller: getQuantityController,
-                keyboardType: TextInputType.number,
-                style: TextStyle(color: darkBlue),
-                decoration: InputDecoration(
-                  labelText: 'Get Quantity',
-                  labelStyle: TextStyle(color: darkBlue),
-                  hintText: 'e.g., 1',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.card_giftcard, color: brightGold),
-                  filled: true,
-                  fillColor: Colors.white,
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextFormField(
+                  controller: getQuantityController,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(color: darkBlue),
+                  decoration: InputDecoration(
+                    labelText: 'Get Free Quantity',
+                    labelStyle: TextStyle(color: darkBlue),
+                    hintText: 'Usually 1',
+                    hintStyle: const TextStyle(color: Colors.grey),
+                    prefixIcon: Icon(Icons.redeem, color: brightGold),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Required';
+                    }
+                    final num = int.tryParse(value);
+                    if (num == null || num <= 0) {
+                      return 'Enter valid quantity';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Required';
-                  }
-                  final num = int.tryParse(value);
-                  if (num == null || num <= 0) {
-                    return 'Enter valid quantity';
-                  }
-                  return null;
-                },
               ),
+            ],
+          )
+        else
+          // For Buy X Get Y% or Buy X Get ₹Y show only Buy Quantity here
+          TextFormField(
+            controller: buyQuantityController,
+            keyboardType: TextInputType.number,
+            style: TextStyle(color: darkBlue),
+            decoration: InputDecoration(
+              labelText: 'Buy Quantity',
+              labelStyle: TextStyle(color: darkBlue),
+              hintText: 'e.g., 2',
+              hintStyle: const TextStyle(color: Colors.grey),
+              prefixIcon: Icon(Icons.shopping_cart, color: brightGold),
+              filled: true,
+              fillColor: Colors.white,
             ),
-          ],
-        ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Required';
+              }
+              final num = int.tryParse(value);
+              if (num == null || num <= 0) {
+                return 'Enter valid quantity';
+              }
+              return null;
+            },
+          ),
         const SizedBox(height: 16),
         if (selectedOfferType == OfferType.buyXGetYPercentOff)
           TextFormField(

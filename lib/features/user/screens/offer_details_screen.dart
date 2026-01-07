@@ -1731,7 +1731,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
         return _buildDiscountExplanation(offer, screenSize);
       case OfferType.buyXGetYPercentOff:
         return _buildInfoCard([
-          'Buy ${offer.buyQuantity ?? '-'} item(s), get ${offer.percentageOff?.toStringAsFixed(0) ?? '-'}% off next item.'
+          'Buy ${offer.buyQuantity ?? '-'} item(s), get ${offer.getPercentage?.toStringAsFixed(0) ?? '-'}% off next item.'
         ], screenSize);
       case OfferType.buyXGetYRupeesOff:
         return _buildInfoCard([
