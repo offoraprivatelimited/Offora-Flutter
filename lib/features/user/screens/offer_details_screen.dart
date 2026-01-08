@@ -1728,46 +1728,894 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
       Offer offer, ScreenSizeCategory screenSize) {
     switch (offer.offerType) {
       case OfferType.percentageDiscount:
-        return _buildDiscountExplanation(offer, screenSize);
+        return _buildPercentageDiscountWidget(offer, screenSize);
       case OfferType.flatDiscount:
-        return _buildDiscountExplanation(offer, screenSize);
+        return _buildFlatDiscountWidget(offer, screenSize);
       case OfferType.buyXGetYPercentOff:
-        return _buildInfoCard([
-          'Buy ${offer.buyQuantity ?? '-'} item(s), get ${offer.getPercentage?.toStringAsFixed(0) ?? '-'}% off next item.'
-        ], screenSize);
+        return _buildBuyXGetYPercentWidget(offer, screenSize);
       case OfferType.buyXGetYRupeesOff:
-        return _buildInfoCard([
-          'Buy ${offer.buyQuantity ?? '-'} item(s), get ₹${offer.flatDiscountAmount?.toStringAsFixed(0) ?? '-'} off next item.'
-        ], screenSize);
+        return _buildBuyXGetYRupeesWidget(offer, screenSize);
       case OfferType.bogo:
-        return _buildInfoCard([
-          'Buy ${offer.buyQuantity ?? '1'}, get ${offer.getQuantity ?? '1'} FREE!'
-        ], screenSize);
+        return _buildBOGOWidget(offer, screenSize);
       case OfferType.productSpecific:
-        return _buildInfoCard([
-          'Product-specific offer:',
-          if (offer.applicableProducts != null &&
-              offer.applicableProducts!.isNotEmpty)
-            ...offer.applicableProducts!.map((p) => '• $p')
-        ], screenSize);
+        return _buildProductSpecificWidget(offer, screenSize);
       case OfferType.serviceSpecific:
-        return _buildInfoCard([
-          'Service-specific offer:',
-          if (offer.applicableServices != null &&
-              offer.applicableServices!.isNotEmpty)
-            ...offer.applicableServices!.map((s) => '• $s')
-        ], screenSize);
+        return _buildServiceSpecificWidget(offer, screenSize);
       case OfferType.bundleDeal:
-        return _buildInfoCard([
-          'Bundle offer:',
-          if (offer.applicableProducts != null &&
-              offer.applicableProducts!.isNotEmpty)
-            ...offer.applicableProducts!.map((p) => '• $p'),
-          if (offer.applicableServices != null &&
-              offer.applicableServices!.isNotEmpty)
-            ...offer.applicableServices!.map((s) => '• $s')
-        ], screenSize);
+        return _buildBundleDealWidget(offer, screenSize);
     }
+  }
+
+  Widget _buildPercentageDiscountWidget(
+      Offer offer, ScreenSizeCategory screenSize) {
+    final percentage = offer.percentageOff ?? 0;
+    final saved = (offer.originalPrice * percentage / 100);
+
+    return Container(
+      padding: EdgeInsets.all(
+        screenSize == ScreenSizeCategory.mobile ? 16 : 20,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFFF8DC).withValues(alpha: 0.8),
+            const Color(0xFFFFE4B5).withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.brightGold.withValues(alpha: 0.5),
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.local_offer,
+                  color: Colors.red.shade600,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${percentage.toStringAsFixed(0)}% OFF',
+                      style: TextStyle(
+                        fontSize:
+                            screenSize == ScreenSizeCategory.mobile ? 18 : 22,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.red.shade600,
+                      ),
+                    ),
+                    Text(
+                      'Save ₹${saved.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize:
+                            screenSize == ScreenSizeCategory.mobile ? 13 : 14,
+                        color: Colors.red.shade700,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlatDiscountWidget(Offer offer, ScreenSizeCategory screenSize) {
+    final discountAmount =
+        offer.flatDiscountAmount ?? (offer.discountPrice ?? 0);
+
+    return Container(
+      padding: EdgeInsets.all(
+        screenSize == ScreenSizeCategory.mobile ? 16 : 20,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFE8F5E9).withValues(alpha: 0.8),
+            const Color(0xFFC8E6C9).withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.green.shade300,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.currency_rupee,
+                  color: Colors.green.shade600,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Flat ₹${discountAmount.toStringAsFixed(0)} OFF',
+                      style: TextStyle(
+                        fontSize:
+                            screenSize == ScreenSizeCategory.mobile ? 18 : 22,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.green.shade600,
+                      ),
+                    ),
+                    Text(
+                      'Direct discount on your purchase',
+                      style: TextStyle(
+                        fontSize:
+                            screenSize == ScreenSizeCategory.mobile ? 13 : 14,
+                        color: Colors.green.shade700,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBuyXGetYPercentWidget(
+      Offer offer, ScreenSizeCategory screenSize) {
+    final buyQty = offer.buyQuantity ?? 1;
+    final percentage = offer.getPercentage ?? 0;
+
+    return Container(
+      padding: EdgeInsets.all(
+        screenSize == ScreenSizeCategory.mobile ? 16 : 20,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFE3F2FD).withValues(alpha: 0.8),
+            const Color(0xFFBBDEFB).withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.blue.shade300,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Buy & Save Offer',
+            style: TextStyle(
+              fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+              fontWeight: FontWeight.w800,
+              color: Colors.blue.shade700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Buy',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '$buyQty Item${buyQty > 1 ? 's' : ''}',
+                        style: TextStyle(
+                          fontSize:
+                              screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.blue.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Icon(Icons.arrow_forward, color: Colors.blue.shade600),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Get',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '${percentage.toStringAsFixed(0)}% OFF',
+                        style: TextStyle(
+                          fontSize:
+                              screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.green.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'On your next item purchase',
+            style: TextStyle(
+              fontSize: screenSize == ScreenSizeCategory.mobile ? 13 : 14,
+              color: Colors.blue.shade700,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBuyXGetYRupeesWidget(
+      Offer offer, ScreenSizeCategory screenSize) {
+    final buyQty = offer.buyQuantity ?? 1;
+    final rupeeOff = offer.flatDiscountAmount ?? 0;
+
+    return Container(
+      padding: EdgeInsets.all(
+        screenSize == ScreenSizeCategory.mobile ? 16 : 20,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFF3E5F5).withValues(alpha: 0.8),
+            const Color(0xFFE1BEE7).withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.purple.shade300,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Buy & Save Offer',
+            style: TextStyle(
+              fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+              fontWeight: FontWeight.w800,
+              color: Colors.purple.shade700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.purple.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Buy',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '$buyQty Item${buyQty > 1 ? 's' : ''}',
+                        style: TextStyle(
+                          fontSize:
+                              screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.purple.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Icon(Icons.arrow_forward, color: Colors.purple.shade600),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.purple.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Get',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '₹${rupeeOff.toStringAsFixed(0)} OFF',
+                        style: TextStyle(
+                          fontSize:
+                              screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.green.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'On your next item purchase',
+            style: TextStyle(
+              fontSize: screenSize == ScreenSizeCategory.mobile ? 13 : 14,
+              color: Colors.purple.shade700,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBOGOWidget(Offer offer, ScreenSizeCategory screenSize) {
+    final buyQty = offer.buyQuantity ?? 1;
+    final freeQty = offer.getQuantity ?? 1;
+
+    return Container(
+      padding: EdgeInsets.all(
+        screenSize == ScreenSizeCategory.mobile ? 16 : 20,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFFEBEE).withValues(alpha: 0.8),
+            const Color(0xFFF8BBD0).withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.pink.shade300,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.pink.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.card_giftcard,
+                  color: Colors.pink.shade600,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'BOGO - Buy One Get One!',
+                style: TextStyle(
+                  fontSize: screenSize == ScreenSizeCategory.mobile ? 18 : 22,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.pink.shade600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.pink.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Buy',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '$buyQty Item${buyQty > 1 ? 's' : ''}',
+                        style: TextStyle(
+                          fontSize:
+                              screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.pink.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Icon(Icons.card_giftcard, color: Colors.pink.shade600, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.amber.shade300, width: 2),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Get FREE',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.amber.shade700,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        '$freeQty Item${freeQty > 1 ? 's' : ''}',
+                        style: TextStyle(
+                          fontSize:
+                              screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.amber.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductSpecificWidget(
+      Offer offer, ScreenSizeCategory screenSize) {
+    final hasProducts = offer.applicableProducts != null &&
+        offer.applicableProducts!.isNotEmpty;
+
+    return Container(
+      padding: EdgeInsets.all(
+        screenSize == ScreenSizeCategory.mobile ? 16 : 20,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFCE4EC).withValues(alpha: 0.8),
+            const Color(0xFFF8BBD0).withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.red.shade300,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.shopping_bag,
+                  color: Colors.red.shade600,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Product-Specific Deal',
+                style: TextStyle(
+                  fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.red.shade600,
+                ),
+              ),
+            ],
+          ),
+          if (hasProducts) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Applicable Products:',
+              style: TextStyle(
+                fontSize: screenSize == ScreenSizeCategory.mobile ? 13 : 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.red.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: offer.applicableProducts!
+                  .map(
+                    (product) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green.shade600,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              product,
+                              style: TextStyle(
+                                fontSize:
+                                    screenSize == ScreenSizeCategory.mobile
+                                        ? 13
+                                        : 14,
+                                color: Colors.red.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceSpecificWidget(
+      Offer offer, ScreenSizeCategory screenSize) {
+    final hasServices = offer.applicableServices != null &&
+        offer.applicableServices!.isNotEmpty;
+
+    return Container(
+      padding: EdgeInsets.all(
+        screenSize == ScreenSizeCategory.mobile ? 16 : 20,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFF3E5F5).withValues(alpha: 0.8),
+            const Color(0xFFCE93D8).withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.deepPurple.shade300,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.miscellaneous_services,
+                  color: Colors.deepPurple.shade600,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Service-Specific Deal',
+                style: TextStyle(
+                  fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.deepPurple.shade600,
+                ),
+              ),
+            ],
+          ),
+          if (hasServices) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Applicable Services:',
+              style: TextStyle(
+                fontSize: screenSize == ScreenSizeCategory.mobile ? 13 : 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.deepPurple.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: offer.applicableServices!
+                  .map(
+                    (service) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green.shade600,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              service,
+                              style: TextStyle(
+                                fontSize:
+                                    screenSize == ScreenSizeCategory.mobile
+                                        ? 13
+                                        : 14,
+                                color: Colors.deepPurple.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBundleDealWidget(Offer offer, ScreenSizeCategory screenSize) {
+    final hasProducts = offer.applicableProducts != null &&
+        offer.applicableProducts!.isNotEmpty;
+    final hasServices = offer.applicableServices != null &&
+        offer.applicableServices!.isNotEmpty;
+
+    return Container(
+      padding: EdgeInsets.all(
+        screenSize == ScreenSizeCategory.mobile ? 16 : 20,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFE0F2F1).withValues(alpha: 0.8),
+            const Color(0xFFB2DFDB).withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.teal.shade300,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.teal.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.inventory_2,
+                  color: Colors.teal.shade600,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Bundle Deal',
+                style: TextStyle(
+                  fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.teal.shade600,
+                ),
+              ),
+            ],
+          ),
+          if (hasProducts) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Included Products:',
+              style: TextStyle(
+                fontSize: screenSize == ScreenSizeCategory.mobile ? 13 : 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.teal.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: offer.applicableProducts!
+                  .map(
+                    (product) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green.shade600,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              product,
+                              style: TextStyle(
+                                fontSize:
+                                    screenSize == ScreenSizeCategory.mobile
+                                        ? 13
+                                        : 14,
+                                color: Colors.teal.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+          if (hasServices) ...[
+            if (hasProducts) const SizedBox(height: 12),
+            Text(
+              'Included Services:',
+              style: TextStyle(
+                fontSize: screenSize == ScreenSizeCategory.mobile ? 13 : 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.teal.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: offer.applicableServices!
+                  .map(
+                    (service) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green.shade600,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              service,
+                              style: TextStyle(
+                                fontSize:
+                                    screenSize == ScreenSizeCategory.mobile
+                                        ? 13
+                                        : 14,
+                                color: Colors.teal.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+          if (!hasProducts && !hasServices)
+            Text(
+              'Multiple items and services bundled together for maximum savings!',
+              style: TextStyle(
+                fontSize: screenSize == ScreenSizeCategory.mobile ? 13 : 14,
+                color: Colors.teal.shade700,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _buildInfoCard(List<String> lines, ScreenSizeCategory screenSize) {
