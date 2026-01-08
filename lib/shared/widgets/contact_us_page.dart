@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ContactUsPage extends StatefulWidget {
   const ContactUsPage({super.key});
@@ -191,11 +192,11 @@ class _ContactUsPageState extends State<ContactUsPage> {
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 1,
+                crossAxisCount: MediaQuery.of(context).size.width > 600 ? 4 : 1,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 childAspectRatio:
-                    MediaQuery.of(context).size.width > 600 ? 2.2 : 3,
+                    MediaQuery.of(context).size.width > 600 ? 1.8 : 3,
                 children: [
                   _buildPremiumContactCard(
                     Icons.email_outlined,
@@ -212,6 +213,15 @@ class _ContactUsPageState extends State<ContactUsPage> {
                     'Call us for quick assistance',
                     primaryDark,
                     accentGold,
+                  ),
+                  _buildClickableContactCard(
+                    'https://wa.me/918300277969',
+                    Icons.chat_bubble_outline,
+                    'WhatsApp',
+                    '+91 83002 77969',
+                    'Message us anytime',
+                    const Color(0xFF25D366),
+                    Colors.white,
                   ),
                   _buildPremiumContactCard(
                     Icons.schedule_outlined,
@@ -553,6 +563,106 @@ class _ContactUsPageState extends State<ContactUsPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClickableContactCard(
+    String url,
+    IconData icon,
+    String title,
+    String content,
+    String subtitle,
+    Color color,
+    Color textColor,
+  ) {
+    return GestureDetector(
+      onTap: () async {
+        if (await canLaunchUrl(Uri.parse(url))) {
+          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withAlpha(13),
+              blurRadius: 30,
+              spreadRadius: 0,
+              offset: const Offset(0, 10),
+            ),
+          ],
+          border: Border.all(
+            color: color.withAlpha(26),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    color.withAlpha(26),
+                    color.withAlpha(13),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: textColor.withAlpha(153),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    content,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                      height: 1.25,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: textColor.withAlpha(128),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

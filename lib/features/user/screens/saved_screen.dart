@@ -79,6 +79,37 @@ class SavedScreen extends StatelessWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final offer = savedOffers[index];
+
+                      // Calculate discount based on offer type
+                      String discountText = '0% OFF';
+                      if (offer.offerType == OfferType.percentageDiscount) {
+                        final percentage = offer.percentageOff ?? 0;
+                        discountText = '${percentage.toStringAsFixed(0)}% OFF';
+                      } else if (offer.offerType == OfferType.flatDiscount) {
+                        final amount = offer.flatDiscountAmount ?? 0;
+                        discountText = '₹${amount.toStringAsFixed(0)} OFF';
+                      } else if (offer.offerType ==
+                          OfferType.buyXGetYPercentOff) {
+                        final percentage = offer.getPercentage ?? 0;
+                        discountText = '${percentage.toStringAsFixed(0)}% OFF';
+                      } else if (offer.offerType ==
+                          OfferType.buyXGetYRupeesOff) {
+                        final amount = offer.flatDiscountAmount ?? 0;
+                        discountText = '₹${amount.toStringAsFixed(0)} OFF';
+                      } else if (offer.offerType == OfferType.bogo) {
+                        discountText = 'BOGO';
+                      } else if (offer.offerType == OfferType.productSpecific) {
+                        discountText = 'DEAL';
+                      } else if (offer.offerType == OfferType.serviceSpecific) {
+                        discountText = 'DEAL';
+                      } else if (offer.offerType == OfferType.bundleDeal) {
+                        discountText = 'BUNDLE';
+                      } else if (offer.discountPrice != null) {
+                        // Fallback for any offer with discountPrice
+                        discountText =
+                            '${((1 - (offer.discountPrice! / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF';
+                      }
+
                       final offerMap = <String, dynamic>{
                         'title': offer.title,
                         'store':
@@ -86,9 +117,7 @@ class SavedScreen extends StatelessWidget {
                         'image': offer.imageUrls?.isNotEmpty == true
                             ? offer.imageUrls![0]
                             : 'assets/images/logo/original/Logo_without_text_with_background.jpg',
-                        'discount': offer.discountPrice != null
-                            ? '${((1 - (offer.discountPrice! / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF'
-                            : '0% OFF',
+                        'discount': discountText,
                       };
                       return OfferCard(
                         offer: offerMap,
