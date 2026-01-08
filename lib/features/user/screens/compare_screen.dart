@@ -41,7 +41,7 @@ class CompareScreen extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -157,8 +157,10 @@ class CompareScreen extends StatelessWidget {
   Widget _buildOfferColumn(
       BuildContext context, Offer offer, CompareService compareService) {
     final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-    final discount = ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
-        .toStringAsFixed(0);
+    final discount = offer.discountPrice != null
+        ? ((1 - (offer.discountPrice! / offer.originalPrice)) * 100)
+            .toStringAsFixed(0)
+        : '0';
     final hasImage = offer.imageUrls?.isNotEmpty == true;
 
     return Container(
@@ -169,7 +171,7 @@ class CompareScreen extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -270,7 +272,8 @@ class CompareScreen extends StatelessWidget {
                 const SizedBox(height: 6),
                 _buildCompareRow(
                   'Savings',
-                  currency.format(offer.originalPrice - offer.discountPrice),
+                  currency
+                      .format(offer.originalPrice - (offer.discountPrice ?? 0)),
                   color: Colors.green.shade700,
                 ),
 

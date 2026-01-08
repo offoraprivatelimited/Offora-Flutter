@@ -154,12 +154,12 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
   }
 
   Future<void> _shareOffer() async {
-    final discount =
-        ((1 - (widget.offer.discountPrice / widget.offer.originalPrice)) * 100)
-            .toStringAsFixed(0);
+    final discountPrice = widget.offer.discountPrice ?? 0;
+    final discount = ((1 - (discountPrice / widget.offer.originalPrice)) * 100)
+        .toStringAsFixed(0);
     final text = 'Check out this amazing offer!\n\n'
         '${widget.offer.title}\n\n'
-        'Offer Price: ₹${widget.offer.discountPrice.toStringAsFixed(0)}\n'
+        'Offer Price: ₹${discountPrice.toStringAsFixed(0)}\n'
         'Original Price: ₹${widget.offer.originalPrice.toStringAsFixed(0)}\n'
         'Save $discount%!\n\n'
         '${widget.offer.description}\n\n'
@@ -195,7 +195,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withAlpha(26),
               blurRadius: 20,
               spreadRadius: 2,
             ),
@@ -424,8 +424,9 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
     final images =
         (offer.imageUrls ?? []).where((url) => url.isNotEmpty).toList();
     final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-    final discount = ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
-        .toStringAsFixed(0);
+    final discountPrice = offer.discountPrice ?? 0;
+    final discount =
+        ((1 - (discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0);
 
     // Check if we're in a modal by looking for a ScaffoldMessenger
     final isInModal = Navigator.of(context).canPop() &&
@@ -492,7 +493,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withAlpha(230),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -508,7 +509,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withAlpha(230),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -524,7 +525,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.share_outlined,
@@ -704,10 +705,10 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withOpacity(0.3),
+                Colors.black.withAlpha(77),
                 Colors.transparent,
                 Colors.transparent,
-                Colors.black.withOpacity(0.6),
+                Colors.black.withValues(alpha: 0.6),
               ],
             ),
           ),
@@ -723,7 +724,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withAlpha(230),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -742,7 +743,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
+                color: Colors.black.withAlpha(153),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -767,24 +768,24 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withAlpha(230),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
                 child: Row(
-                  children: [
+                  children: const [
                     Icon(
                       Icons.fullscreen,
                       color: AppColors.darkBlue,
                       size: 16,
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Text(
                       'View Full',
                       style: TextStyle(
@@ -813,7 +814,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withOpacity(0.8),
+                    Colors.black.withAlpha(204),
                   ],
                 ),
               ),
@@ -837,7 +838,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                     'Price Now',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -858,7 +859,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                         currency.format(offer.originalPrice),
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                           decoration: TextDecoration.lineThrough,
                           fontWeight: FontWeight.w400,
                         ),
@@ -901,13 +902,13 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: const [
             Icon(
               Icons.image_outlined,
               color: AppColors.darkBlue,
               size: 48,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               'No Image Available',
               style: TextStyle(
@@ -923,8 +924,9 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
 
   Widget _buildContentSection(Offer offer, ScreenSizeCategory screenSize) {
     final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-    final discount = ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
-        .toStringAsFixed(0);
+    final discountPrice = offer.discountPrice ?? 0;
+    final discount =
+        ((1 - (discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0);
 
     return Column(
       children: [
@@ -941,7 +943,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -1775,8 +1777,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF8DC),
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: AppColors.brightGold.withOpacity(0.3), width: 1),
+        border: Border.all(color: AppColors.brightGold.withAlpha(77), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1812,15 +1813,15 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFFFF8DC).withOpacity(0.6),
-            const Color(0xFFFFE4B5).withOpacity(0.6),
+            const Color(0xFFFFF8DC).withValues(alpha: 0.6),
+            const Color(0xFFFFE4B5).withValues(alpha: 0.6),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.brightGold.withOpacity(0.3),
+          color: AppColors.brightGold.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -2245,7 +2246,7 @@ class _ShareOption extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, color: color, size: 22),

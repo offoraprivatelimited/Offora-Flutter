@@ -86,8 +86,9 @@ class SavedScreen extends StatelessWidget {
                         'image': offer.imageUrls?.isNotEmpty == true
                             ? offer.imageUrls![0]
                             : 'assets/images/logo/original/Logo_without_text_with_background.jpg',
-                        'discount':
-                            '${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF',
+                        'discount': offer.discountPrice != null
+                            ? '${((1 - (offer.discountPrice! / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF'
+                            : '0% OFF',
                       };
                       return OfferCard(
                         offer: offerMap,

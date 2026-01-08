@@ -62,13 +62,13 @@ class AppDrawer extends StatelessWidget {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
+                                color: Colors.white.withAlpha(77),
                                 width: 2,
                               ),
                             ),
                             child: CircleAvatar(
                               radius: 32,
-                              backgroundColor: Colors.white.withOpacity(0.2),
+                              backgroundColor: Colors.white.withAlpha(51),
                               backgroundImage: user?.photoUrl != null
                                   ? NetworkImage(user!.photoUrl!)
                                   : null,
@@ -102,7 +102,7 @@ class AppDrawer extends StatelessWidget {
                       Text(
                         user?.email ?? 'Sign in to continue',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.85),
+                          color: Colors.white.withAlpha(217),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -112,10 +112,10 @@ class AppDrawer extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
+                          color: Colors.white.withAlpha(38),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
+                            color: Colors.white.withAlpha(77),
                             width: 1,
                           ),
                         ),
@@ -300,7 +300,7 @@ class AppDrawer extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.darkBlue.withOpacity(0.08),
+                    color: AppColors.darkBlue.withAlpha(20),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(

@@ -64,7 +64,7 @@ class _OfferScrollerState extends State<OfferScroller>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.07),
+                color: theme.colorScheme.primary.withAlpha(18),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(

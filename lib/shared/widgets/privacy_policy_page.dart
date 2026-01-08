@@ -18,7 +18,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               Colors.white,
-              lightGold.withOpacity(0.05),
+              lightGold.withAlpha(13),
               Colors.white,
             ],
           ),
@@ -69,7 +69,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                       'Last Updated: December 4, 2025',
                       style: TextStyle(
                         fontSize: 15,
-                        color: primaryDark.withOpacity(0.5),
+                        color: primaryDark.withAlpha(128),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -86,18 +86,18 @@ class PrivacyPolicyPage extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      lightGold.withOpacity(0.3),
+                      lightGold.withAlpha(77),
                       Colors.white,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: mediumGold.withOpacity(0.3),
+                    color: mediumGold.withAlpha(77),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: primaryDark.withOpacity(0.03),
+                      color: primaryDark.withAlpha(8),
                       blurRadius: 30,
                       spreadRadius: 0,
                       offset: const Offset(0, 10),
@@ -111,10 +111,10 @@ class PrivacyPolicyPage extends StatelessWidget {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: accentGold.withOpacity(0.1),
+                        color: accentGold.withAlpha(26),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: accentGold.withOpacity(0.2),
+                          color: accentGold.withAlpha(51),
                           width: 1.5,
                         ),
                       ),
@@ -142,7 +142,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                             'At Offora, we are deeply committed to protecting your privacy and personal information. This comprehensive policy explains how we collect, use, and safeguard your data with the highest standards of security and transparency.',
                             style: TextStyle(
                               fontSize: 16,
-                              color: primaryDark.withOpacity(0.8),
+                              color: primaryDark.withAlpha(204),
                               height: 1.7,
                               fontWeight: FontWeight.w400,
                             ),
@@ -235,7 +235,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                       'We do not sell your personal information. Data sharing occurs only under these specific circumstances:',
                       style: TextStyle(
                         fontSize: 16,
-                        color: primaryDark.withOpacity(0.8),
+                        color: primaryDark.withAlpha(204),
                         height: 1.6,
                       ),
                     ),
@@ -292,17 +292,17 @@ class PrivacyPolicyPage extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.03),
+                        color: Colors.red.withAlpha(8),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red.withAlpha(26),
                         ),
                       ),
                       child: Text(
                         'While we implement comprehensive security measures, no method of electronic transmission or storage is 100% secure. We continuously work to maintain the highest security standards.',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.red.withOpacity(0.8),
+                          color: Colors.red.withAlpha(204),
                           height: 1.5,
                         ),
                       ),
@@ -422,14 +422,14 @@ class PrivacyPolicyPage extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      primaryDark.withOpacity(0.9),
+                      primaryDark.withAlpha(230),
                       primaryDark,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: primaryDark.withOpacity(0.3),
+                      color: primaryDark.withAlpha(77),
                       blurRadius: 40,
                       spreadRadius: 0,
                       offset: const Offset(0, 20),
@@ -445,10 +445,10 @@ class PrivacyPolicyPage extends StatelessWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: accentGold.withOpacity(0.1),
+                            color: accentGold.withAlpha(26),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: accentGold.withOpacity(0.3),
+                              color: accentGold.withAlpha(77),
                               width: 1.5,
                             ),
                           ),
@@ -474,7 +474,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                       'For questions, concerns, or to exercise your privacy rights, please reach out to our dedicated privacy team:',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withAlpha(230),
                         height: 1.6,
                       ),
                     ),
@@ -508,13 +508,13 @@ class PrivacyPolicyPage extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      lightGold.withOpacity(0.2),
+                      lightGold.withAlpha(51),
                       Colors.white,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: mediumGold.withOpacity(0.3),
+                    color: mediumGold.withAlpha(77),
                     width: 1.5,
                   ),
                 ),
@@ -525,10 +525,10 @@ class PrivacyPolicyPage extends StatelessWidget {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: accentGold.withOpacity(0.1),
+                        color: accentGold.withAlpha(26),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: accentGold.withOpacity(0.2),
+                          color: accentGold.withAlpha(51),
                           width: 1.5,
                         ),
                       ),
@@ -553,7 +553,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
-                        color: primaryDark.withOpacity(0.7),
+                        color: primaryDark.withAlpha(179),
                         height: 1.6,
                       ),
                     ),
@@ -598,15 +598,15 @@ class PrivacyPolicyPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      const Color(0xFFD4AF37).withOpacity(0.1),
-                      const Color(0xFFF8F0E3).withOpacity(0.1)
+                      const Color(0xFFD4AF37).withAlpha(26),
+                      const Color(0xFFF8F0E3).withAlpha(26)
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFFE8D9B0).withOpacity(0.5),
+                    color: const Color(0xFFE8D9B0).withAlpha(128),
                     width: 1.5,
                   ),
                 ),
@@ -692,7 +692,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                       item,
                       style: TextStyle(
                         fontSize: 16,
-                        color: const Color(0xFF0A1A3A).withOpacity(0.8),
+                        color: const Color(0xFF0A1A3A).withAlpha(204),
                         height: 1.5,
                       ),
                     ),
@@ -712,10 +712,10 @@ class PrivacyPolicyPage extends StatelessWidget {
           width: 24,
           height: 24,
           decoration: BoxDecoration(
-            color: const Color(0xFFD4AF37).withOpacity(0.1),
+            color: const Color(0xFFD4AF37).withAlpha(26),
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: const Color(0xFFD4AF37).withOpacity(0.3),
+              color: const Color(0xFFD4AF37).withAlpha(77),
             ),
           ),
           child: const Center(
@@ -732,7 +732,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             text,
             style: TextStyle(
               fontSize: 16,
-              color: const Color(0xFF0A1A3A).withOpacity(0.8),
+              color: const Color(0xFF0A1A3A).withAlpha(204),
               height: 1.5,
             ),
           ),
@@ -748,12 +748,12 @@ class PrivacyPolicyPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE8D9B0).withOpacity(0.5),
+          color: const Color(0xFFE8D9B0).withAlpha(128),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withAlpha(5),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 5),
@@ -766,7 +766,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFFD4AF37).withOpacity(0.1),
+              color: const Color(0xFFD4AF37).withAlpha(26),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -793,7 +793,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                   description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: const Color(0xFF0A1A3A).withOpacity(0.6),
+                    color: const Color(0xFF0A1A3A).withAlpha(153),
                   ),
                 ),
               ],
@@ -811,7 +811,7 @@ class PrivacyPolicyPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.green.withOpacity(0.2),
+          color: Colors.green.withAlpha(51),
           width: 1.5,
         ),
       ),
@@ -840,7 +840,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                   description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: const Color(0xFF0A1A3A).withOpacity(0.6),
+                    color: const Color(0xFF0A1A3A).withAlpha(153),
                   ),
                 ),
               ],
@@ -859,12 +859,12 @@ class PrivacyPolicyPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: color.withOpacity(0.1),
+          color: color.withAlpha(26),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withAlpha(5),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 5),
@@ -878,7 +878,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withAlpha(26),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -901,7 +901,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             description,
             style: TextStyle(
               fontSize: 14,
-              color: const Color(0xFF0A1A3A).withOpacity(0.6),
+              color: const Color(0xFF0A1A3A).withAlpha(153),
               height: 1.4,
             ),
           ),
@@ -920,7 +920,7 @@ class PrivacyPolicyPage extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFFD4AF37).withOpacity(0.1),
+            color: const Color(0xFFD4AF37).withAlpha(26),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(
@@ -949,7 +949,7 @@ class PrivacyPolicyPage extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: const Color(0xFFE8D9B0).withOpacity(0.5),
+            color: const Color(0xFFE8D9B0).withAlpha(128),
             width: 1.5,
           ),
         ),
@@ -962,10 +962,10 @@ class PrivacyPolicyPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withAlpha(26),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withAlpha(51),
         ),
       ),
       child: Row(
@@ -984,7 +984,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withAlpha(179),
                     fontWeight: FontWeight.w600,
                   ),
                 ),

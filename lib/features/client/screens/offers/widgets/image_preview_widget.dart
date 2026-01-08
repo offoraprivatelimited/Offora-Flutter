@@ -58,7 +58,7 @@ class ImagePreviewWidget extends StatelessWidget {
             color: brightGold.withValues(alpha: 80 / 255.0), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(18 / 255.0),
+            color: Colors.black.withAlpha(18),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),

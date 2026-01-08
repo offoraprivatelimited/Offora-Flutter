@@ -20,7 +20,7 @@ class TermsAndConditionsPage extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               Colors.white,
-              lightGold.withOpacity(0.05),
+              lightGold.withAlpha(13),
               Colors.white,
             ],
           ),
@@ -64,7 +64,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: 3,
-                                  color: primaryDark.withOpacity(0.6),
+                                  color: primaryDark.withAlpha(153),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -99,14 +99,14 @@ class TermsAndConditionsPage extends StatelessWidget {
                         Icon(
                           Icons.update_outlined,
                           size: 16,
-                          color: primaryDark.withOpacity(0.5),
+                          color: primaryDark.withAlpha(128),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           'Last Updated: December 4, 2025',
                           style: TextStyle(
                             fontSize: 15,
-                            color: primaryDark.withOpacity(0.5),
+                            color: primaryDark.withAlpha(128),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -125,19 +125,19 @@ class TermsAndConditionsPage extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      accentGold.withOpacity(0.1),
-                      accentGold.withOpacity(0.05),
+                      accentGold.withAlpha(26),
+                      accentGold.withAlpha(13),
                       Colors.white,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: accentGold.withOpacity(0.3),
+                    color: accentGold.withAlpha(77),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: accentGold.withOpacity(0.1),
+                      color: accentGold.withAlpha(26),
                       blurRadius: 40,
                       spreadRadius: 0,
                       offset: const Offset(0, 10),
@@ -154,7 +154,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: accentGold.withOpacity(0.2),
+                            color: accentGold.withAlpha(51),
                             blurRadius: 20,
                             spreadRadius: 2,
                           ),
@@ -181,7 +181,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
-                        color: primaryDark.withOpacity(0.8),
+                        color: primaryDark.withAlpha(204),
                         height: 1.7,
                         fontWeight: FontWeight.w400,
                       ),
@@ -314,10 +314,10 @@ class TermsAndConditionsPage extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: primaryDark.withOpacity(0.02),
+                        color: primaryDark.withAlpha(5),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: accentGold.withOpacity(0.2),
+                          color: accentGold.withAlpha(51),
                         ),
                       ),
                       child: Row(
@@ -333,7 +333,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                               'Offora reserves the right to approve, reject, or remove any offer at our discretion.',
                               style: TextStyle(
                                 fontSize: 15,
-                                color: primaryDark.withOpacity(0.8),
+                                color: primaryDark.withAlpha(204),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -434,15 +434,15 @@ class TermsAndConditionsPage extends StatelessWidget {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Colors.red.withOpacity(0.1),
-                                Colors.orange.withOpacity(0.05)
+                                Colors.red.withAlpha(26),
+                                Colors.orange.withAlpha(13)
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: Colors.red.withOpacity(0.2),
+                              color: Colors.red.withAlpha(51),
                               width: 1.5,
                             ),
                           ),
@@ -473,12 +473,12 @@ class TermsAndConditionsPage extends StatelessWidget {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red.withAlpha(26),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
+                            color: Colors.black.withAlpha(5),
                             blurRadius: 20,
                             spreadRadius: 0,
                             offset: const Offset(0, 5),
@@ -542,7 +542,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                   'Your use of the Platform is subject to our comprehensive Privacy Policy, which is fully incorporated into these Terms by reference.',
                   style: TextStyle(
                     fontSize: 16,
-                    color: primaryDark.withOpacity(0.8),
+                    color: primaryDark.withAlpha(204),
                     height: 1.6,
                   ),
                 ),
@@ -557,14 +557,14 @@ class TermsAndConditionsPage extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      primaryDark.withOpacity(0.95),
+                      primaryDark.withAlpha(242),
                       primaryDark,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: primaryDark.withOpacity(0.3),
+                      color: primaryDark.withAlpha(77),
                       blurRadius: 40,
                       spreadRadius: 0,
                       offset: const Offset(0, 20),
@@ -580,10 +580,10 @@ class TermsAndConditionsPage extends StatelessWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: accentGold.withOpacity(0.1),
+                            color: accentGold.withAlpha(26),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: accentGold.withOpacity(0.3),
+                              color: accentGold.withAlpha(77),
                               width: 1.5,
                             ),
                           ),
@@ -609,7 +609,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                       'For questions about these Terms and Conditions, please contact our legal team:',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withAlpha(230),
                         height: 1.6,
                       ),
                     ),
@@ -637,7 +637,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                       width: 100,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [accentGold, accentGold.withOpacity(0)],
+                          colors: [accentGold, accentGold.withAlpha(0)],
                         ),
                       ),
                     ),
@@ -654,7 +654,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       Colors.white,
-                      lightGold.withOpacity(0.2),
+                      lightGold.withAlpha(51),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(24),
@@ -669,7 +669,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: accentGold.withOpacity(0.1),
+                        color: accentGold.withAlpha(26),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -693,7 +693,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
-                        color: primaryDark.withOpacity(0.8),
+                        color: primaryDark.withAlpha(204),
                         height: 1.7,
                         fontWeight: FontWeight.w500,
                       ),
@@ -739,15 +739,15 @@ class TermsAndConditionsPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      accentGold.withOpacity(0.1),
-                      mediumGold.withOpacity(0.1)
+                      accentGold.withAlpha(26),
+                      mediumGold.withAlpha(26)
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: mediumGold.withOpacity(0.5),
+                    color: mediumGold.withAlpha(128),
                     width: 1.5,
                   ),
                 ),
@@ -807,12 +807,12 @@ class TermsAndConditionsPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE8D9B0).withOpacity(0.5),
+          color: const Color(0xFFE8D9B0).withAlpha(128),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withAlpha(5),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 5),
@@ -825,7 +825,7 @@ class TermsAndConditionsPage extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: accentGold.withOpacity(0.1),
+              color: accentGold.withAlpha(26),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -852,7 +852,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                   definition,
                   style: TextStyle(
                     fontSize: 14,
-                    color: const Color(0xFF0A1A3A).withOpacity(0.6),
+                    color: const Color(0xFF0A1A3A).withAlpha(153),
                     height: 1.4,
                   ),
                 ),
@@ -872,7 +872,7 @@ class TermsAndConditionsPage extends StatelessWidget {
           height: 56,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [accentGold, mediumGold],
+              colors: const [accentGold, mediumGold],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -929,12 +929,12 @@ class TermsAndConditionsPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFFE8D9B0).withOpacity(0.3),
+          color: const Color(0xFFE8D9B0).withAlpha(77),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withAlpha(5),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 5),
@@ -948,7 +948,7 @@ class TermsAndConditionsPage extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: accentGold.withOpacity(0.1),
+              color: accentGold.withAlpha(26),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -971,7 +971,7 @@ class TermsAndConditionsPage extends StatelessWidget {
             description,
             style: TextStyle(
               fontSize: 14,
-              color: const Color(0xFF0A1A3A).withOpacity(0.6),
+              color: const Color(0xFF0A1A3A).withAlpha(153),
               height: 1.4,
             ),
           ),
@@ -987,7 +987,7 @@ class TermsAndConditionsPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE8D9B0).withOpacity(0.3),
+          color: const Color(0xFFE8D9B0).withAlpha(77),
           width: 1.5,
         ),
       ),
@@ -996,10 +996,10 @@ class TermsAndConditionsPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: accentGold.withOpacity(0.1),
+              color: accentGold.withAlpha(26),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: accentGold.withOpacity(0.3),
+                color: accentGold.withAlpha(77),
               ),
             ),
             child: Text(
@@ -1017,7 +1017,7 @@ class TermsAndConditionsPage extends StatelessWidget {
               text,
               style: TextStyle(
                 fontSize: 15,
-                color: const Color(0xFF0A1A3A).withOpacity(0.8),
+                color: const Color(0xFF0A1A3A).withAlpha(204),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1035,12 +1035,12 @@ class TermsAndConditionsPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: color.withOpacity(0.1),
+          color: color.withAlpha(26),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withAlpha(5),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 5),
@@ -1054,7 +1054,7 @@ class TermsAndConditionsPage extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withAlpha(26),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -1077,7 +1077,7 @@ class TermsAndConditionsPage extends StatelessWidget {
             description,
             style: TextStyle(
               fontSize: 14,
-              color: const Color(0xFF0A1A3A).withOpacity(0.6),
+              color: const Color(0xFF0A1A3A).withAlpha(153),
               height: 1.4,
             ),
           ),
@@ -1110,7 +1110,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                         point,
                         style: TextStyle(
                           fontSize: 16,
-                          color: const Color(0xFF0A1A3A).withOpacity(0.8),
+                          color: const Color(0xFF0A1A3A).withAlpha(204),
                           height: 1.6,
                         ),
                       ),
@@ -1139,7 +1139,7 @@ class TermsAndConditionsPage extends StatelessWidget {
               text,
               style: TextStyle(
                 fontSize: 15,
-                color: const Color(0xFF0A1A3A).withOpacity(0.8),
+                color: const Color(0xFF0A1A3A).withAlpha(204),
                 height: 1.5,
               ),
             ),
@@ -1153,10 +1153,10 @@ class TermsAndConditionsPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withAlpha(26),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withAlpha(51),
         ),
       ),
       child: Row(
@@ -1175,7 +1175,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withAlpha(179),
                     fontWeight: FontWeight.w600,
                   ),
                 ),

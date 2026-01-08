@@ -117,8 +117,8 @@ class _ContactUsPageState extends State<ContactUsPage> {
             end: Alignment.bottomCenter,
             colors: [
               Colors.white,
-              lightGold.withOpacity(0.1),
-              lightGold.withOpacity(0.05),
+              lightGold.withAlpha(26),
+              lightGold.withAlpha(13),
             ],
           ),
         ),
@@ -157,7 +157,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 2,
-                            color: primaryDark.withOpacity(0.6),
+                            color: primaryDark.withAlpha(153),
                           ),
                         ),
                       ],
@@ -178,7 +178,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                       'We\'d love to hear from you. Whether you have questions, feedback, or need support, our team is ready to assist you with premium service.',
                       style: TextStyle(
                         fontSize: 15,
-                        color: primaryDark.withOpacity(0.7),
+                        color: primaryDark.withAlpha(179),
                         height: 1.5,
                         fontWeight: FontWeight.w400,
                       ),
@@ -234,13 +234,13 @@ class _ContactUsPageState extends State<ContactUsPage> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: primaryDark.withOpacity(0.05),
+                      color: primaryDark.withAlpha(13),
                       blurRadius: 40,
                       spreadRadius: 0,
                       offset: const Offset(0, 10),
                     ),
                     BoxShadow(
-                      color: primaryDark.withOpacity(0.03),
+                      color: primaryDark.withAlpha(8),
                       blurRadius: 10,
                       spreadRadius: 0,
                       offset: const Offset(0, 2),
@@ -260,7 +260,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                           width: 32,
                           height: 32,
                           decoration: BoxDecoration(
-                            color: accentGold.withOpacity(0.1),
+                            color: accentGold.withAlpha(26),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -285,7 +285,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                       'Fill out the form below and we\'ll get back to you promptly.',
                       style: TextStyle(
                         fontSize: 14,
-                        color: primaryDark.withOpacity(0.6),
+                        color: primaryDark.withAlpha(153),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -419,7 +419,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                                       ? []
                                       : [
                                           BoxShadow(
-                                            color: accentGold.withOpacity(0.4),
+                                            color: accentGold.withAlpha(102),
                                             blurRadius: 20,
                                             spreadRadius: 0,
                                             offset: const Offset(0, 8),
@@ -436,7 +436,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                                       bottom: 0,
                                       child: Container(
                                         width: 1,
-                                        color: Colors.white.withOpacity(0.3),
+                                        color: Colors.white.withAlpha(77),
                                       ),
                                     ),
                                     Center(
@@ -491,16 +491,13 @@ class _ContactUsPageState extends State<ContactUsPage> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      lightGold.withOpacity(0.3),
-                      mediumGold.withOpacity(0.1)
-                    ],
+                    colors: [lightGold.withAlpha(77), mediumGold.withAlpha(26)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: mediumGold.withOpacity(0.3),
+                    color: mediumGold.withAlpha(77),
                     width: 1,
                   ),
                 ),
@@ -514,7 +511,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: accentGold.withOpacity(0.1),
+                            color: accentGold.withAlpha(26),
                             blurRadius: 20,
                             spreadRadius: 2,
                           ),
@@ -544,7 +541,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                             'Our dedicated support team responds within 24 hours during business days. We prioritize every inquiry with the highest level of attention and professionalism.',
                             style: TextStyle(
                               fontSize: 14,
-                              color: primaryDark.withOpacity(0.6),
+                              color: primaryDark.withAlpha(153),
                               height: 1.5,
                             ),
                           ),
@@ -576,14 +573,14 @@ class _ContactUsPageState extends State<ContactUsPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.05),
+            color: color.withAlpha(13),
             blurRadius: 30,
             spreadRadius: 0,
             offset: const Offset(0, 10),
           ),
         ],
         border: Border.all(
-          color: color.withOpacity(0.1),
+          color: color.withAlpha(26),
           width: 1,
         ),
       ),
@@ -595,8 +592,8 @@ class _ContactUsPageState extends State<ContactUsPage> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  color.withOpacity(0.1),
-                  color.withOpacity(0.05),
+                  color.withAlpha(26),
+                  color.withAlpha(13),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -619,7 +616,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: textColor.withOpacity(0.6),
+                    color: textColor.withAlpha(153),
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -640,7 +637,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                   subtitle,
                   style: TextStyle(
                     fontSize: 12,
-                    color: textColor.withOpacity(0.5),
+                    color: textColor.withAlpha(128),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -691,7 +688,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: const Color(0xFF0A1A3A).withOpacity(0.65),
+              color: const Color(0xFF0A1A3A).withAlpha(166),
               fontWeight: FontWeight.w500,
               fontSize: 14,
             ),

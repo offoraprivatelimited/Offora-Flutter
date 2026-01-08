@@ -209,7 +209,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: Colors.black.withAlpha(31),
             blurRadius: 16,
             offset: const Offset(0, 12),
           ),
@@ -219,7 +219,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           CircleAvatar(
             radius: 44,
-            backgroundColor: Colors.white.withOpacity(0.18),
+            backgroundColor: Colors.white.withAlpha(46),
             backgroundImage: avatarImage,
           ),
           const SizedBox(width: 16),
@@ -238,7 +238,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   user?.email ?? '',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withAlpha(230),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -246,7 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
+                    color: Colors.white.withAlpha(31),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   // ignore: prefer_const_constructors
@@ -283,7 +283,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 12,
             offset: const Offset(0, 8),
           ),
@@ -369,7 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withAlpha(51),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),

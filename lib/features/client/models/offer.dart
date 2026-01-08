@@ -26,7 +26,7 @@ class Offer {
     required this.title,
     required this.description,
     required this.originalPrice,
-    required this.discountPrice,
+    this.discountPrice,
     required this.status,
     this.offerType = OfferType.percentageDiscount,
     this.offerCategory = OfferCategory.product,
@@ -45,6 +45,7 @@ class Offer {
     this.buyQuantity,
     this.getQuantity,
     this.getPercentage,
+    this.getRupees,
     this.percentageOff,
     this.flatDiscountAmount,
     this.applicableProducts,
@@ -59,7 +60,7 @@ class Offer {
   final String title;
   final String description;
   final double originalPrice;
-  final double discountPrice;
+  final double? discountPrice; // Only for percentageDiscount and flatDiscount
   final OfferApprovalStatus status;
   final OfferType offerType;
   final OfferCategory offerCategory;
@@ -82,6 +83,7 @@ class Offer {
   final int? getQuantity; // For BOGO and Buy X Get Y quantity-based offers
   final double?
       getPercentage; // For Buy X Get Y% off (percentage on "get" items)
+  final double? getRupees; // For Buy X Get ₹Y off offers
   final double? percentageOff; // For percentage-based discounts
   final double? flatDiscountAmount; // For flat rupee discounts
   final List<String>?
@@ -115,7 +117,8 @@ class Offer {
       'title': title,
       'description': description,
       'originalPrice': originalPrice,
-      'discountPrice': discountPrice,
+      if (discountPrice != null) 'discountPrice': discountPrice,
+      if (getRupees != null) 'getRupees': getRupees,
       'status': status.name,
       'offerType': offerType.name,
       'offerCategory': offerCategory.name,
@@ -162,7 +165,7 @@ class Offer {
       title: data['title'] as String? ?? '',
       description: data['description'] as String? ?? '',
       originalPrice: (data['originalPrice'] as num?)?.toDouble() ?? 0,
-      discountPrice: (data['discountPrice'] as num?)?.toDouble() ?? 0,
+      discountPrice: (data['discountPrice'] as num?)?.toDouble(),
       status: OfferApprovalStatus.values.firstWhere(
         (state) => state.name == statusRaw,
         orElse: () => OfferApprovalStatus.pending,
@@ -192,6 +195,7 @@ class Offer {
       buyQuantity: data['buyQuantity'] as int?,
       getQuantity: data['getQuantity'] as int?,
       getPercentage: (data['getPercentage'] as num?)?.toDouble(),
+      getRupees: (data['getRupees'] as num?)?.toDouble(),
       percentageOff: (data['percentageOff'] as num?)?.toDouble(),
       flatDiscountAmount: (data['flatDiscountAmount'] as num?)?.toDouble(),
       applicableProducts: (data['applicableProducts'] as List<dynamic>?)
@@ -222,6 +226,7 @@ class Offer {
     String? description,
     double? originalPrice,
     double? discountPrice,
+    double? getRupees,
     OfferApprovalStatus? status,
     OfferType? offerType,
     OfferCategory? offerCategory,
@@ -255,6 +260,7 @@ class Offer {
       description: description ?? this.description,
       originalPrice: originalPrice ?? this.originalPrice,
       discountPrice: discountPrice ?? this.discountPrice,
+      getRupees: getRupees ?? this.getRupees,
       status: status ?? this.status,
       offerType: offerType ?? this.offerType,
       offerCategory: offerCategory ?? this.offerCategory,

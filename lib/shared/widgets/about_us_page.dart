@@ -59,7 +59,7 @@ class AboutUsPage extends StatelessWidget {
             'We provide a platform where innovation meets opportunity, creating value for both businesses and customers alike.',
             style: TextStyle(
               fontSize: 15,
-              color: primaryDark.withOpacity(0.7),
+              color: primaryDark.withAlpha(179),
               height: 1.5,
               fontWeight: FontWeight.w400,
             ),
@@ -120,7 +120,7 @@ class AboutUsPage extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: lightGold.withOpacity(0.5),
+                color: lightGold.withAlpha(128),
                 width: 1,
               ),
             ),
@@ -172,7 +172,7 @@ class AboutUsPage extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: lightGold.withOpacity(0.5),
+                color: lightGold.withAlpha(128),
                 width: 1,
               ),
             ),
@@ -192,7 +192,7 @@ class AboutUsPage extends StatelessWidget {
                   'To be the leading platform for local commerce, fostering growth and innovation in communities worldwide.',
                   style: TextStyle(
                     fontSize: 15,
-                    color: primaryDark.withOpacity(0.7),
+                    color: primaryDark.withAlpha(179),
                     height: 1.5,
                   ),
                 ),
@@ -208,7 +208,7 @@ class AboutUsPage extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: lightGold.withOpacity(0.5),
+                color: lightGold.withAlpha(128),
                 width: 1,
               ),
             ),
@@ -227,10 +227,10 @@ class AboutUsPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: lightGold.withOpacity(0.08),
+                    color: lightGold.withAlpha(20),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: lightGold.withOpacity(0.3),
+                      color: lightGold.withAlpha(77),
                       width: 1,
                     ),
                   ),
@@ -276,7 +276,7 @@ class AboutUsPage extends StatelessWidget {
                         'Visionary leader driving Offora\'s mission to revolutionize local commerce and empower communities through innovative solutions.',
                         style: TextStyle(
                           fontSize: 13,
-                          color: primaryDark.withOpacity(0.7),
+                          color: primaryDark.withAlpha(179),
                           height: 1.5,
                         ),
                       ),
@@ -295,7 +295,7 @@ class AboutUsPage extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: lightGold.withOpacity(0.5),
+                color: lightGold.withAlpha(128),
                 width: 1,
               ),
             ),
@@ -324,13 +324,13 @@ class AboutUsPage extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          const Color(0xFFFDA1B1).withOpacity(0.1),
-                          const Color(0xFFB33B85).withOpacity(0.1),
+                          const Color(0xFFFDA1B1).withAlpha(26),
+                          const Color(0xFFB33B85).withAlpha(26),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: accentGold.withOpacity(0.3),
+                        color: accentGold.withAlpha(77),
                         width: 1,
                       ),
                     ),
@@ -412,12 +412,12 @@ class AboutUsPage extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: borderColor.withOpacity(0.5),
+          color: borderColor.withAlpha(128),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withAlpha(5),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 10),
@@ -433,7 +433,7 @@ class AboutUsPage extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD4AF37).withOpacity(0.1),
+                  color: const Color(0xFFD4AF37).withAlpha(26),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -461,7 +461,7 @@ class AboutUsPage extends StatelessWidget {
             content,
             style: TextStyle(
               fontSize: 15,
-              color: const Color(0xFF0A1A3A).withOpacity(0.8),
+              color: const Color(0xFF0A1A3A).withAlpha(204),
               height: 1.6,
               fontWeight: FontWeight.w400,
             ),
@@ -483,12 +483,12 @@ class AboutUsPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFFE8D9B0).withOpacity(0.3),
+          color: const Color(0xFFE8D9B0).withAlpha(77),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withAlpha(5),
             blurRadius: 20,
             spreadRadius: 0,
             offset: const Offset(0, 5),
@@ -501,7 +501,7 @@ class AboutUsPage extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withAlpha(26),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -531,7 +531,7 @@ class AboutUsPage extends StatelessWidget {
                   description,
                   style: TextStyle(
                     fontSize: 12,
-                    color: const Color(0xFF0A1A3A).withOpacity(0.6),
+                    color: const Color(0xFF0A1A3A).withAlpha(153),
                     height: 1.3,
                   ),
                   maxLines: 2,
@@ -557,10 +557,10 @@ class AboutUsPage extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withAlpha(26),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: color.withOpacity(0.2),
+              color: color.withAlpha(51),
               width: 1,
             ),
           ),
@@ -588,7 +588,7 @@ class AboutUsPage extends StatelessWidget {
                 subtitle,
                 style: TextStyle(
                   fontSize: 14,
-                  color: const Color(0xFF0A1A3A).withOpacity(0.6),
+                  color: const Color(0xFF0A1A3A).withAlpha(153),
                 ),
               ),
             ],

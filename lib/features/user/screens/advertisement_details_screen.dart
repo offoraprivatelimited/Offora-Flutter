@@ -41,10 +41,10 @@ class AdvertisementDetailsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1F477D).withOpacity(0.05),
+                        color: const Color(0xFF1F477D).withAlpha(13),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: const Color(0xFF1F477D).withOpacity(0.1),
+                          color: const Color(0xFF1F477D).withAlpha(26),
                           width: 1,
                         ),
                       ),
@@ -212,7 +212,7 @@ class AdvertisementDetailsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withAlpha(38),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -264,7 +264,7 @@ class AdvertisementDetailsScreen extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     Colors.transparent,
-                    Colors.black.withOpacity(0.3),
+                    Colors.black.withAlpha(77),
                   ],
                 ),
               ),
@@ -281,7 +281,7 @@ class AdvertisementDetailsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withAlpha(51),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -355,7 +355,7 @@ class _ContactCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha(13),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -366,7 +366,7 @@ class _ContactCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withAlpha(26),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -402,7 +402,7 @@ class _ContactCard extends StatelessWidget {
             ),
             Icon(
               Icons.chevron_right_rounded,
-              color: const Color(0xFF1F477D).withOpacity(0.5),
+              color: const Color(0xFF1F477D).withAlpha(128),
               size: 24,
             ),
           ],

@@ -160,9 +160,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (_) {
-        debugPrint('[LoginScreen] System back pressed (PopScope.onPopInvoked)');
-        _goToRoleSelection();
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          debugPrint(
+              '[LoginScreen] System back pressed (PopScope.onPopInvokedWithResult)');
+          _goToRoleSelection();
+        }
       },
       child: GestureDetector(
         onTap: () => KeyboardUtils.dismissKeyboard(context),

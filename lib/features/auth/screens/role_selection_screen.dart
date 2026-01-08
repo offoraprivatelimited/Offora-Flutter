@@ -52,7 +52,7 @@ class RoleSelectionScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: Colors.black.withAlpha(20),
                             blurRadius: 40,
                             offset: const Offset(0, 24),
                           ),
@@ -105,7 +105,7 @@ class _RoleSelectionContent extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  darkBlue.withOpacity(0.08),
+                  darkBlue.withAlpha(20),
                   Colors.white,
                 ],
                 center: Alignment.topLeft,
@@ -124,7 +124,7 @@ class _RoleSelectionContent extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  brightGold.withOpacity(0.16),
+                  brightGold.withAlpha(41),
                   Colors.white,
                 ],
                 center: Alignment.bottomRight,
@@ -132,7 +132,7 @@ class _RoleSelectionContent extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: darkerGold.withOpacity(0.25),
+                  color: darkerGold.withAlpha(64),
                   blurRadius: 40,
                   spreadRadius: 4,
                 ),
@@ -263,7 +263,7 @@ class _PrimaryRoleCard extends StatelessWidget {
     return Card(
       color: Colors.white,
       elevation: 5,
-      shadowColor: Colors.black.withOpacity(0.10),
+      shadowColor: Colors.black.withAlpha(26),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
       ),
@@ -276,7 +276,7 @@ class _PrimaryRoleCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 26,
-                  backgroundColor: darkBlue.withOpacity(0.06),
+                  backgroundColor: darkBlue.withAlpha(15),
                   child: Icon(
                     Icons.shopping_bag_outlined,
                     color: darkBlue,
@@ -362,7 +362,7 @@ class _SecondaryRoleChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withOpacity(0.85),
+      color: Colors.white.withAlpha(217),
       elevation: 2,
       borderRadius: BorderRadius.circular(14),
       child: Container(
@@ -370,7 +370,7 @@ class _SecondaryRoleChip extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: darkBlue.withOpacity(0.08),
+            color: darkBlue.withAlpha(20),
           ),
         ),
         child: Row(
@@ -412,7 +412,7 @@ class _SecondaryRoleChip extends StatelessWidget {
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: darkBlue,
-                  side: BorderSide(color: darkBlue.withOpacity(0.6)),
+                  side: BorderSide(color: darkBlue.withAlpha(153)),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   shape: RoundedRectangleBorder(

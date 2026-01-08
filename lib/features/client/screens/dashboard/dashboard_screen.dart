@@ -334,9 +334,10 @@ class _OffersSection extends StatelessWidget {
           itemCount: offers.length,
           itemBuilder: (context, index) {
             final offer = offers[index];
-            final discount =
-                ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
-                    .toStringAsFixed(0);
+            final discount = offer.discountPrice != null
+                ? ((1 - (offer.discountPrice! / offer.originalPrice)) * 100)
+                    .toStringAsFixed(0)
+                : '0';
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),

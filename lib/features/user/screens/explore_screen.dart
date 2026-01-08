@@ -107,13 +107,21 @@ class _ExploreScreenState extends State<ExploreScreen> {
     switch (_sortBy) {
       case 'discount':
         filtered.sort((a, b) {
-          final discountA = (1 - (a.discountPrice / a.originalPrice)) * 100;
-          final discountB = (1 - (b.discountPrice / b.originalPrice)) * 100;
+          final discountA = a.discountPrice != null
+              ? (1 - (a.discountPrice! / a.originalPrice)) * 100
+              : 0.0;
+          final discountB = b.discountPrice != null
+              ? (1 - (b.discountPrice! / b.originalPrice)) * 100
+              : 0.0;
           return discountB.compareTo(discountA);
         });
         break;
       case 'price':
-        filtered.sort((a, b) => a.discountPrice.compareTo(b.discountPrice));
+        filtered.sort((a, b) {
+          final priceA = a.discountPrice ?? 0.0;
+          final priceB = b.discountPrice ?? 0.0;
+          return priceA.compareTo(priceB);
+        });
         break;
       case 'newest':
       default:
@@ -297,8 +305,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           'image': offer.imageUrls?.isNotEmpty == true
                               ? offer.imageUrls![0]
                               : '',
-                          'discount':
-                              '${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF',
+                          'discount': offer.discountPrice != null
+                              ? '${((1 - (offer.discountPrice! / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF'
+                              : '0% OFF',
                         };
                         return OfferCard(
                           offer: offerMap,

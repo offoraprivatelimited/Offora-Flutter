@@ -99,9 +99,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    lightOrange.withOpacity(0.3),
+                    lightOrange.withAlpha(77),
                     Colors.white,
-                    lightOrange.withOpacity(0.2),
+                    lightOrange.withAlpha(51),
                   ],
                   stops: const [0.0, 0.5, 1.0],
                 ),
@@ -121,7 +121,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              color: onboardingGold.withOpacity(0.15),
+                              color: onboardingGold.withAlpha(38),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -204,7 +204,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                       BoxShadow(
                                         color: slides[_page]
                                             .accentColor
-                                            .withOpacity(0.4),
+                                            .withAlpha(102),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -276,9 +276,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: slides[_page]
-                                        .accentColor
-                                        .withOpacity(0.3),
+                                    color:
+                                        slides[_page].accentColor.withAlpha(77),
                                     blurRadius: 16,
                                     offset: const Offset(0, 6),
                                   ),
@@ -386,7 +385,7 @@ class _Slide extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: accentColor.withOpacity(0.15),
+                      color: accentColor.withAlpha(38),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -398,7 +397,7 @@ class _Slide extends StatelessWidget {
                     height: 62,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.08),
+                      color: Colors.white.withAlpha(20),
                     ),
                     child: Center(child: icon),
                   ),

@@ -396,8 +396,10 @@ class _OfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final discount = ((1 - (offer.discountPrice / offer.originalPrice)) * 100)
-        .toStringAsFixed(0);
+    final discount = offer.discountPrice != null
+        ? ((1 - (offer.discountPrice! / offer.originalPrice)) * 100)
+            .toStringAsFixed(0)
+        : '0';
 
     return Container(
       decoration: BoxDecoration(

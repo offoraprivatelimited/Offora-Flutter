@@ -81,7 +81,7 @@ class _ProductSpecificFieldsState extends State<ProductSpecificFields> {
                     widget.applicableProducts.remove(product);
                   });
                 },
-                backgroundColor: widget.brightGold.withOpacity(0.2),
+                backgroundColor: widget.brightGold.withAlpha(51),
                 labelStyle: TextStyle(color: widget.darkBlue),
               );
             }).toList(),
@@ -172,7 +172,7 @@ class _ServiceSpecificFieldsState extends State<ServiceSpecificFields> {
                     widget.applicableServices.remove(service);
                   });
                 },
-                backgroundColor: widget.brightGold.withOpacity(0.2),
+                backgroundColor: widget.brightGold.withAlpha(51),
                 labelStyle: TextStyle(color: widget.darkBlue),
               );
             }).toList(),

@@ -348,7 +348,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     borderRadius: BorderRadius.circular(18),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.08),
+                                        color: Colors.black
+                                            .withValues(alpha: 0.08),
                                         blurRadius: 12,
                                         offset: const Offset(0, 4),
                                       ),
@@ -479,8 +480,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         borderRadius: BorderRadius.circular(16),
                                         boxShadow: [
                                           BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.06),
+                                            color: Colors.black
+                                                .withValues(alpha: 0.06),
                                             blurRadius: 8,
                                             offset: const Offset(0, 3),
                                           ),
@@ -493,8 +494,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 BorderRadius.circular(16),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black
-                                                    .withOpacity(0.06),
+                                                color:
+                                                    Colors.black.withAlpha(15),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 3),
                                               ),
@@ -548,7 +549,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   decoration: BoxDecoration(
                                                     color: isSelected && isAll
                                                         ? Colors.white
-                                                            .withOpacity(0.12)
+                                                            .withValues(
+                                                                alpha: 0.12)
                                                         : Colors.transparent,
                                                     borderRadius:
                                                         BorderRadius.circular(
@@ -926,8 +928,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             'title': offer.title,
                             'store': businessName,
                             'image': image,
-                            'discount':
-                                '${((1 - (offer.discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF',
+                            'discount': offer.discountPrice != null
+                                ? '${((1 - (offer.discountPrice! / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF'
+                                : '0% OFF',
                           };
                           return OfferCard(
                             offer: offerMap,

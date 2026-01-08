@@ -18,11 +18,11 @@ class OfferCalculator {
   static OfferCalculationResult calculate(Offer offer) {
     switch (offer.offerType) {
       case OfferType.percentageDiscount:
+        final discountPrice = offer.discountPrice ?? 0;
         final percent =
-            (((1 - (offer.discountPrice / offer.originalPrice)) * 100)
-                    .clamp(0, 100))
+            (((1 - (discountPrice / offer.originalPrice)) * 100).clamp(0, 100))
                 .toDouble();
-        final amount = ((offer.originalPrice - offer.discountPrice)
+        final amount = ((offer.originalPrice - discountPrice)
                 .clamp(0, offer.originalPrice))
             .toDouble();
         return OfferCalculationResult(
@@ -33,8 +33,9 @@ class OfferCalculator {
           details: 'Get ${percent.toStringAsFixed(0)}% off on your purchase.',
         );
       case OfferType.flatDiscount:
-        final amount = offer.flatDiscountAmount ??
-            (offer.originalPrice - offer.discountPrice);
+        final discountAmount =
+            offer.flatDiscountAmount ?? (offer.discountPrice ?? 0);
+        final amount = offer.originalPrice - discountAmount;
         if (amount > 0) {
           return OfferCalculationResult(
             summary: 'You save ₹${amount.toStringAsFixed(0)}',
