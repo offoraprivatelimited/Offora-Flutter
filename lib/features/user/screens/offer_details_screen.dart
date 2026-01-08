@@ -12,7 +12,6 @@ import '../../../shared/services/auth_service.dart';
 import '../../../shared/services/saved_offers_service.dart';
 import '../../../shared/services/compare_service.dart';
 import '../../client/models/offer.dart';
-import '../../client/models/offer_calculator.dart';
 import 'main_screen.dart';
 
 class OfferDetailsScreen extends StatefulWidget {
@@ -2613,89 +2612,6 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(List<String> lines, ScreenSizeCategory screenSize) {
-    return Container(
-      padding:
-          EdgeInsets.all(screenSize == ScreenSizeCategory.mobile ? 16 : 20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF8DC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.brightGold.withAlpha(77), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: lines
-            .map((line) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Text(
-                    line,
-                    style: TextStyle(
-                      fontSize:
-                          screenSize == ScreenSizeCategory.mobile ? 15 : 16,
-                      color: const Color(0xFF8B6914),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ))
-            .toList(),
-      ),
-    );
-  }
-
-  Widget _buildDiscountExplanation(Offer offer, ScreenSizeCategory screenSize) {
-    final result = OfferCalculator.calculate(offer);
-
-    if (result.summary.isEmpty || result.summary == 'No discount') {
-      return SizedBox.shrink();
-    }
-
-    return Container(
-      padding: EdgeInsets.all(
-        screenSize == ScreenSizeCategory.mobile ? 16 : 20,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFFFFF8DC).withValues(alpha: 0.6),
-            const Color(0xFFFFE4B5).withValues(alpha: 0.6),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.brightGold.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            result.summary,
-            style: TextStyle(
-              fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 18,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF8B6914),
-              letterSpacing: 0.3,
-            ),
-          ),
-          if (result.details != null && result.details!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              result.details!,
-              style: TextStyle(
-                fontSize: screenSize == ScreenSizeCategory.mobile ? 13 : 14,
-                color: const Color(0xFF6B5410),
-                height: 1.5,
-              ),
-            ),
-          ],
         ],
       ),
     );
