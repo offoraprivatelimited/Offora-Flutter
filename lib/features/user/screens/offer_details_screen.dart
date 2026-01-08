@@ -423,9 +423,36 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
     final images =
         (offer.imageUrls ?? []).where((url) => url.isNotEmpty).toList();
     final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-    final discountPrice = offer.discountPrice ?? 0;
-    final discount =
-        ((1 - (discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0);
+
+    // Calculate discount percentage for the hero badge (only for percentage-based offers)
+    String discountBadge = '0';
+    if (offer.offerType == OfferType.percentageDiscount) {
+      discountBadge = (offer.percentageOff ?? 0).toStringAsFixed(0);
+    } else if (offer.offerType == OfferType.buyXGetYPercentOff) {
+      discountBadge = (offer.getPercentage ?? 0).toStringAsFixed(0);
+    } else if (offer.offerType == OfferType.flatDiscount ||
+        offer.offerType == OfferType.buyXGetYRupeesOff) {
+      // For rupee-based discounts, calculate percentage
+      if (offer.originalPrice > 0) {
+        double amount = 0;
+        if (offer.offerType == OfferType.flatDiscount) {
+          amount = (offer.flatDiscountAmount ?? 0).toDouble();
+        } else {
+          amount = (offer.getRupees ?? 0).toDouble();
+        }
+        discountBadge =
+            ((amount / offer.originalPrice) * 100).toStringAsFixed(0);
+      }
+    } else {
+      // For other offers, try to calculate from discountPrice
+      if (offer.discountPrice != null &&
+          offer.discountPrice! > 0 &&
+          offer.originalPrice > 0) {
+        final calcDiscount =
+            ((1 - (offer.discountPrice! / offer.originalPrice)) * 100);
+        discountBadge = calcDiscount.toStringAsFixed(0);
+      }
+    }
 
     // Check if we're in a modal by looking for a ScaffoldMessenger
     final isInModal = Navigator.of(context).canPop() &&
@@ -433,7 +460,8 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
 
     // For modals, render without Scaffold
     if (isInModal) {
-      return _buildModalContent(screenSize, offer, images, currency, discount);
+      return _buildModalContent(
+          screenSize, offer, images, currency, discountBadge);
     }
 
     // For desktop, use a two-column layout
@@ -447,7 +475,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
             Container(
               width: MediaQuery.of(context).size.width * 0.45,
               constraints: const BoxConstraints(maxWidth: 700),
-              child: _buildHeroSection(offer, images, currency, discount),
+              child: _buildHeroSection(offer, images, currency, discountBadge),
             ),
 
             // Right column - Content section
@@ -479,7 +507,8 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           SliverAppBar(
             expandedHeight: screenSize == ScreenSizeCategory.tablet ? 380 : 320,
             flexibleSpace: FlexibleSpaceBar(
-              background: _buildHeroSection(offer, images, currency, discount),
+              background:
+                  _buildHeroSection(offer, images, currency, discountBadge),
             ),
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -563,7 +592,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
     Offer offer,
     List<String> images,
     NumberFormat currency,
-    String discount,
+    String discountBadge,
   ) {
     return Container(
       color: const Color(0xFFF8FAFD),
@@ -574,7 +603,8 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 // Left column - Image section (fixed width)
                 Expanded(
                   flex: 1,
-                  child: _buildHeroSection(offer, images, currency, discount),
+                  child:
+                      _buildHeroSection(offer, images, currency, discountBadge),
                 ),
 
                 // Right column - Content section
@@ -598,7 +628,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildHeroSection(offer, images, currency, discount),
+                  _buildHeroSection(offer, images, currency, discountBadge),
                   Container(
                     padding: EdgeInsets.only(
                       left: _getContentPadding(screenSize),
@@ -654,7 +684,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
     Offer offer,
     List<String> images,
     NumberFormat currency,
-    String discount,
+    String discountBadge,
   ) {
     final screenSize = _getScreenSizeCategory(context);
     final hasImages = images.isNotEmpty;
@@ -832,16 +862,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Price Now',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Text(
@@ -851,16 +872,6 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
                           letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        currency.format(offer.originalPrice),
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white.withValues(alpha: 0.7),
-                          decoration: TextDecoration.lineThrough,
-                          fontWeight: FontWeight.w400,
                         ),
                       ),
                       const Spacer(),
@@ -876,7 +887,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '$discount% OFF',
+                          '$discountBadge% OFF',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
@@ -923,9 +934,34 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
 
   Widget _buildContentSection(Offer offer, ScreenSizeCategory screenSize) {
     final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-    final discountPrice = offer.discountPrice ?? 0;
-    final discount =
-        ((1 - (discountPrice / offer.originalPrice)) * 100).toStringAsFixed(0);
+
+    // Calculate discount percentage based on offer type
+    String discount = '0';
+    if (offer.offerType == OfferType.percentageDiscount) {
+      discount = (offer.percentageOff ?? 0).toStringAsFixed(0);
+    } else if (offer.offerType == OfferType.buyXGetYPercentOff) {
+      discount = (offer.getPercentage ?? 0).toStringAsFixed(0);
+    } else if (offer.offerType == OfferType.flatDiscount ||
+        offer.offerType == OfferType.buyXGetYRupeesOff) {
+      // For rupee-based discounts, calculate percentage
+      if (offer.originalPrice > 0) {
+        double amount = 0;
+        if (offer.offerType == OfferType.flatDiscount) {
+          amount = (offer.flatDiscountAmount ?? 0).toDouble();
+        } else {
+          amount = (offer.getRupees ?? 0).toDouble();
+        }
+        discount = ((amount / offer.originalPrice) * 100).toStringAsFixed(0);
+      }
+    } else {
+      // For other offers, try to calculate from discountPrice
+      final discountPrice = offer.discountPrice ?? 0;
+      if (discountPrice > 0 && offer.originalPrice > 0) {
+        final calcDiscount =
+            ((1 - (discountPrice / offer.originalPrice)) * 100);
+        discount = calcDiscount.toStringAsFixed(0);
+      }
+    }
 
     return Column(
       children: [
@@ -973,33 +1009,12 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Price Now',
-                          style: TextStyle(
-                            fontSize: screenSize == ScreenSizeCategory.mobile
-                                ? 12
-                                : 13,
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Text(
                           currency.format(offer.discountPrice),
                           style: TextStyle(
                             fontSize: _getPriceFontSize(screenSize),
                             fontWeight: FontWeight.w900,
                             color: AppColors.darkBlue,
                             letterSpacing: -0.5,
-                          ),
-                        ),
-                        Text(
-                          'Was ${currency.format(offer.originalPrice)}',
-                          style: TextStyle(
-                            fontSize: screenSize == ScreenSizeCategory.mobile
-                                ? 12
-                                : 14,
-                            color: Colors.grey.shade500,
-                            decoration: TextDecoration.lineThrough,
-                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ],
