@@ -1699,12 +1699,14 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           spacing: screenSize == ScreenSizeCategory.mobile ? 12 : 16,
           runSpacing: screenSize == ScreenSizeCategory.mobile ? 12 : 16,
           children: [
-            _FeatureChip(
-              icon: Icons.local_offer_outlined,
-              label: 'Offer Type',
-              value: _formatOfferTypeForUsers(offer.offerType),
-              screenSize: screenSize,
-            ),
+            if (offer.offerType == OfferType.buyXGetYPercentOff ||
+                offer.offerType == OfferType.buyXGetYRupeesOff)
+              _FeatureChip(
+                icon: Icons.local_offer_outlined,
+                label: 'Offer Type',
+                value: _formatOfferTypeForUsers(offer.offerType),
+                screenSize: screenSize,
+              ),
             _FeatureChip(
               icon: offer.offerCategory == OfferCategory.product
                   ? Icons.shopping_bag_outlined
