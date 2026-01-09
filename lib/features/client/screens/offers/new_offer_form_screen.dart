@@ -436,14 +436,28 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
       // Combine existing and new image URLs
       final allImageUrls = [..._existingImageUrls, ...newImageUrls];
 
+      // Validate and parse prices
+      final originalPrice = double.tryParse(_originalPriceController.text);
+      if (originalPrice == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enter a valid original price'),
+            ),
+          );
+        }
+        setState(() => _isLoading = false);
+        return;
+      }
+
       // Build the Offer object
       final offer = Offer(
         id: widget.offerToEdit?.id ?? '',
         clientId: _clientId,
         title: _titleController.text,
         description: _descriptionController.text,
-        originalPrice: double.parse(_originalPriceController.text),
-        discountPrice: double.parse(_originalPriceController.text),
+        originalPrice: originalPrice,
+        discountPrice: originalPrice,
         status: OfferApprovalStatus.pending,
         offerType: _selectedOfferType,
         offerCategory: _selectedOfferCategory,
