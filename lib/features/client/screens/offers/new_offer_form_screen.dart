@@ -437,8 +437,10 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
       final allImageUrls = [..._existingImageUrls, ...newImageUrls];
 
       // Validate and parse prices
-      final originalPrice = double.tryParse(_originalPriceController.text);
-      if (originalPrice == null) {
+      final originalPrice = _originalPriceController.text.isNotEmpty
+          ? double.tryParse(_originalPriceController.text)
+          : null;
+      if (_originalPriceController.text.isNotEmpty && originalPrice == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -456,8 +458,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         clientId: _clientId,
         title: _titleController.text,
         description: _descriptionController.text,
-        originalPrice: originalPrice,
-        discountPrice: originalPrice,
+        originalPrice: originalPrice ?? 0,
+        discountPrice: originalPrice ?? 0,
         status: OfferApprovalStatus.pending,
         offerType: _selectedOfferType,
         offerCategory: _selectedOfferCategory,
