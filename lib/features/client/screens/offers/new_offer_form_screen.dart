@@ -797,6 +797,34 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                         ),
                         prefixIconConstraints:
                             const BoxConstraints(minWidth: 0, minHeight: 0),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: AppColors.darkBlue,
+                            width: 1.1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: AppColors.darkBlue,
+                            width: 1.5,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: Colors.red,
+                            width: 1.1,
+                          ),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: Colors.red,
+                            width: 1.5,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -937,7 +965,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       controller: _keywordsController,
                       labelText: 'Keywords',
                       hintText:
-                          'Enter keywords separated by commas (e.g., sale, discount, summer, fashion)',
+                          'Separate keywords with commas • Example: buy one get one, BOGO, electronics, gadgets, summer sale',
                       prefixIcon: Icons.search,
                       maxLines: 2,
                     ),

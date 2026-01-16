@@ -1344,10 +1344,9 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 32),
               ],
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
 
               // Validity - When Can You Use This?
               if (offer.startDate != null || offer.endDate != null)

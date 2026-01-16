@@ -221,7 +221,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                     '+91 83002 77969',
                     'Message us anytime',
                     const Color(0xFF25D366),
-                    Colors.white,
+                    const Color(0xFF075E54),
                   ),
                   _buildPremiumContactCard(
                     Icons.schedule_outlined,

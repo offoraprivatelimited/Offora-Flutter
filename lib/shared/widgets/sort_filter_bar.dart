@@ -321,110 +321,120 @@ class _SortFilterBarState extends State<SortFilterBar> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _showFilterOptions,
-                  icon: const Icon(Icons.tune, size: 18),
-                  label: const Text('Filter'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.darkBlue,
-                    side: const BorderSide(color: AppColors.darkBlue),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: _showFilterOptions,
+                    icon: const Icon(Icons.tune, size: 18),
+                    label: const Text('Filter'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.darkBlue,
+                      side: const BorderSide(color: AppColors.darkBlue),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 48),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Autocomplete<String>(
-                  optionsBuilder: (TextEditingValue textEditingValue) {
-                    if (textEditingValue.text.isEmpty) {
-                      return const Iterable<String>.empty();
-                    }
-                    return _citySuggestions.where((city) => city
-                        .toLowerCase()
-                        .contains(textEditingValue.text.toLowerCase()));
-                  },
-                  fieldViewBuilder:
-                      (context, fieldController, focusNode, onFieldSubmitted) {
-                    return TextFormField(
-                      controller: fieldController,
-                      focusNode: focusNode,
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        fontSize: 14,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Select Location',
-                        hintStyle: const TextStyle(
-                          color: AppColors.darkBlue,
+                child: SizedBox(
+                  height: 48,
+                  child: Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if (textEditingValue.text.isEmpty) {
+                        return const Iterable<String>.empty();
+                      }
+                      return _citySuggestions.where((city) => city
+                          .toLowerCase()
+                          .contains(textEditingValue.text.toLowerCase()));
+                    },
+                    fieldViewBuilder: (context, fieldController, focusNode,
+                        onFieldSubmitted) {
+                      return TextFormField(
+                        controller: fieldController,
+                        focusNode: focusNode,
+                        style: const TextStyle(
+                          color: Colors.black87,
                           fontSize: 14,
                         ),
-                        prefixIcon: const Icon(
-                          Icons.location_city_outlined,
-                          color: AppColors.darkBlue,
-                          size: 18,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
+                        decoration: InputDecoration(
+                          hintText: 'Select Location',
+                          hintStyle: const TextStyle(
                             color: AppColors.darkBlue,
-                            width: 1.1,
+                            fontSize: 14,
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
+                          prefixIcon: const Icon(
+                            Icons.location_city_outlined,
                             color: AppColors.darkBlue,
-                            width: 1.5,
+                            size: 18,
                           ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: AppColors.darkBlue,
+                              width: 1.1,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: AppColors.darkBlue,
+                              width: 1.5,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 16,
+                          ),
+                          isDense: true,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                      ),
-                    );
-                  },
-                  onSelected: (String selection) {
-                    setState(() {
-                      _cityController.text = selection;
-                    });
-                    widget.onCityChanged(selection);
-                  },
-                  optionsViewBuilder: (context, onSelected, options) {
-                    return Align(
-                      alignment: Alignment.topLeft,
-                      child: Material(
-                        elevation: 4,
-                        child: Container(
-                          constraints: const BoxConstraints(maxHeight: 220),
-                          color: Colors.white,
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            itemCount: options.length,
-                            itemBuilder: (context, index) {
-                              final option = options.elementAt(index);
-                              return ListTile(
-                                dense: true,
-                                title: Text(
-                                  option,
-                                  style: const TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 14,
+                      );
+                    },
+                    onSelected: (String selection) {
+                      setState(() {
+                        _cityController.text = selection;
+                      });
+                      widget.onCityChanged(selection);
+                    },
+                    optionsViewBuilder: (context, onSelected, options) {
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: Material(
+                          elevation: 4,
+                          child: Container(
+                            constraints: const BoxConstraints(maxHeight: 220),
+                            color: Colors.white,
+                            child: ListView.builder(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              itemCount: options.length,
+                              itemBuilder: (context, index) {
+                                final option = options.elementAt(index);
+                                return ListTile(
+                                  dense: true,
+                                  title: Text(
+                                    option,
+                                    style: const TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                                onTap: () => onSelected(option),
-                              );
-                            },
+                                  onTap: () => onSelected(option),
+                                );
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
