@@ -18,13 +18,8 @@ class ResponsiveApp extends StatelessWidget {
       const tabletBreakpoint = 600.0;
 
       if (width >= desktopBreakpoint) {
-        // Desktop: center and constrain width for comfortable reading
-        return Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: child,
-          ),
-        );
+        // Desktop: use full width, no constraining
+        return child;
       } else if (width >= tabletBreakpoint) {
         // Tablet: slightly constrained
         return Center(

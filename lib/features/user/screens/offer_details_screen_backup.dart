@@ -1,3 +1,4 @@
+// This is a backup of the corrupted file - will be replaced
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
@@ -13,8 +14,6 @@ import '../../../shared/services/saved_offers_service.dart';
 import '../../../shared/services/compare_service.dart';
 import '../../client/models/offer.dart';
 import 'main_screen.dart';
-
-enum ScreenSizeCategory { mobile, tablet, desktop }
 
 class OfferDetailsScreen extends StatefulWidget {
   static const String routeName = '/offer';
@@ -394,7 +393,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
               child: SingleChildScrollView(
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 32),
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
                   child: _buildContentSection(offer, screenSize),
                 ),
               ),
@@ -764,254 +763,94 @@ class FullScreenImageViewer extends StatefulWidget {
 class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
   late PageController _pageController;
   int _currentIndex = 0;
-  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    _focusNode.dispose();
     super.dispose();
-  }
-
-  void _nextPage() {
-    if (_currentIndex < widget.images.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _previousPage() {
-    if (_currentIndex > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: KeyboardListener(
-        focusNode: _focusNode,
-        onKeyEvent: (event) {
-          if (event is KeyDownEvent) {
-            if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-              _nextPage();
-            } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-              _previousPage();
-            } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-              widget.onClose();
-            }
-          }
-        },
-        child: Stack(
-          children: [
-            // Main Image Viewer
-            Positioned.fill(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: widget.images.length,
-                onPageChanged: (index) {
-                  setState(() => _currentIndex = index);
-                },
-                itemBuilder: (context, index) {
-                  return InteractiveViewer(
-                    maxScale: 4.0,
-                    minScale: 0.5,
-                    child: Center(
-                      child: Image.network(
-                        widget.images[index],
-                        fit: BoxFit.contain,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  color: Colors.white,
-                                  size: 48,
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  'Failed to load image',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            // Navigation Arrows
-            if (widget.images.length > 1) ...[
-              Positioned(
-                left: 16,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: _currentIndex > 0 ? 1.0 : 0.0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(120),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new,
-                            color: Colors.white, size: 36),
-                        onPressed: _currentIndex > 0 ? _previousPage : null,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 16,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity:
-                        _currentIndex < widget.images.length - 1 ? 1.0 : 0.0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(120),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_forward_ios,
-                            color: Colors.white, size: 36),
-                        onPressed: _currentIndex < widget.images.length - 1
-                            ? _nextPage
-                            : null,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-
-            // Top Bar (Close button and index)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withAlpha(150),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${_currentIndex + 1} / ${widget.images.length}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close,
-                          color: Colors.white, size: 30),
-                      onPressed: widget.onClose,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Bottom Thumbnail Strip (Desktop/Tablet)
-            if (widget.images.length > 1)
-              Positioned(
-                bottom: 40,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: SizedBox(
-                    height: 60,
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      scrollDirection: Axis.horizontal,
-                      itemCount: widget.images.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 8),
-                      itemBuilder: (context, index) {
-                        final isSelected = _currentIndex == index;
-                        return GestureDetector(
-                          onTap: () {
-                            _pageController.animateToPage(
-                              index,
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.white.withAlpha(50),
-                                width: isSelected ? 3 : 1,
+      body: Column(
+        children: [
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: widget.images.length,
+              onPageChanged: (index) {
+                setState(() => _currentIndex = index);
+              },
+              itemBuilder: (context, index) {
+                return InteractiveViewer(
+                  maxScale: 4.0,
+                  minScale: 0.5,
+                  child: Center(
+                    child: Image.network(
+                      widget.images[index],
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.white,
+                                size: 48,
                               ),
-                              borderRadius: BorderRadius.circular(8),
-                              image: DecorationImage(
-                                image: NetworkImage(widget.images[index]),
-                                fit: BoxFit.cover,
-                                opacity: isSelected ? 1.0 : 0.6,
+                              SizedBox(height: 16),
+                              Text(
+                                'Failed to load image',
+                                style: TextStyle(color: Colors.white),
                               ),
-                            ),
+                            ],
                           ),
                         );
                       },
                     ),
                   ),
-                ),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              '${_currentIndex + 1}/${widget.images.length}',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: ElevatedButton(
+              onPressed: widget.onClose,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                minimumSize: const Size.fromHeight(48),
               ),
-          ],
-        ),
+              child: const Text('Close'),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1101,3 +940,5 @@ class _ShareOption extends StatelessWidget {
     );
   }
 }
+
+enum ScreenSizeCategory { mobile, tablet, desktop }

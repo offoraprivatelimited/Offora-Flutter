@@ -28,8 +28,9 @@ class SavedScreen extends StatelessWidget {
       );
     }
 
-    return SafeArea(
-      child: CustomScrollView(
+    return LayoutBuilder(builder: (context, constraints) {
+      return SafeArea(
+        child: CustomScrollView(
         slivers: [
           FutureBuilder<List<Offer>>(
             future: context.read<SavedOffersService>().getSavedOffers(user.uid),
@@ -70,9 +71,17 @@ class SavedScreen extends StatelessWidget {
               return SliverPadding(
                 padding: const EdgeInsets.all(16),
                 sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.55,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: constraints.maxWidth > 1200
+                        ? 5
+                        : constraints.maxWidth > 750
+                            ? 3
+                            : 2,
+                    childAspectRatio: constraints.maxWidth > 1000
+                        ? 0.8
+                        : constraints.maxWidth > 750
+                            ? 0.85
+                            : 0.65,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
@@ -142,5 +151,6 @@ class SavedScreen extends StatelessWidget {
         ],
       ),
     );
-  }
+  });
+}
 }

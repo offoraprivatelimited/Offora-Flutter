@@ -50,33 +50,43 @@ class CompareScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Compare Offers',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppColors.darkBlue,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '$count of 4 offers selected',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Compare Offers',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppColors.darkBlue,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$count of 4 offers selected',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: SizedBox(
+              height: 40,
+              child: TextButton.icon(
+                onPressed: () => compareService.clearCompare(),
+                icon: const Icon(Icons.clear_all, size: 16),
+                label: const Text('Clear'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: const Size(0, 40),
                 ),
               ),
-            ],
-          ),
-          TextButton.icon(
-            onPressed: () => compareService.clearCompare(),
-            icon: const Icon(Icons.clear_all, size: 18),
-            label: const Text('Clear All'),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
             ),
           ),
         ],
@@ -157,10 +167,8 @@ class CompareScreen extends StatelessWidget {
   Widget _buildOfferColumn(
       BuildContext context, Offer offer, CompareService compareService) {
     final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
-    final discount = offer.discountPrice != null
-        ? ((1 - (offer.discountPrice! / offer.originalPrice)) * 100)
-            .toStringAsFixed(0)
-        : '0';
+    final discount = _calculateDiscount(offer);
+    final discountPrice = _getDiscountPrice(offer);
     final hasImage = offer.imageUrls?.isNotEmpty == true;
 
     return Container(
@@ -226,7 +234,7 @@ class CompareScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '$discount% OFF',
+                    discount.isEmpty ? 'Special' : '$discount OFF',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
@@ -257,25 +265,8 @@ class CompareScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
 
-                // Price
-                _buildCompareRow(
-                  'Price',
-                  currency.format(offer.discountPrice),
-                  highlight: true,
-                ),
-                const SizedBox(height: 6),
-                _buildCompareRow(
-                  'Original',
-                  currency.format(offer.originalPrice),
-                  strikethrough: true,
-                ),
-                const SizedBox(height: 6),
-                _buildCompareRow(
-                  'Savings',
-                  currency
-                      .format(offer.originalPrice - (offer.discountPrice ?? 0)),
-                  color: Colors.green.shade700,
-                ),
+                // Price based on offer type
+                _buildOfferTypeSpecificPricing(offer, currency, discountPrice),
 
                 const Divider(height: 20),
 
@@ -293,20 +284,25 @@ class CompareScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
 
+                // Offer-specific details
+                _buildOfferTypeSpecificDetails(offer, currency),
+
                 // Min Purchase
-                if (offer.minimumPurchase != null) ...[
+                if (offer.minimumPurchase != null &&
+                    offer.minimumPurchase! > 0) ...[
                   _buildCompareRow(
                     'Min Spend',
-                    '₹${offer.minimumPurchase!.toStringAsFixed(0)}',
+                    currency.format(offer.minimumPurchase),
                   ),
                   const SizedBox(height: 6),
                 ],
 
                 // Max Usage
-                if (offer.maxUsagePerCustomer != null) ...[
+                if (offer.maxUsagePerCustomer != null &&
+                    offer.maxUsagePerCustomer! > 0) ...[
                   _buildCompareRow(
                     'Max Uses',
-                    '${offer.maxUsagePerCustomer}x per customer',
+                    '${offer.maxUsagePerCustomer}x',
                   ),
                   const SizedBox(height: 6),
                 ],
@@ -332,22 +328,363 @@ class CompareScreen extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 // Description
-                Text(
-                  offer.description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                    height: 1.5,
+                if (offer.description.isNotEmpty)
+                  Text(
+                    offer.description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                      height: 1.5,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildOfferTypeSpecificPricing(
+      Offer offer, NumberFormat currency, String discountPrice) {
+    // For PERCENTAGE DISCOUNT
+    if (offer.offerType == OfferType.percentageDiscount) {
+      final percentage = offer.percentageOff ?? 0;
+      final calculatedPrice = offer.originalPrice * (1 - (percentage / 100));
+      final finalPrice = currency.format(calculatedPrice);
+
+      return Column(
+        children: [
+          _buildCompareRow(
+            'Price',
+            finalPrice,
+            highlight: true,
+          ),
+          const SizedBox(height: 6),
+          _buildCompareRow(
+            'Original',
+            currency.format(offer.originalPrice),
+            strikethrough: true,
+          ),
+          const SizedBox(height: 6),
+          _buildCompareRow(
+            'Discount',
+            '${percentage.toStringAsFixed(0)}% OFF',
+            color: Colors.green.shade700,
+          ),
+        ],
+      );
+    }
+
+    // For FLAT DISCOUNT
+    if (offer.offerType == OfferType.flatDiscount) {
+      final flatAmount = offer.flatDiscountAmount ?? 0;
+      final calculatedPrice = offer.originalPrice - flatAmount;
+      final finalPrice = currency.format(calculatedPrice);
+
+      return Column(
+        children: [
+          _buildCompareRow(
+            'Price',
+            finalPrice,
+            highlight: true,
+          ),
+          const SizedBox(height: 6),
+          _buildCompareRow(
+            'Original',
+            currency.format(offer.originalPrice),
+            strikethrough: true,
+          ),
+          const SizedBox(height: 6),
+          _buildCompareRow(
+            'Discount',
+            currency.format(flatAmount),
+            color: Colors.green.shade700,
+          ),
+        ],
+      );
+    }
+
+    // For BOGO - show buy and get quantity
+    if (offer.offerType == OfferType.bogo) {
+      final buyQty = offer.buyQuantity ?? 1;
+      final getQty = offer.getQuantity ?? 1;
+      final totalItems = buyQty + getQty;
+      final avgPrice = currency.format(offer.originalPrice / totalItems);
+
+      return Column(
+        children: [
+          _buildCompareRow(
+            'Buy',
+            '$buyQty item(s) @ ${currency.format(offer.originalPrice)}',
+            highlight: false,
+          ),
+          const SizedBox(height: 6),
+          _buildCompareRow(
+            'Get',
+            '$getQty FREE',
+            highlight: true,
+            color: Colors.green.shade700,
+          ),
+          const SizedBox(height: 6),
+          _buildCompareRow(
+            'Avg Price',
+            avgPrice,
+            color: Colors.blue.shade700,
+          ),
+        ],
+      );
+    }
+
+    // For Buy X Get Y% off
+    if (offer.offerType == OfferType.buyXGetYPercentOff) {
+      final buyQty = offer.buyQuantity ?? 1;
+      final getPercentage = offer.getPercentage ?? 0;
+
+      return Column(
+        children: [
+          _buildCompareRow(
+            'Buy',
+            '$buyQty item(s)',
+            highlight: false,
+          ),
+          const SizedBox(height: 6),
+          _buildCompareRow(
+            'Get',
+            '${getPercentage.toStringAsFixed(0)}% OFF',
+            highlight: true,
+            color: Colors.green.shade700,
+          ),
+          const SizedBox(height: 6),
+          _buildCompareRow(
+            'Per Item Price',
+            currency.format(offer.originalPrice),
+          ),
+        ],
+      );
+    }
+
+    // For Buy X Get ₹Y off
+    if (offer.offerType == OfferType.buyXGetYRupeesOff) {
+      final buyQty = offer.buyQuantity ?? 1;
+      final getRupees = offer.getRupees ?? 0;
+
+      return Column(
+        children: [
+          _buildCompareRow(
+            'Buy',
+            '$buyQty item(s)',
+            highlight: false,
+          ),
+          const SizedBox(height: 6),
+          _buildCompareRow(
+            'Get',
+            '${currency.format(getRupees)} OFF',
+            highlight: true,
+            color: Colors.green.shade700,
+          ),
+          const SizedBox(height: 6),
+          _buildCompareRow(
+            'Per Item Price',
+            currency.format(offer.originalPrice),
+          ),
+        ],
+      );
+    }
+
+    // For PRODUCT SPECIFIC, SERVICE SPECIFIC, BUNDLE DEAL - show original price
+    return Column(
+      children: [
+        _buildCompareRow(
+          'Price',
+          currency.format(offer.originalPrice),
+          highlight: true,
+        ),
+        if (offer.discountPrice != null && offer.discountPrice! > 0)
+          Column(
+            children: [
+              const SizedBox(height: 6),
+              _buildCompareRow(
+                'Discount Price',
+                currency.format(offer.discountPrice),
+                highlight: false,
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildOfferTypeSpecificDetails(Offer offer, NumberFormat currency) {
+    switch (offer.offerType) {
+      case OfferType.percentageDiscount:
+        final percentage = offer.percentageOff ?? 0;
+        if (percentage > 0) {
+          return _buildCompareRow(
+            'Discount',
+            '${percentage.toStringAsFixed(0)}% OFF',
+          );
+        }
+        return const SizedBox.shrink();
+
+      case OfferType.flatDiscount:
+        final flatAmount = offer.flatDiscountAmount ?? 0;
+        if (flatAmount > 0) {
+          return _buildCompareRow(
+            'Discount',
+            currency.format(flatAmount),
+          );
+        }
+        return const SizedBox.shrink();
+
+      case OfferType.buyXGetYPercentOff:
+        final buyQty = offer.buyQuantity ?? 1;
+        final getPercentage = offer.getPercentage ?? 0;
+        if (getPercentage > 0) {
+          return Column(
+            children: [
+              _buildCompareRow(
+                'Buy Qty',
+                '$buyQty item(s)',
+              ),
+              const SizedBox(height: 6),
+              _buildCompareRow(
+                'Discount',
+                '${getPercentage.toStringAsFixed(0)}% OFF',
+              ),
+            ],
+          );
+        }
+        return const SizedBox.shrink();
+
+      case OfferType.buyXGetYRupeesOff:
+        final buyQty = offer.buyQuantity ?? 1;
+        final getRupees = offer.getRupees ?? 0;
+        if (getRupees > 0) {
+          return Column(
+            children: [
+              _buildCompareRow(
+                'Buy Qty',
+                '$buyQty item(s)',
+              ),
+              const SizedBox(height: 6),
+              _buildCompareRow(
+                'Discount',
+                currency.format(getRupees),
+              ),
+            ],
+          );
+        }
+        return const SizedBox.shrink();
+
+      case OfferType.bogo:
+        final buyQty = offer.buyQuantity ?? 1;
+        final getQty = offer.getQuantity ?? 1;
+        return Column(
+          children: [
+            _buildCompareRow(
+              'Buy',
+              '$buyQty item(s)',
+            ),
+            const SizedBox(height: 6),
+            _buildCompareRow(
+              'Get Free',
+              '$getQty item(s)',
+            ),
+          ],
+        );
+
+      case OfferType.productSpecific:
+        return _buildCompareRow(
+          'Applies To',
+          'Specific Products',
+        );
+
+      case OfferType.serviceSpecific:
+        return _buildCompareRow(
+          'Applies To',
+          'Specific Services',
+        );
+
+      case OfferType.bundleDeal:
+        return _buildCompareRow(
+          'Offer Type',
+          'Bundle Deal',
+        );
+    }
+  }
+
+  String _calculateDiscount(Offer offer) {
+    try {
+      switch (offer.offerType) {
+        case OfferType.percentageDiscount:
+          final percentage = offer.percentageOff ?? 0;
+          if (percentage == 0) return '';
+          return '${percentage.toStringAsFixed(0)}%';
+
+        case OfferType.flatDiscount:
+          final amount = offer.flatDiscountAmount ?? 0;
+          if (amount == 0) return '';
+          return '₹${amount.toStringAsFixed(0)}';
+
+        case OfferType.buyXGetYPercentOff:
+          final percentage = offer.getPercentage ?? 0;
+          if (percentage == 0) return '';
+          return '${percentage.toStringAsFixed(0)}%';
+
+        case OfferType.buyXGetYRupeesOff:
+          final amount = offer.getRupees ?? 0;
+          if (amount == 0) return '';
+          return '₹${amount.toStringAsFixed(0)}';
+
+        case OfferType.bogo:
+          final buyQty = offer.buyQuantity ?? 1;
+          final getQty = offer.getQuantity ?? 1;
+          return '$buyQty+$getQty';
+
+        default:
+          return '';
+      }
+    } catch (e) {
+      return '';
+    }
+  }
+
+  String _getDiscountPrice(Offer offer) {
+    final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
+
+    try {
+      // For percentage discount - calculate based on percentageOff
+      if (offer.offerType == OfferType.percentageDiscount) {
+        if (offer.percentageOff != null && offer.percentageOff! > 0) {
+          final discounted =
+              offer.originalPrice * (1 - (offer.percentageOff! / 100));
+          return currency.format(discounted);
+        }
+        return currency.format(offer.originalPrice);
+      }
+
+      // For flat discount - calculate based on flatDiscountAmount
+      if (offer.offerType == OfferType.flatDiscount) {
+        if (offer.flatDiscountAmount != null && offer.flatDiscountAmount! > 0) {
+          final discounted = offer.originalPrice - offer.flatDiscountAmount!;
+          return currency.format(discounted);
+        }
+        return currency.format(offer.originalPrice);
+      }
+
+      // For explicit discountPrice field (fallback)
+      if (offer.discountPrice != null && offer.discountPrice! > 0) {
+        return currency.format(offer.discountPrice);
+      }
+
+      // For all other offer types, return original price
+      return currency.format(offer.originalPrice);
+    } catch (e) {
+      return currency.format(offer.originalPrice);
+    }
   }
 
   Widget _buildImagePlaceholder() {
@@ -376,6 +713,9 @@ class CompareScreen extends StatelessWidget {
     bool strikethrough = false,
     Color? color,
   }) {
+    final textColor =
+        color ?? (highlight ? AppColors.darkBlue : AppColors.darkBlue);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -394,8 +734,7 @@ class CompareScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: highlight ? 16 : 12,
               fontWeight: highlight ? FontWeight.w800 : FontWeight.w700,
-              color: color ??
-                  (highlight ? AppColors.darkBlue : AppColors.darkBlue),
+              color: textColor,
               decoration: strikethrough ? TextDecoration.lineThrough : null,
             ),
             textAlign: TextAlign.right,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/services/auth_service.dart';
@@ -276,6 +277,84 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
     );
   }
 
+  Widget _styledPhoneField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.phone,
+      maxLength: 10,
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+        LengthLimitingTextInputFormatter(10),
+      ],
+      style: const TextStyle(
+        color: Colors.black87,
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+      ),
+      cursorColor: const Color(0xFF1F477D),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(
+          color: Color(0xFF666666),
+          fontWeight: FontWeight.w500,
+        ),
+        prefixIcon: Icon(icon, color: const Color(0xFF1F477D)),
+        prefixText: '+91 ',
+        prefixStyle: const TextStyle(
+          color: Colors.black87,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        counterText: '',
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFFE0E0E0),
+            width: 1.5,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFF1F477D),
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 1.5,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 2,
+          ),
+        ),
+      ),
+      validator: validator ??
+          (v) {
+            if (v == null || v.isEmpty) {
+              return 'Please enter your phone number';
+            }
+            if (v.length != 10) {
+              return 'Phone number must be exactly 10 digits';
+            }
+            return null;
+          },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const darkBlue = Color(0xFF1F477D);
@@ -393,12 +472,10 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                                               label: 'Full name',
                                               icon: Icons.person_outline),
                                           const SizedBox(height: 14),
-                                          _styledField(
+                                          _styledPhoneField(
                                               controller: _phoneController,
                                               label: 'Phone',
-                                              icon: Icons.phone_outlined,
-                                              keyboardType:
-                                                  TextInputType.phone),
+                                              icon: Icons.phone_outlined),
                                           const SizedBox(height: 14),
                                           _styledField(
                                               controller: _cityController,

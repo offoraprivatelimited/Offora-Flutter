@@ -31,6 +31,8 @@ class SortFilterBar extends StatefulWidget {
 
 class _SortFilterBarState extends State<SortFilterBar> {
   late String _selectedCategory;
+  late String _selectedCity;
+  late String _selectedSortBy;
   List<String> _citySuggestions = [];
   late TextEditingController _cityController;
 
@@ -38,6 +40,8 @@ class _SortFilterBarState extends State<SortFilterBar> {
   void initState() {
     super.initState();
     _selectedCategory = widget.selectedCategory ?? 'All Categories';
+    _selectedCity = widget.selectedCity ?? '';
+    _selectedSortBy = widget.currentSortBy;
     _cityController = TextEditingController(text: widget.selectedCity ?? '');
     _fetchCities();
   }
@@ -53,7 +57,16 @@ class _SortFilterBarState extends State<SortFilterBar> {
     }
     // Update city controller if it changed from parent
     if (oldWidget.selectedCity != widget.selectedCity) {
-      _cityController.text = widget.selectedCity ?? '';
+      setState(() {
+        _selectedCity = widget.selectedCity ?? '';
+        _cityController.text = widget.selectedCity ?? '';
+      });
+    }
+    // Update sort by if it changed from parent
+    if (oldWidget.currentSortBy != widget.currentSortBy) {
+      setState(() {
+        _selectedSortBy = widget.currentSortBy;
+      });
     }
   }
 
@@ -91,7 +104,7 @@ class _SortFilterBarState extends State<SortFilterBar> {
 
   void _showFilterOptions() {
     // Use local state for the bottom sheet
-    String tempSortBy = widget.currentSortBy;
+    String tempSortBy = _selectedSortBy;
     String tempCategory = _selectedCategory;
 
     showModalBottomSheet(
@@ -265,13 +278,15 @@ class _SortFilterBarState extends State<SortFilterBar> {
                             child: ElevatedButton(
                               onPressed: () {
                                 // Apply changes when closing
+                                setState(() {
+                                  _selectedSortBy = tempSortBy;
+                                  _selectedCategory = tempCategory;
+                                });
+
                                 if (tempSortBy != widget.currentSortBy) {
                                   widget.onSortChanged(tempSortBy);
                                 }
-                                if (tempCategory != _selectedCategory) {
-                                  setState(() {
-                                    _selectedCategory = tempCategory;
-                                  });
+                                if (tempCategory != widget.selectedCategory) {
                                   widget.onCategoryChanged(
                                     tempCategory == 'All Categories'
                                         ? null
@@ -326,7 +341,13 @@ class _SortFilterBarState extends State<SortFilterBar> {
                   child: OutlinedButton.icon(
                     onPressed: _showFilterOptions,
                     icon: const Icon(Icons.tune, size: 18),
-                    label: const Text('Filter'),
+                    label: Text(
+                      _selectedCategory != 'All Categories'
+                          ? 'Filter ($_selectedCategory)'
+                          : 'Filter',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.darkBlue,
                       side: const BorderSide(color: AppColors.darkBlue),
@@ -362,6 +383,11 @@ class _SortFilterBarState extends State<SortFilterBar> {
                           color: Colors.black87,
                           fontSize: 14,
                         ),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedCity = value;
+                          });
+                        },
                         decoration: InputDecoration(
                           hintText: 'Select Location',
                           hintStyle: const TextStyle(
@@ -373,6 +399,19 @@ class _SortFilterBarState extends State<SortFilterBar> {
                             color: AppColors.darkBlue,
                             size: 18,
                           ),
+                          suffixIcon: _selectedCity.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear,
+                                      color: AppColors.darkBlue, size: 18),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedCity = '';
+                                      _cityController.clear();
+                                    });
+                                    widget.onCityChanged(null);
+                                  },
+                                )
+                              : null,
                           filled: true,
                           fillColor: Colors.white,
                           enabledBorder: OutlineInputBorder(
@@ -399,6 +438,7 @@ class _SortFilterBarState extends State<SortFilterBar> {
                     },
                     onSelected: (String selection) {
                       setState(() {
+                        _selectedCity = selection;
                         _cityController.text = selection;
                       });
                       widget.onCityChanged(selection);

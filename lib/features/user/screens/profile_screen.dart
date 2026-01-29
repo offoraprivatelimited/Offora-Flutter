@@ -174,17 +174,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildHeaderCard(context, user, avatarImage),
-                      const SizedBox(height: 16),
-                      _buildFormCard(context),
-                      const SizedBox(height: 16),
-                      _buildActions(context),
-                      // Add bottom padding for keyboard
-                      const KeyboardBottomPadding(minPadding: 20),
-                    ],
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isDesktop = constraints.maxWidth > 900;
+
+                      if (isDesktop) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Left side - Profile Card
+                            SizedBox(
+                              width: constraints.maxWidth * 0.35,
+                              child: _buildDesktopHeaderCard(
+                                  context, user, avatarImage),
+                            ),
+                            const SizedBox(width: 24),
+                            // Right side - Form Card + Stats
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  _buildStatsCard(),
+                                  const SizedBox(height: 24),
+                                  _buildFormCard(context),
+                                  const SizedBox(height: 24),
+                                  _buildActions(context),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildHeaderCard(context, user, avatarImage),
+                            const SizedBox(height: 16),
+                            _buildFormCard(context),
+                            const SizedBox(height: 16),
+                            _buildActions(context),
+                            const KeyboardBottomPadding(minPadding: 20),
+                          ],
+                        );
+                      }
+                    },
                   ),
                 ),
               ],
@@ -198,6 +230,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildHeaderCard(
       BuildContext context, AppUser? user, ImageProvider avatarImage) {
     final textTheme = Theme.of(context).textTheme;
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -215,31 +249,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 44,
-            backgroundColor: Colors.white.withAlpha(46),
-            backgroundImage: avatarImage,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.white.withAlpha(46),
+                  backgroundImage: avatarImage,
+                ),
+                const SizedBox(height: 12),
                 Text(
                   user?.name ?? 'Your name',
                   style: textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
                 Text(
                   user?.email ?? '',
-                  style: textTheme.bodyMedium?.copyWith(
+                  style: textTheme.bodySmall?.copyWith(
                     color: Colors.white.withAlpha(230),
                   ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 12),
                 Container(
@@ -249,18 +285,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Colors.white.withAlpha(31),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  // ignore: prefer_const_constructors
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(Icons.verified_user_rounded,
-                          size: 16, color: Colors.white),
+                          size: 14, color: Colors.white),
                       SizedBox(width: 6),
                       Text(
                         'Secure account',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -268,10 +303,271 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ],
+            )
+          : Row(
+              children: [
+                CircleAvatar(
+                  radius: 44,
+                  backgroundColor: Colors.white.withAlpha(46),
+                  backgroundImage: avatarImage,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user?.name ?? 'Your name',
+                        style: textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        user?.email ?? '',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withAlpha(230),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(31),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.verified_user_rounded,
+                                size: 16, color: Colors.white),
+                            SizedBox(width: 6),
+                            Text(
+                              'Secure account',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildDesktopHeaderCard(
+      BuildContext context, AppUser? user, ImageProvider avatarImage) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1F477D), Color(0xFF2B66BD)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(40),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Large Avatar
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 60,
+                backgroundColor: Colors.white.withAlpha(50),
+                backgroundImage: avatarImage,
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.brightGold,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(50),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF1F477D),
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Name
+          Text(
+            user?.name ?? 'Your name',
+            style: textTheme.headlineSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+
+          // Email
+          Text(
+            user?.email ?? '',
+            style: textTheme.bodyMedium?.copyWith(
+              color: Colors.white.withAlpha(200),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+
+          // Status badges
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildBadge('✓ Verified', Colors.green),
+              _buildBadge('🔒 Secure', Colors.blue),
+              _buildBadge('⭐ Active', Colors.amber),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Edit Profile Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isSaving
+                  ? null
+                  : () {
+                      setState(() {
+                        if (!_isEditing) {
+                          final user = context.read<AuthService>().currentUser;
+                          if (user != null) {
+                            _nameController.text = user.name;
+                            _emailController.text = user.email;
+                          }
+                          _profileImage = null;
+                          _imageBytes = null;
+                        }
+                        _isEditing = !_isEditing;
+                      });
+                    },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                backgroundColor: AppColors.brightGold,
+                foregroundColor: const Color(0xFF1F477D),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: Icon(_isEditing ? Icons.close : Icons.edit_rounded),
+              label: Text(_isEditing ? 'Cancel' : 'Edit Profile'),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withAlpha(80),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(13),
+            blurRadius: 12,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Account Statistics',
+            style: TextStyle(
+              color: AppColors.darkBlue,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildStatRow('Member Since', 'Jan 2024'),
+          const Divider(height: 20),
+          _buildStatRow('Last Updated', 'Today'),
+          const Divider(height: 20),
+          _buildStatRow('Account Status', 'Active'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            color: AppColors.darkBlue,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 

@@ -2,716 +2,301 @@
 
 import 'package:flutter/material.dart';
 
+const primaryColor = Color(0xFF1F477D);
+const accentGold = Color(0xFFF0B84D);
+const mediumGold = Color(0xFFE6A844);
+const lightGold = Color(0xFFFFF8E7);
+const primaryDark = Color(0xFF1F477D);
+
 class TermsAndConditionsPage extends StatelessWidget {
   const TermsAndConditionsPage({super.key});
 
-  static const primaryDark = Color(0xFF0A1A3A);
-  static const accentGold = Color(0xFFD4AF37);
-  static const lightGold = Color(0xFFF8F0E3);
-  static const mediumGold = Color(0xFFE8D9B0);
-
   @override
   Widget build(BuildContext context) {
+    const accentColor = Color(0xFFF0B84D);
+    const backgroundColor = Color(0xFFFAFAFA);
+    const textDark = Color(0xFF1A1A1A);
+    const textLight = Color(0xFF666666);
+
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              lightGold.withAlpha(13),
-              Colors.white,
-            ],
-          ),
-        ),
+      backgroundColor: backgroundColor,
+      body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width > 600 ? 80 : 24,
-            vertical: 60,
+            horizontal: MediaQuery.of(context).size.width > 900
+                ? 60
+                : MediaQuery.of(context).size.width > 600
+                    ? 32
+                    : 20,
+            vertical: 32,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Premium Header
+              // Header
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Terms and Conditions',
+                    style: TextStyle(
+                      fontSize:
+                          MediaQuery.of(context).size.width > 600 ? 40 : 32,
+                      fontWeight: FontWeight.w800,
+                      color: textDark,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Last updated: December 4, 2025',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: textLight,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Effective Date: January 1, 2025',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: textLight,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 40),
+
+              // Introduction
+              _buildIntroductionSection(),
+              const SizedBox(height: 40),
+
+              // Sections
+              _buildSection(
+                '1. Acceptance of Terms',
+                [
+                  'By accessing and using the Offora mobile application and website, you agree to be bound by these Terms and Conditions',
+                  'If you do not agree to any part of these terms, you must discontinue use of our services immediately',
+                  'We reserve the right to update or modify these terms at any time without prior notice',
+                  'Your continued use of the service following such modifications constitutes acceptance of the updated terms',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '2. User Eligibility',
+                [
+                  'You must be at least 13 years old to use Offora',
+                  'By creating an account, you represent that you are legally capable of entering into binding agreements',
+                  'You are responsible for maintaining the accuracy of your account information',
+                  'You agree not to create multiple accounts or impersonate other users',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '3. User Accounts and Security',
+                [
+                  'You are responsible for maintaining the confidentiality of your login credentials',
+                  'You agree to notify us immediately of any unauthorized use of your account',
+                  'You are liable for all activities that occur under your account',
+                  'We are not responsible for any unauthorized access to your account due to your negligence',
+                  'You must not share your password with third parties',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '4. Use Restrictions',
+                [
+                  'You agree not to use Offora for illegal, unethical, or unauthorized purposes',
+                  'Prohibited activities include: harassment, fraud, hacking, spamming, or spreading malware',
+                  'You may not reproduce, distribute, or transmit content without our written permission',
+                  'You agree not to attempt to gain unauthorized access to our systems or data',
+                  'Violation of these restrictions may result in account suspension or legal action',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '5. User Content and Submissions',
+                [
+                  'Any content you upload remains your intellectual property',
+                  'By uploading content, you grant Offora a non-exclusive license to use, reproduce, and distribute it',
+                  'You represent that you have the right to grant such licenses',
+                  'We reserve the right to remove content that violates these terms',
+                  'You agree not to upload content that is offensive, defamatory, or infringes on intellectual property rights',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '6. Offers and Transactions',
+                [
+                  'All offers displayed on Offora are subject to availability and may be withdrawn at any time',
+                  'Offora is not responsible for the accuracy of offer information provided by shop owners',
+                  'Disputes regarding offers should be addressed directly with the relevant shop owner',
+                  'Offora acts as a platform facilitator and is not party to transactions between users and shops',
+                  'We reserve the right to remove any offers that violate our policies',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '7. Payments and Refunds',
+                [
+                  'All payments are processed through secure third-party payment gateways',
+                  'Offora is not responsible for payment processing failures or delays',
+                  'Refund policies are determined by individual shop owners, not by Offora',
+                  'Disputes regarding transactions should be reported to our support team',
+                  'We will attempt to resolve disputes in a fair and timely manner',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '8. Intellectual Property Rights',
+                [
+                  'All content on Offora, including logos, text, and graphics, is owned or licensed by us',
+                  'You may not reproduce, distribute, or modify this content without permission',
+                  'Use of Offora grants you a limited license to view and use content for personal purposes only',
+                  'You agree not to use our trademarks, logos, or brand names without authorization',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '9. Disclaimers and Limitations of Liability',
+                [
+                  'Offora is provided "as is" without any warranties or guarantees',
+                  'We do not warrant that our services will be uninterrupted or error-free',
+                  'To the maximum extent permitted by law, we disclaim all implied warranties',
+                  'Offora shall not be liable for indirect, incidental, or consequential damages',
+                  'Our total liability is limited to the amount paid by you for our services',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '10. Termination of Service',
+                [
+                  'We reserve the right to terminate or suspend your account at our discretion',
+                  'Termination may occur if you violate these terms or engage in prohibited activities',
+                  'Upon termination, your right to use Offora will immediately cease',
+                  'We may delete your account data after a reasonable period',
+                  'Termination does not relieve you of any obligations incurred prior to termination',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '11. Third-Party Links and Services',
+                [
+                  'Offora may contain links to third-party websites and services',
+                  'We are not responsible for the content or accuracy of third-party sites',
+                  'Your use of third-party services is subject to their terms and conditions',
+                  'We do not endorse or guarantee third-party products or services',
+                  'You access third-party sites at your own risk',
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              _buildSection(
+                '12. Governing Law and Dispute Resolution',
+                [
+                  'These terms are governed by the laws of India',
+                  'Any disputes arising from these terms shall be subject to the exclusive jurisdiction of courts in India',
+                  'You agree to attempt amicable resolution before initiating legal proceedings',
+                  'In case of disputes, you may contact our support team at support@offora.com',
+                ],
+              ),
+              const SizedBox(height: 48),
+
+              // Important Notice
               Container(
-                margin: const EdgeInsets.only(bottom: 40),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withAlpha(10),
+                  border: Border.all(color: Color(0xFF1F477D).withAlpha(30)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: const [
                     Row(
                       children: [
-                        Container(
-                          width: 4,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [accentGold, mediumGold],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'LEGAL DOCUMENT',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 3,
-                                  color: primaryDark.withAlpha(153),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Terms & Conditions',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: accentGold,
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Terms and Conditions',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: primaryDark,
-                        letterSpacing: -0.5,
-                        height: 1.1,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.update_outlined,
-                          size: 16,
-                          color: primaryDark.withAlpha(128),
-                        ),
-                        const SizedBox(width: 8),
+                        Icon(Icons.gavel_outlined,
+                            color: primaryColor, size: 24),
+                        SizedBox(width: 12),
                         Text(
-                          'Last Updated: December 4, 2025',
+                          'Important Notice',
                           style: TextStyle(
-                            fontSize: 15,
-                            color: primaryDark.withAlpha(128),
-                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: primaryColor,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-
-              // Acceptance Banner
-              Container(
-                padding: const EdgeInsets.all(32),
-                margin: const EdgeInsets.only(bottom: 40),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      accentGold.withAlpha(26),
-                      accentGold.withAlpha(13),
-                      Colors.white,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: accentGold.withAlpha(77),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: accentGold.withAlpha(26),
-                      blurRadius: 40,
-                      spreadRadius: 0,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: accentGold.withAlpha(51),
-                            blurRadius: 20,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.gavel_outlined,
-                        color: accentGold,
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Acceptance of Terms',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: primaryDark,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 12),
                     Text(
-                      'By accessing or using the Offora platform ("Platform"), you agree to be bound by these comprehensive Terms and Conditions. If you do not agree to these terms, please refrain from using the Platform.',
-                      textAlign: TextAlign.center,
+                      'These terms constitute the entire agreement between you and Offora regarding your use of our services. If you have any questions about these terms, please contact us at support@offora.com.',
                       style: TextStyle(
-                        fontSize: 16,
-                        color: primaryDark.withAlpha(204),
-                        height: 1.7,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      height: 2,
-                      width: 100,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [accentGold, mediumGold],
-                        ),
-                        borderRadius: BorderRadius.circular(1),
+                        fontSize: 14,
+                        color: textLight,
+                        height: 1.6,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(height: 32),
 
-              // Terms Sections
-              _buildTermSection(
-                number: '01',
-                title: 'Definitions',
-                icon: Icons.article_outlined,
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDefinitionCard(
-                      'Platform',
-                      'The Offora mobile and web application ecosystem',
-                      Icons.apps_outlined,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildDefinitionCard(
-                      'User',
-                      'Any individual browsing and utilizing offers',
-                      Icons.person_outline,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildDefinitionCard(
-                      'Shop Owner',
-                      'Businesses creating and managing offers',
-                      Icons.storefront_outlined,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildDefinitionCard(
-                      'Offer',
-                      'Promotional deals posted by Shop Owners',
-                      Icons.local_offer_outlined,
-                    ),
-                  ],
-                ),
-              ),
-
-              // User Accounts Grid
+              // Footer
               Container(
-                margin: const EdgeInsets.only(bottom: 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionHeader(
-                      '02',
-                      'User Accounts',
-                      Icons.person_add_outlined,
-                    ),
-                    const SizedBox(height: 24),
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount:
-                          MediaQuery.of(context).size.width > 600 ? 2 : 1,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 20,
-                      childAspectRatio: 3,
-                      children: [
-                        _buildTermCard(
-                          'Age Requirement',
-                          'You must be at least 18 years old to create an account',
-                          Icons.eighteen_mp_outlined,
-                        ),
-                        _buildTermCard(
-                          'Credential Security',
-                          'Maintain confidentiality of your account credentials',
-                          Icons.lock_outlined,
-                        ),
-                        _buildTermCard(
-                          'Information Accuracy',
-                          'Provide accurate, current, and complete registration details',
-                          Icons.verified_outlined,
-                        ),
-                        _buildTermCard(
-                          'Account Responsibility',
-                          'You are responsible for all activities under your account',
-                          Icons.security_outlined,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Shop Owner Responsibilities
-              _buildTermSection(
-                number: '03',
-                title: 'Shop Owner Responsibilities',
-                icon: Icons.business_outlined,
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildResponsibilityItem(
-                      'Provide accurate business information and valid documentation',
-                      'Accuracy',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildResponsibilityItem(
-                      'All offers must comply with applicable laws and regulations',
-                      'Compliance',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildResponsibilityItem(
-                      'Honor all offers posted on the Platform as presented',
-                      'Honor System',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildResponsibilityItem(
-                      'Avoid posting misleading, fraudulent, or deceptive offers',
-                      'Transparency',
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: primaryDark.withAlpha(5),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: accentGold.withAlpha(51),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.admin_panel_settings_outlined,
-                            color: accentGold,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Offora reserves the right to approve, reject, or remove any offer at our discretion.',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: primaryDark.withAlpha(204),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // User Conduct Grid
-              Container(
-                margin: const EdgeInsets.only(bottom: 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionHeader(
-                      '04',
-                      'User Conduct',
-                      Icons.rule_outlined,
-                    ),
-                    const SizedBox(height: 24),
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount:
-                          MediaQuery.of(context).size.width > 600 ? 2 : 1,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 20,
-                      childAspectRatio: 1.5,
-                      children: [
-                        _buildConductCard(
-                          Icons.block_outlined,
-                          'No Misuse',
-                          'Do not misuse the Platform or use it for illegal purposes',
-                          Colors.red,
-                        ),
-                        _buildConductCard(
-                          Icons.security_outlined,
-                          'No Manipulation',
-                          'Do not attempt to manipulate, hack, or disrupt the Platform',
-                          Colors.orange,
-                        ),
-                        _buildConductCard(
-                          Icons.copyright_outlined,
-                          'Respect IP Rights',
-                          'Respect the intellectual property rights of others',
-                          Colors.blue,
-                        ),
-                        _buildConductCard(
-                          Icons.do_not_disturb_outlined,
-                          'No Harassment',
-                          'Harassment, abusive behavior, or spam is strictly prohibited',
-                          Colors.purple,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Key Terms Sections
-              _buildTermSection(
-                number: '05',
-                title: 'Offers and Transactions',
-                icon: Icons.shopping_bag_outlined,
-                content: _buildKeyPoints([
-                  'All offers are subject to availability and may change without notice',
-                  'Offora acts as a platform connecting Users and Shop Owners',
-                  'Users should verify offer details directly with Shop Owners',
-                  'Offora is not responsible for disputes between parties',
-                ]),
-              ),
-
-              _buildTermSection(
-                number: '06',
-                title: 'Intellectual Property',
-                icon: Icons.copyright_outlined,
-                content: _buildKeyPoints([
-                  'All Platform content is owned by Offora or its licensors',
-                  'Users may not copy, reproduce, or distribute without permission',
-                  'Shop Owners grant Offora a license to display their content',
-                ]),
-              ),
-
-              // Disclaimer & Liability
-              Container(
-                margin: const EdgeInsets.only(bottom: 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.red.withAlpha(26),
-                                Colors.orange.withAlpha(13)
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.red.withAlpha(51),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.warning_outlined,
-                            color: Colors.red,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Text(
-                            '07. Disclaimer & Liability',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: primaryDark,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.red.withAlpha(26),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(5),
-                            blurRadius: 20,
-                            spreadRadius: 0,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Disclaimer of Warranties',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: primaryDark,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildWarningPoint(
-                              'Platform provided "as is" without warranties'),
-                          _buildWarningPoint(
-                              'No guarantee of accuracy, reliability, or availability'),
-                          _buildWarningPoint(
-                              'No guarantee that offers will be honored'),
-                          _buildWarningPoint(
-                              'Use of Platform is at your own risk'),
-                          const SizedBox(height: 24),
-                          Container(
-                            height: 1,
-                            color: Colors.grey.shade200,
-                          ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            'Limitation of Liability',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: primaryDark,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildWarningPoint(
-                              'No liability for indirect or consequential damages'),
-                          _buildWarningPoint(
-                              'Total liability limited to last 12 months payment'),
-                          _buildWarningPoint(
-                              'Not responsible for third-party content or services'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Privacy, Termination & More
-              _buildTermSection(
-                number: '08',
-                title: 'Privacy',
-                icon: Icons.privacy_tip_outlined,
-                content: Text(
-                  'Your use of the Platform is subject to our comprehensive Privacy Policy, which is fully incorporated into these Terms by reference.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: primaryDark.withAlpha(204),
-                    height: 1.6,
-                  ),
-                ),
-              ),
-
-              // Contact Section
-              Container(
-                padding: const EdgeInsets.all(32),
-                margin: const EdgeInsets.only(bottom: 40),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      primaryDark.withAlpha(242),
-                      primaryDark,
-                    ],
+                    colors: const [primaryColor, Color(0xFF2A5A9F)],
                   ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: primaryDark.withAlpha(77),
-                      blurRadius: 40,
-                      spreadRadius: 0,
-                      offset: const Offset(0, 20),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: [
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: accentGold.withAlpha(26),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: accentGold.withAlpha(77),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.contact_support_outlined,
-                            color: accentGold,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        const Text(
-                          'Legal Contact',
+                      children: const [
+                        Icon(Icons.verified_outlined,
+                            color: accentColor, size: 24),
+                        SizedBox(width: 12),
+                        Text(
+                          'Binding Agreement',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     Text(
-                      'For questions about these Terms and Conditions, please contact our legal team:',
+                      'By using Offora, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions. Thank you for being part of our platform.',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         color: Colors.white.withAlpha(230),
                         height: 1.6,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    _buildLegalContactInfo(
-                      Icons.email_outlined,
-                      'legal@offora.com',
-                      'Legal Email',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildLegalContactInfo(
-                      Icons.phone_outlined,
-                      '+91 98765 43210',
-                      'Legal Phone',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildLegalContactInfo(
-                      Icons.location_on_outlined,
-                      '123, Business District, Chennai, Tamil Nadu, India - 600001',
-                      'Registered Office',
-                    ),
-                    const SizedBox(height: 24),
-                    Container(
-                      height: 1,
-                      width: 100,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [accentGold, accentGold.withAlpha(0)],
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
-
-              // Final Agreement Banner
-              Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white,
-                      lightGold.withAlpha(51),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: accentGold,
-                    width: 2,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: accentGold.withAlpha(26),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.handshake_outlined,
-                        color: accentGold,
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Agreement Confirmation',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: primaryDark,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'By using Offora, you acknowledge that you have read, understood, and agree to be bound by these comprehensive Terms and Conditions. Your continued use constitutes ongoing acceptance.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: primaryDark.withAlpha(204),
-                        height: 1.7,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      height: 2,
-                      width: 200,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [accentGold, mediumGold],
-                        ),
-                        borderRadius: BorderRadius.circular(1),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -719,144 +304,48 @@ class TermsAndConditionsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTermSection({
-    required String number,
-    required String title,
-    required IconData icon,
-    required Widget content,
-  }) {
+  Widget _buildIntroductionSection() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 40),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFE8E8E8)),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: 8,
+                height: 8,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      accentGold.withAlpha(26),
-                      mediumGold.withAlpha(26)
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: mediumGold.withAlpha(128),
-                    width: 1.5,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    number,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: primaryDark,
-                    ),
-                  ),
+                  color: const Color(0xFFF0B84D),
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          icon,
-                          color: accentGold,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF0A1A3A),
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    content,
-                  ],
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Welcome to Offora',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A1A),
+                  ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDefinitionCard(String term, String definition, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFE8D9B0).withAlpha(128),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: accentGold.withAlpha(26),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-              color: accentGold,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  term,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF0A1A3A),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  definition,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: const Color(0xFF0A1A3A).withAlpha(153),
-                    height: 1.4,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 12),
+          Text(
+            'These Terms and Conditions govern your use of the Offora mobile application and website. Please read them carefully before using our platform. By accessing and using Offora, you accept and agree to be bound by all the terms and conditions outlined herein.',
+            style: TextStyle(
+              fontSize: 15,
+              color: const Color(0xFF666666),
+              height: 1.6,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],
@@ -864,335 +353,64 @@ class TermsAndConditionsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String number, String title, IconData icon) {
-    return Row(
+  Widget _buildSection(String title, List<String> points) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: const [accentGold, mediumGold],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Center(
-            child: Text(
-              number,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A1A),
+            letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        const SizedBox(height: 16),
+        Column(
+          children: points.asMap().entries.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    icon,
-                    color: accentGold,
-                    size: 24,
+                  Container(
+                    width: 24,
+                    height: 24,
+                    margin: const EdgeInsets.only(top: 1),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0B84D).withAlpha(26),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '•',
+                        style: TextStyle(
+                          color: const Color(0xFFF0B84D),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      title,
+                      entry.value,
                       style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: primaryDark,
-                        letterSpacing: -0.5,
+                        fontSize: 14,
+                        color: const Color(0xFF666666),
+                        height: 1.5,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
+            );
+          }).toList(),
         ),
       ],
-    );
-  }
-
-  Widget _buildTermCard(String title, String description, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFE8D9B0).withAlpha(77),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: accentGold.withAlpha(26),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-              color: accentGold,
-              size: 20,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0A1A3A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 14,
-              color: const Color(0xFF0A1A3A).withAlpha(153),
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResponsibilityItem(String text, String tag) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFE8D9B0).withAlpha(77),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: accentGold.withAlpha(26),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: accentGold.withAlpha(77),
-              ),
-            ),
-            child: Text(
-              tag,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: accentGold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 15,
-                color: const Color(0xFF0A1A3A).withAlpha(204),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildConductCard(
-      IconData icon, String title, String description, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withAlpha(26),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withAlpha(26),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0A1A3A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 14,
-              color: const Color(0xFF0A1A3A).withAlpha(153),
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildKeyPoints(List<String> points) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: points
-          .map((point) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(top: 6),
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: accentGold,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        point,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: const Color(0xFF0A1A3A).withAlpha(204),
-                          height: 1.6,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ))
-          .toList(),
-    );
-  }
-
-  Widget _buildWarningPoint(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            size: 18,
-            color: Colors.red,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 15,
-                color: const Color(0xFF0A1A3A).withAlpha(204),
-                height: 1.5,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegalContactInfo(IconData icon, String detail, String label) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(26),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withAlpha(51),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: accentGold,
-            size: 20,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withAlpha(179),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  detail,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

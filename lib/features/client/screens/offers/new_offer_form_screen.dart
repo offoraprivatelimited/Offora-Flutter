@@ -758,6 +758,15 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(10),
                       ],
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Please enter contact number';
+                        }
+                        if (value!.length < 10) {
+                          return 'Contact number must be 10 digits';
+                        }
+                        return null;
+                      },
                       style: const TextStyle(
                         color: Colors.black87,
                         fontSize: 15,
