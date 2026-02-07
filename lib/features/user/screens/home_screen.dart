@@ -21,15 +21,30 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _bannerIndex = 0;
-  final PageController _bannerPageController =
-      PageController(viewportFraction: 0.93);
+  late PageController _bannerPageController;
   Timer? _bannerTimer;
 
   @override
   void initState() {
     super.initState();
+    _bannerPageController = PageController(viewportFraction: 0.93);
     _startAutoBannerScroll();
     _startAutoScroll();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize PageController with correct viewport fraction after dependencies are available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final screenWidth = MediaQuery.of(context).size.width;
+      final newViewportFraction = screenWidth < 768 ? 1.0 : 0.93;
+      if (_bannerPageController.viewportFraction != newViewportFraction) {
+        _bannerPageController.dispose();
+        _bannerPageController = PageController(viewportFraction: newViewportFraction);
+      }
+    });
   }
 
   void _startAutoBannerScroll() {
@@ -325,18 +340,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // Responsive banner height based on screen size
               final screenWidth = MediaQuery.of(context).size.width;
+              final isMobile = screenWidth < 768;
               final bannerHeight = screenWidth > 1200
                   ? 450.0
                   : screenWidth > 768
                       ? 320.0
                       : 180.0;
+              final horizontalMargin = isMobile ? 0.0 : 16.0;
+              final itemHorizontalMargin = isMobile ? 0.0 : 8.0;
+
 
               return Column(
                 children: [
                   Container(
                     height: bannerHeight,
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 16),
+                    margin: EdgeInsets.symmetric(
+                        horizontal: horizontalMargin, vertical: 16),
                     child: PageView.builder(
                       controller: _bannerPageController,
                       itemCount: banners.length,
@@ -364,8 +383,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 350),
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 0),
+                            margin: EdgeInsets.symmetric(
+                                horizontal: itemHorizontalMargin, vertical: 0),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
@@ -382,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     children: [
                                       Image.network(
                                         banner.url,
-                                        fit: BoxFit.cover,
+                                        fit: BoxFit.fitWidth,
                                         width: double.infinity,
                                         height: double.infinity,
                                         loadingBuilder:
