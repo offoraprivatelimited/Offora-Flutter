@@ -62,9 +62,38 @@ class _OfferCardState extends State<OfferCard> {
     }
   }
 
-  List<String> _splitCamelCase(String text) {
-    final regex = RegExp(r'(?<=[a-z])(?=[A-Z])');
-    return text.split(regex);
+  String _getDiscountText() {
+    if (widget.offerData == null) return '';
+
+    final offer = widget.offerData!;
+    String discountText = '0% OFF';
+
+    if (offer.offerType == OfferType.percentageDiscount) {
+      final percentage = offer.percentageOff ?? 0;
+      discountText = '${percentage.toStringAsFixed(0)}% OFF';
+    } else if (offer.offerType == OfferType.flatDiscount) {
+      final amount = offer.flatDiscountAmount ?? 0;
+      discountText = '₹${amount.toStringAsFixed(0)} OFF';
+    } else if (offer.offerType == OfferType.buyXGetYPercentOff) {
+      final percentage = offer.getPercentage ?? 0;
+      discountText = '${percentage.toStringAsFixed(0)}% OFF';
+    } else if (offer.offerType == OfferType.buyXGetYRupeesOff) {
+      final amount = offer.flatDiscountAmount ?? 0;
+      discountText = '₹${amount.toStringAsFixed(0)} OFF';
+    } else if (offer.offerType == OfferType.bogo) {
+      discountText = 'BOGO';
+    } else if (offer.offerType == OfferType.productSpecific) {
+      discountText = 'DEAL';
+    } else if (offer.offerType == OfferType.serviceSpecific) {
+      discountText = 'DEAL';
+    } else if (offer.offerType == OfferType.bundleDeal) {
+      discountText = 'BUNDLE';
+    } else if (offer.discountPrice != null && offer.originalPrice > 0) {
+      discountText =
+          '${((1 - (offer.discountPrice! / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF';
+    }
+
+    return discountText;
   }
 
   @override
@@ -84,6 +113,24 @@ class _OfferCardState extends State<OfferCard> {
     // Extract prices if available
     final originalPrice = widget.offerData?.originalPrice;
     final discountPrice = widget.offerData?.discountPrice;
+
+    // Calculate correct discount price based on offer type
+    double displayDiscountPrice = discountPrice ?? 0;
+    if (widget.offerData != null &&
+        originalPrice != null &&
+        originalPrice > 0) {
+      if (widget.offerData!.offerType == OfferType.percentageDiscount) {
+        final percentOff = widget.offerData?.percentageOff ?? 0;
+        if (percentOff > 0) {
+          displayDiscountPrice = originalPrice * (1 - (percentOff / 100));
+        }
+      } else if (widget.offerData!.offerType == OfferType.flatDiscount) {
+        final flatAmount = widget.offerData?.flatDiscountAmount ?? 0;
+        if (flatAmount > 0) {
+          displayDiscountPrice = originalPrice - flatAmount;
+        }
+      }
+    }
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -232,7 +279,7 @@ class _OfferCardState extends State<OfferCard> {
                       padding: const EdgeInsets.all(8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisSize: MainAxisSize.max,
                         children: [
                           Text(
                             widget.offer['title'] ?? '',
@@ -246,8 +293,9 @@ class _OfferCardState extends State<OfferCard> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
-                          // Price section
-                          if (discountPrice != null &&
+                          // Price section or discount badge
+                          if (widget.offerData != null &&
+                              displayDiscountPrice > 0 &&
                               originalPrice != null &&
                               originalPrice > 0)
                             Expanded(
@@ -263,7 +311,7 @@ class _OfferCardState extends State<OfferCard> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          '₹${discountPrice.toStringAsFixed(0)}',
+                                          '₹${displayDiscountPrice.toStringAsFixed(0)}',
                                           style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w900,
@@ -340,32 +388,77 @@ class _OfferCardState extends State<OfferCard> {
                                 ],
                               ),
                             )
-                          else if (widget.offerData?.offerType != null)
+                          else
                             Expanded(
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 4.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: _splitCamelCase(widget
-                                          .offerData!.offerType
-                                          .toString()
-                                          .split('.')
-                                          .last)
-                                      .map((word) => Text(
-                                            word.toUpperCase(),
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF1F477D),
-                                              letterSpacing: 1.0,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ))
-                                      .toList(),
-                                ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      widget.offer['discount'] ??
+                                          _getDiscountText(),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1F477D),
+                                        letterSpacing: 0.5,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (widget.offerData != null)
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: isInCompare
+                                            ? const Color(0xFF1F477D)
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: const Color(0xFF1F477D),
+                                          width: 1.4,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withAlpha(12),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: IconButton(
+                                        icon: Icon(
+                                          isInCompare
+                                              ? Icons.done
+                                              : Icons.compare_arrows_outlined,
+                                          color: isInCompare
+                                              ? Colors.white
+                                              : const Color(0xFF1F477D),
+                                          size: 20,
+                                        ),
+                                        onPressed: () {
+                                          if (!compareService.isFull ||
+                                              isInCompare) {
+                                            compareService.toggleCompare(
+                                                widget.offerData!);
+                                          } else {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                    'You can compare up to 4 offers'),
+                                                duration: Duration(seconds: 2),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        padding: const EdgeInsets.all(10),
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                         ],

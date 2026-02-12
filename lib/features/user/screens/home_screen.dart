@@ -42,7 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final newViewportFraction = screenWidth < 768 ? 1.0 : 0.93;
       if (_bannerPageController.viewportFraction != newViewportFraction) {
         _bannerPageController.dispose();
-        _bannerPageController = PageController(viewportFraction: newViewportFraction);
+        _bannerPageController =
+            PageController(viewportFraction: newViewportFraction);
       }
     });
   }
@@ -323,6 +324,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMobileContent(BoxConstraints constraints) {
     final crossAxisCount = constraints.maxWidth > 750 ? 3 : 2;
+    final isDesktop = constraints.maxWidth > 1200;
+    final sectionPadding = isDesktop ? 0.0 : 16.0;
+    final categoryPadding = isDesktop ? 0.0 : 16.0;
 
     return CustomScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -346,9 +350,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   : screenWidth > 768
                       ? 320.0
                       : 180.0;
-              final horizontalMargin = isMobile ? 0.0 : 16.0;
-              final itemHorizontalMargin = isMobile ? 0.0 : 8.0;
-
+              final horizontalMargin =
+                  isDesktop ? 0.0 : (isMobile ? 0.0 : 16.0);
+              final itemHorizontalMargin =
+                  isDesktop ? 0.0 : (isMobile ? 0.0 : 8.0);
 
               return Column(
                 children: [
@@ -473,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Categories Section Header
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            padding: EdgeInsets.fromLTRB(sectionPadding, 4, sectionPadding, 8),
             child: Row(
               children: [
                 Container(
@@ -519,7 +524,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: ListView.builder(
                         controller: _categoryScrollController,
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: categoryPadding),
                         itemCount: _categories.length,
                         itemBuilder: (context, index) {
                           final category = _categories[index];
@@ -743,7 +749,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // Offers Grid
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: sectionPadding),
           sliver: SliverToBoxAdapter(
             child: StreamBuilder<List<Offer>>(
               stream: context.read<OfferService>().watchApprovedOffers(),
