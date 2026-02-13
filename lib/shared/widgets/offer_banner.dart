@@ -65,9 +65,17 @@ class _OfferBannerState extends State<OfferBanner>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Make banner slightly smaller on mobile view
+    double bannerHeight = widget.height;
+    if (screenWidth < 600) {
+      bannerHeight =
+          widget.height * 0.75; // 75% of default height on mobile (135px)
+    }
+
     if (widget.imageUrls.isEmpty) {
       return Container(
-        height: widget.height,
+        height: bannerHeight,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: Colors.grey.shade200,
@@ -81,7 +89,7 @@ class _OfferBannerState extends State<OfferBanner>
     return GestureDetector(
       onTap: widget.onTap,
       child: Container(
-        height: widget.height,
+        height: bannerHeight,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           boxShadow: [

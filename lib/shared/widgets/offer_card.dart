@@ -280,7 +280,7 @@ class _OfferCardState extends State<OfferCard> {
 
                     // Details
                     Container(
-                      height: 75.0,
+                      height: 85.0,
                       padding: const EdgeInsets.all(8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,14 +290,14 @@ class _OfferCardState extends State<OfferCard> {
                             widget.offer['title'] ?? '',
                             style: const TextStyle(
                               fontWeight: FontWeight.w800,
-                              fontSize: 14,
+                              fontSize: 13,
                               color: Color(0xFF1F477D),
                               height: 1.1,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           // Price section or discount badge
                           if (widget.offerData != null &&
                               displayDiscountPrice > 0 &&
@@ -398,22 +398,24 @@ class _OfferCardState extends State<OfferCard> {
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(
                                     child: Text(
                                       widget.offer['discount'] ??
                                           _getDiscountText(),
                                       style: const TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF1F477D),
                                         letterSpacing: 0.5,
+                                        height: 1.3,
                                       ),
-                                      maxLines: 1,
+                                      maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
                                   if (widget.offerData != null)
                                     Container(
                                       decoration: BoxDecoration(

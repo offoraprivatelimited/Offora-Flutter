@@ -494,9 +494,9 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
             child: Container(
               color: Colors.white,
               padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 24,
+                left: screenSize == ScreenSizeCategory.mobile ? 14 : 16,
+                right: screenSize == ScreenSizeCategory.mobile ? 14 : 16,
+                top: screenSize == ScreenSizeCategory.mobile ? 16 : 24,
                 bottom: screenSize == ScreenSizeCategory.mobile ? 100 : 32,
               ),
               child: _buildContentSection(offer, screenSize),
@@ -631,13 +631,13 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
         Text(
           offer.title,
           style: TextStyle(
-            fontSize: screenSize == ScreenSizeCategory.mobile ? 22 : 26,
+            fontSize: screenSize == ScreenSizeCategory.mobile ? 20 : 26,
             fontWeight: FontWeight.w800,
             color: AppColors.darkBlue,
             height: 1.3,
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: screenSize == ScreenSizeCategory.mobile ? 12 : 16),
         if (hasPrice)
           Row(
             children: [
@@ -664,18 +664,21 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 ),
               const Spacer(),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenSize == ScreenSizeCategory.mobile ? 10 : 12,
+                  vertical: screenSize == ScreenSizeCategory.mobile ? 5 : 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFF6B6B),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(
+                      screenSize == ScreenSizeCategory.mobile ? 6 : 8),
                 ),
                 child: Text(
                   _getDiscountText(offer),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                    fontSize: screenSize == ScreenSizeCategory.mobile ? 12 : 14,
                   ),
                 ),
               ),
@@ -684,17 +687,21 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
         else
           Center(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                horizontal: screenSize == ScreenSizeCategory.mobile ? 16 : 24,
+                vertical: screenSize == ScreenSizeCategory.mobile ? 10 : 12,
+              ),
               decoration: BoxDecoration(
                 color: const Color(0xFFFF6B6B),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(
+                    screenSize == ScreenSizeCategory.mobile ? 10 : 12),
               ),
               child: Text(
                 _getDiscountText(offer),
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
-                  fontSize: 28,
+                  fontSize: screenSize == ScreenSizeCategory.mobile ? 20 : 28,
                 ),
               ),
             ),
@@ -711,23 +718,25 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
               Text(
                 'Business Info',
                 style: TextStyle(
-                  fontSize: screenSize == ScreenSizeCategory.mobile ? 18 : 20,
+                  fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 20,
                   fontWeight: FontWeight.w800,
                   color: AppColors.darkBlue,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(
+                  height: screenSize == ScreenSizeCategory.mobile ? 12 : 16),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(
+                    screenSize == ScreenSizeCategory.mobile ? 12 : 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.grey.shade200),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withAlpha(10),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      color: Colors.black.withAlpha(8),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -743,9 +752,12 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                       ),
                     if (offer.businessCategory != null &&
                         offer.businessCategory!.isNotEmpty) ...[
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Divider(height: 1),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical:
+                              screenSize == ScreenSizeCategory.mobile ? 6 : 8,
+                        ),
+                        child: const Divider(height: 1),
                       ),
                       _InfoRow(
                         label: 'Category',
@@ -755,9 +767,12 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                       ),
                     ],
                     if (offer.address != null && offer.address!.isNotEmpty) ...[
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Divider(height: 1),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical:
+                              screenSize == ScreenSizeCategory.mobile ? 6 : 8,
+                        ),
+                        child: const Divider(height: 1),
                       ),
                       _InfoRow(
                         label: 'Address',
@@ -767,9 +782,12 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                       ),
                     ],
                     if (offer.city != null && offer.city!.isNotEmpty) ...[
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Divider(height: 1),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical:
+                              screenSize == ScreenSizeCategory.mobile ? 6 : 8,
+                        ),
+                        child: const Divider(height: 1),
                       ),
                       _InfoRow(
                         label: 'City',
@@ -781,7 +799,8 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(
+                  height: screenSize == ScreenSizeCategory.mobile ? 18 : 24),
             ],
           ),
         ],
@@ -792,14 +811,17 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
               Text(
                 'Validity Period',
                 style: TextStyle(
-                  fontSize: screenSize == ScreenSizeCategory.mobile ? 18 : 20,
+                  fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 20,
                   fontWeight: FontWeight.w800,
                   color: AppColors.darkBlue,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(
+                  height: screenSize == ScreenSizeCategory.mobile ? 12 : 16),
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(
+                  screenSize == ScreenSizeCategory.mobile ? 14 : 20,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: const [
@@ -809,14 +831,16 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                       color: AppColors.darkBlue.withAlpha(30), width: 1),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: EdgeInsets.all(
+                        screenSize == ScreenSizeCategory.mobile ? 8 : 10,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.darkBlue.withAlpha(20),
                         shape: BoxShape.circle,
@@ -824,10 +848,12 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                       child: Icon(
                         Icons.calendar_today_rounded,
                         color: AppColors.darkBlue,
-                        size: 22,
+                        size: screenSize == ScreenSizeCategory.mobile ? 18 : 22,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(
+                        width:
+                            screenSize == ScreenSizeCategory.mobile ? 12 : 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,20 +861,20 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                           Text(
                             'Valid From',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               color: Colors.grey[600],
                               fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
+                              letterSpacing: 0.3,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Text(
                             offer.startDate != null
                                 ? dateFormat.format(offer.startDate!)
                                 : 'N/A',
                             style: TextStyle(
                               fontSize: screenSize == ScreenSizeCategory.mobile
-                                  ? 15
+                                  ? 13
                                   : 16,
                               fontWeight: FontWeight.w700,
                               color: AppColors.darkBlue,
@@ -859,9 +885,12 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                     ),
                     Container(
                       width: 1,
-                      height: 40,
+                      height: screenSize == ScreenSizeCategory.mobile ? 30 : 40,
                       color: Colors.grey[300],
-                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      margin: EdgeInsets.symmetric(
+                        horizontal:
+                            screenSize == ScreenSizeCategory.mobile ? 12 : 20,
+                      ),
                     ),
                     Expanded(
                       child: Column(
@@ -870,20 +899,20 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                           Text(
                             'Valid Till',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               color: Colors.grey[600],
                               fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
+                              letterSpacing: 0.3,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Text(
                             offer.endDate != null
                                 ? dateFormat.format(offer.endDate!)
                                 : 'N/A',
                             style: TextStyle(
                               fontSize: screenSize == ScreenSizeCategory.mobile
-                                  ? 15
+                                  ? 13
                                   : 16,
                               fontWeight: FontWeight.w700,
                               color: AppColors.darkBlue,
@@ -895,9 +924,11 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              Divider(color: Colors.grey[200], thickness: 1),
-              const SizedBox(height: 24),
+              SizedBox(
+                  height: screenSize == ScreenSizeCategory.mobile ? 16 : 24),
+              Divider(color: Colors.grey[200], thickness: 0.8),
+              SizedBox(
+                  height: screenSize == ScreenSizeCategory.mobile ? 16 : 24),
             ],
           ),
         ],
@@ -905,67 +936,68 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           Text(
             'Description',
             style: TextStyle(
-              fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+              fontSize: screenSize == ScreenSizeCategory.mobile ? 15 : 18,
               fontWeight: FontWeight.w700,
               color: AppColors.darkBlue,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: screenSize == ScreenSizeCategory.mobile ? 10 : 12),
           Text(
             offer.description,
             style: TextStyle(
-              fontSize: screenSize == ScreenSizeCategory.mobile ? 14 : 15,
+              fontSize: screenSize == ScreenSizeCategory.mobile ? 13 : 15,
               color: Colors.grey[700],
-              height: 1.6,
+              height: 1.5,
             ),
           ),
-          const SizedBox(height: 24),
-          Divider(color: Colors.grey[200], thickness: 1),
-          const SizedBox(height: 24),
+          SizedBox(height: screenSize == ScreenSizeCategory.mobile ? 16 : 24),
+          Divider(color: Colors.grey[200], thickness: 0.8),
+          SizedBox(height: screenSize == ScreenSizeCategory.mobile ? 16 : 24),
         ],
         if (offer.contactNumber != null && offer.contactNumber!.isNotEmpty) ...[
           Text(
             'Contact',
             style: TextStyle(
-              fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+              fontSize: screenSize == ScreenSizeCategory.mobile ? 15 : 18,
               fontWeight: FontWeight.w700,
               color: AppColors.darkBlue,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: screenSize == ScreenSizeCategory.mobile ? 10 : 12),
           _InfoRow(
             label: 'Phone',
             value: offer.contactNumber!,
             screenSize: screenSize,
           ),
-          const SizedBox(height: 24),
-          Divider(color: Colors.grey[200], thickness: 1),
-          const SizedBox(height: 24),
+          SizedBox(height: screenSize == ScreenSizeCategory.mobile ? 16 : 24),
+          Divider(color: Colors.grey[200], thickness: 0.8),
+          SizedBox(height: screenSize == ScreenSizeCategory.mobile ? 16 : 24),
         ],
         if (offer.applicableProducts != null &&
             offer.applicableProducts!.isNotEmpty) ...[
           Text(
             'Applicable Products',
             style: TextStyle(
-              fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 18,
+              fontSize: screenSize == ScreenSizeCategory.mobile ? 15 : 18,
               fontWeight: FontWeight.w700,
               color: AppColors.darkBlue,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: screenSize == ScreenSizeCategory.mobile ? 10 : 12),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: screenSize == ScreenSizeCategory.mobile ? 6 : 8,
+            runSpacing: screenSize == ScreenSizeCategory.mobile ? 6 : 8,
             children: offer.applicableProducts!
                 .map(
                   (product) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                    padding: EdgeInsets.symmetric(
+                      horizontal:
+                          screenSize == ScreenSizeCategory.mobile ? 10 : 12,
+                      vertical: screenSize == ScreenSizeCategory.mobile ? 5 : 6,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.darkBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(18),
                       border: Border.all(
                         color: AppColors.darkBlue.withValues(alpha: 0.3),
                         width: 0.5,
