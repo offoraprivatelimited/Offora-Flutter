@@ -75,11 +75,16 @@ class _OfferCardState extends State<OfferCard> {
       final amount = offer.flatDiscountAmount ?? 0;
       discountText = '₹${amount.toStringAsFixed(0)} OFF';
     } else if (offer.offerType == OfferType.buyXGetYPercentOff) {
+      final buyQty = offer.buyQuantity ?? 1;
+      final getQty = offer.getQuantity ?? 1;
       final percentage = offer.getPercentage ?? 0;
-      discountText = '${percentage.toStringAsFixed(0)}% OFF';
+      discountText =
+          'Buy $buyQty Get $getQty ${percentage.toStringAsFixed(0)}%';
     } else if (offer.offerType == OfferType.buyXGetYRupeesOff) {
-      final amount = offer.flatDiscountAmount ?? 0;
-      discountText = '₹${amount.toStringAsFixed(0)} OFF';
+      final buyQty = offer.buyQuantity ?? 1;
+      final getQty = offer.getQuantity ?? 1;
+      final amount = offer.getRupees ?? 0;
+      discountText = 'Buy $buyQty Get $getQty ₹${amount.toStringAsFixed(0)}';
     } else if (offer.offerType == OfferType.bogo) {
       discountText = 'BOGO';
     } else if (offer.offerType == OfferType.productSpecific) {

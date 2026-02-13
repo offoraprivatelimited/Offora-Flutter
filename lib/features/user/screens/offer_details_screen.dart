@@ -349,6 +349,40 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
     }
   }
 
+  String _getDiscountText(Offer offer) {
+    if (offer.offerType == OfferType.percentageDiscount) {
+      final percentage = offer.percentageOff ?? 0;
+      return '${percentage.toStringAsFixed(0)}% OFF';
+    } else if (offer.offerType == OfferType.flatDiscount) {
+      final amount = offer.flatDiscountAmount ?? 0;
+      return '₹${amount.toStringAsFixed(0)} OFF';
+    } else if (offer.offerType == OfferType.buyXGetYPercentOff) {
+      final buyQty = offer.buyQuantity ?? 1;
+      final getQty = offer.getQuantity ?? 1;
+      final percentage = offer.getPercentage ?? 0;
+      return 'Buy $buyQty Get $getQty ${percentage.toStringAsFixed(0)}%';
+    } else if (offer.offerType == OfferType.buyXGetYRupeesOff) {
+      final buyQty = offer.buyQuantity ?? 1;
+      final getQty = offer.getQuantity ?? 1;
+      final amount = offer.getRupees ?? 0;
+      return 'Buy $buyQty Get $getQty ₹${amount.toStringAsFixed(0)}';
+    } else if (offer.offerType == OfferType.bogo) {
+      return 'BOGO';
+    } else if (offer.offerType == OfferType.productSpecific) {
+      return 'DEAL';
+    } else if (offer.offerType == OfferType.serviceSpecific) {
+      return 'DEAL';
+    } else if (offer.offerType == OfferType.bundleDeal) {
+      return 'BUNDLE';
+    } else {
+      // Fallback to percentage calculation
+      final discount = (offer.originalPrice > 0 && offer.discountPrice != null)
+          ? ((1 - (offer.discountPrice! / offer.originalPrice)) * 100)
+          : 0;
+      return '${discount.toStringAsFixed(0)}% OFF';
+    }
+  }
+
   void _showFullScreenImage(List<String> images, int initialIndex) {
     showGeneralDialog(
       context: context,
@@ -637,7 +671,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  '${discount.toStringAsFixed(0)}% OFF',
+                  _getDiscountText(offer),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -656,7 +690,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                '${discount.toStringAsFixed(0)}% OFF',
+                _getDiscountText(offer),
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,

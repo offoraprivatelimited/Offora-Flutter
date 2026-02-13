@@ -31,126 +31,137 @@ class SavedScreen extends StatelessWidget {
     return LayoutBuilder(builder: (context, constraints) {
       return SafeArea(
         child: CustomScrollView(
-        slivers: [
-          FutureBuilder<List<Offer>>(
-            future: context.read<SavedOffersService>().getSavedOffers(user.uid),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.darkBlue,
+          slivers: [
+            FutureBuilder<List<Offer>>(
+              future:
+                  context.read<SavedOffersService>().getSavedOffers(user.uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SliverFillRemaining(
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.darkBlue,
+                      ),
+                    ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return const SliverFillRemaining(
+                    child: EmptyState(
+                      icon: Icons.error_outline,
+                      title: 'Oops!',
+                      message: 'Could not load saved offers. Please try again.',
+                    ),
+                  );
+                }
+
+                final savedOffers = snapshot.data ?? [];
+
+                if (savedOffers.isEmpty) {
+                  return const SliverFillRemaining(
+                    child: EmptyState(
+                      icon: Icons.bookmark_border,
+                      title: 'No saved offers yet',
+                      message:
+                          'Start saving your favorite offers to find them here',
+                    ),
+                  );
+                }
+
+                return SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: constraints.maxWidth > 1200
+                          ? 5
+                          : constraints.maxWidth > 750
+                              ? 3
+                              : 2,
+                      childAspectRatio: constraints.maxWidth > 1000
+                          ? 0.8
+                          : constraints.maxWidth > 750
+                              ? 0.85
+                              : 0.65,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final offer = savedOffers[index];
+
+                        // Calculate discount based on offer type
+                        String discountText = '0% OFF';
+                        if (offer.offerType == OfferType.percentageDiscount) {
+                          final percentage = offer.percentageOff ?? 0;
+                          discountText =
+                              '${percentage.toStringAsFixed(0)}% OFF';
+                        } else if (offer.offerType == OfferType.flatDiscount) {
+                          final amount = offer.flatDiscountAmount ?? 0;
+                          discountText = '₹${amount.toStringAsFixed(0)} OFF';
+                        } else if (offer.offerType ==
+                            OfferType.buyXGetYPercentOff) {
+                          final buyQty = offer.buyQuantity ?? 1;
+                          final getQty = offer.getQuantity ?? 1;
+                          final percentage = offer.getPercentage ?? 0;
+                          discountText =
+                              'Buy $buyQty Get $getQty ${percentage.toStringAsFixed(0)}%';
+                        } else if (offer.offerType ==
+                            OfferType.buyXGetYRupeesOff) {
+                          final buyQty = offer.buyQuantity ?? 1;
+                          final getQty = offer.getQuantity ?? 1;
+                          final amount = offer.getRupees ?? 0;
+                          discountText =
+                              'Buy $buyQty Get $getQty ₹${amount.toStringAsFixed(0)}';
+                        } else if (offer.offerType == OfferType.bogo) {
+                          discountText = 'BOGO';
+                        } else if (offer.offerType ==
+                            OfferType.productSpecific) {
+                          discountText = 'DEAL';
+                        } else if (offer.offerType ==
+                            OfferType.serviceSpecific) {
+                          discountText = 'DEAL';
+                        } else if (offer.offerType == OfferType.bundleDeal) {
+                          discountText = 'BUNDLE';
+                        } else if (offer.discountPrice != null &&
+                            offer.originalPrice > 0) {
+                          // Fallback for any offer with discountPrice
+                          discountText =
+                              '${((1 - (offer.discountPrice! / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF';
+                        }
+
+                        final offerMap = <String, dynamic>{
+                          'title': offer.title,
+                          'store':
+                              offer.client?['businessName'] ?? offer.clientId,
+                          'image': offer.imageUrls?.isNotEmpty == true
+                              ? offer.imageUrls![0]
+                              : 'assets/images/logo/original/Logo_without_text_with_background.jpg',
+                          'discount': discountText,
+                        };
+                        return OfferCard(
+                          offer: offerMap,
+                          offerData: offer,
+                          onTap: () {
+                            // Find MainScreen ancestor and show offer details inline
+                            final mainScreenState = context
+                                .findAncestorStateOfType<MainScreenState>();
+                            if (mainScreenState != null) {
+                              mainScreenState.showOfferDetails(offer);
+                            }
+                          },
+                        );
+                      },
+                      childCount: savedOffers.length,
                     ),
                   ),
                 );
-              }
-
-              if (snapshot.hasError) {
-                return const SliverFillRemaining(
-                  child: EmptyState(
-                    icon: Icons.error_outline,
-                    title: 'Oops!',
-                    message: 'Could not load saved offers. Please try again.',
-                  ),
-                );
-              }
-
-              final savedOffers = snapshot.data ?? [];
-
-              if (savedOffers.isEmpty) {
-                return const SliverFillRemaining(
-                  child: EmptyState(
-                    icon: Icons.bookmark_border,
-                    title: 'No saved offers yet',
-                    message:
-                        'Start saving your favorite offers to find them here',
-                  ),
-                );
-              }
-
-              return SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverGrid(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: constraints.maxWidth > 1200
-                        ? 5
-                        : constraints.maxWidth > 750
-                            ? 3
-                            : 2,
-                    childAspectRatio: constraints.maxWidth > 1000
-                        ? 0.8
-                        : constraints.maxWidth > 750
-                            ? 0.85
-                            : 0.65,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final offer = savedOffers[index];
-
-                      // Calculate discount based on offer type
-                      String discountText = '0% OFF';
-                      if (offer.offerType == OfferType.percentageDiscount) {
-                        final percentage = offer.percentageOff ?? 0;
-                        discountText = '${percentage.toStringAsFixed(0)}% OFF';
-                      } else if (offer.offerType == OfferType.flatDiscount) {
-                        final amount = offer.flatDiscountAmount ?? 0;
-                        discountText = '₹${amount.toStringAsFixed(0)} OFF';
-                      } else if (offer.offerType ==
-                          OfferType.buyXGetYPercentOff) {
-                        final percentage = offer.getPercentage ?? 0;
-                        discountText = '${percentage.toStringAsFixed(0)}% OFF';
-                      } else if (offer.offerType ==
-                          OfferType.buyXGetYRupeesOff) {
-                        final amount = offer.flatDiscountAmount ?? 0;
-                        discountText = '₹${amount.toStringAsFixed(0)} OFF';
-                      } else if (offer.offerType == OfferType.bogo) {
-                        discountText = 'BOGO';
-                      } else if (offer.offerType == OfferType.productSpecific) {
-                        discountText = 'DEAL';
-                      } else if (offer.offerType == OfferType.serviceSpecific) {
-                        discountText = 'DEAL';
-                      } else if (offer.offerType == OfferType.bundleDeal) {
-                        discountText = 'BUNDLE';
-                      } else if (offer.discountPrice != null) {
-                        // Fallback for any offer with discountPrice
-                        discountText =
-                            '${((1 - (offer.discountPrice! / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF';
-                      }
-
-                      final offerMap = <String, dynamic>{
-                        'title': offer.title,
-                        'store':
-                            offer.client?['businessName'] ?? offer.clientId,
-                        'image': offer.imageUrls?.isNotEmpty == true
-                            ? offer.imageUrls![0]
-                            : 'assets/images/logo/original/Logo_without_text_with_background.jpg',
-                        'discount': discountText,
-                      };
-                      return OfferCard(
-                        offer: offerMap,
-                        offerData: offer,
-                        onTap: () {
-                          // Find MainScreen ancestor and show offer details inline
-                          final mainScreenState = context
-                              .findAncestorStateOfType<MainScreenState>();
-                          if (mainScreenState != null) {
-                            mainScreenState.showOfferDetails(offer);
-                          }
-                        },
-                      );
-                    },
-                    childCount: savedOffers.length,
-                  ),
-                ),
-              );
-            },
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
-        ],
-      ),
-    );
-  });
-}
+              },
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        ),
+      );
+    });
+  }
 }
