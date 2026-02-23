@@ -683,8 +683,66 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 ),
               ),
             ],
-          )
-        else
+          ),
+        // Show minimum purchase and max usage per customer if present
+        if ((offer.minimumPurchase != null && offer.minimumPurchase! > 0) ||
+            (offer.maxUsagePerCustomer != null && offer.maxUsagePerCustomer! > 0))
+          Padding(
+            padding: EdgeInsets.only(top: 10, bottom: 2),
+            child: Row(
+              children: [
+                if (offer.minimumPurchase != null && offer.minimumPurchase! > 0)
+                  Row(
+                    children: [
+                      Icon(Icons.shopping_cart_checkout, size: 18, color: AppColors.darkBlue),
+                      SizedBox(width: 5),
+                      Text(
+                        'Min. Purchase: ',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.darkBlue,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        currency.format(offer.minimumPurchase),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.darkBlue,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                if ((offer.minimumPurchase != null && offer.minimumPurchase! > 0) && (offer.maxUsagePerCustomer != null && offer.maxUsagePerCustomer! > 0))
+                  SizedBox(width: 18),
+                if (offer.maxUsagePerCustomer != null && offer.maxUsagePerCustomer! > 0)
+                  Row(
+                    children: [
+                      Icon(Icons.repeat, size: 18, color: AppColors.darkBlue),
+                      SizedBox(width: 5),
+                      Text(
+                        'Max Usage/Customer: ',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.darkBlue,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        '${offer.maxUsagePerCustomer}x',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.darkBlue,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        if (!hasPrice)
           Center(
             child: Container(
               padding: EdgeInsets.symmetric(

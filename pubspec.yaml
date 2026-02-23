@@ -5,7 +5,7 @@ description: "A new Flutter project."
 publish_to: 'none'
 
 # [Corrected/Modernized Versions]
-version: 1.0.2+3
+version: 1.0.2+6
 
 environment:
   # FIX: Dart SDK version updated to a stable range compatible with the latest package versions.

@@ -18,7 +18,7 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   String _searchQuery = '';
-  String? _selectedCity;
+  String? _selectedCity = 'All Cities';
   String? _selectedCategory;
   String _sortBy = 'newest'; // newest, discount, price
   final TextEditingController _searchController = TextEditingController();
@@ -147,7 +147,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: LayoutBuilder(builder: (context, constraints) {
         return SafeArea(
           child: CustomScrollView(
-            // Prevent layout jumps on keyboard open/close (esp. web)
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             physics: const ClampingScrollPhysics(),
             slivers: [
@@ -163,8 +162,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   ),
                 ),
               ),
-
-              // Search Bar
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -221,14 +218,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   ),
                 ),
               ),
-
               // Sort and Filter Bar
               SliverToBoxAdapter(
                 child: StreamBuilder<List<Offer>>(
                   stream: context.read<OfferService>().watchApprovedOffers(),
                   builder: (context, snapshot) {
                     final allOffers = snapshot.data ?? [];
-                    final cities = <String>{};
+                    final cities = <String>{'All Cities'};
                     final categories = <String>{'All Categories'};
                     for (final offer in allOffers) {
                       if (offer.city != null && offer.city!.isNotEmpty) {
@@ -241,7 +237,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     }
                     final sortedCities = cities.toList()..sort();
                     final sortedCategories = categories.toList()..sort();
-
                     return SortFilterBar(
                       currentSortBy: _sortBy,
                       selectedCategory: _selectedCategory,
@@ -253,7 +248,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         setState(() => _selectedCategory = value);
                       },
                       onCityChanged: (value) {
-                        setState(() => _selectedCity = value);
+                        setState(() => _selectedCity = value ?? 'All Cities');
                       },
                       availableCities: sortedCities,
                       availableCategories: sortedCategories,
@@ -261,7 +256,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   },
                 ),
               ),
-
               StreamBuilder<List<Offer>>(
                 stream: context.read<OfferService>().watchApprovedOffers(),
                 builder: (context, snapshot) {
@@ -273,10 +267,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                     );
                   }
-
                   final allOffers = snapshot.data ?? [];
                   final filteredOffers = _filterOffers(allOffers);
-
                   if (filteredOffers.isEmpty) {
                     return const SliverFillRemaining(
                       child: EmptyState(
@@ -287,7 +279,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                     );
                   }
-
                   return SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     sliver: SliverGrid(
@@ -308,8 +299,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
                           final offer = filteredOffers[index];
-
-                          // Calculate discount based on offer type
                           String discountText = '0% OFF';
                           if (offer.offerType == OfferType.percentageDiscount) {
                             final percentage = offer.percentageOff ?? 0;
@@ -339,11 +328,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           } else if (offer.offerType == OfferType.bundleDeal) {
                             discountText = 'BUNDLE';
                           } else if (offer.discountPrice != null) {
-                            // Fallback for any offer with discountPrice
                             discountText =
                                 '${((1 - (offer.discountPrice! / offer.originalPrice)) * 100).toStringAsFixed(0)}% OFF';
                           }
-
                           final offerMap = <String, dynamic>{
                             'title': offer.title,
                             'store':
@@ -357,7 +344,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             offer: offerMap,
                             offerData: offer,
                             onTap: () {
-                              // Find MainScreen ancestor and show offer details inline
                               final mainScreenState = context
                                   .findAncestorStateOfType<MainScreenState>();
                               if (mainScreenState != null) {
