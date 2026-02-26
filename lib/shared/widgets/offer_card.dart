@@ -120,7 +120,7 @@ class _OfferCardState extends State<OfferCard> {
     final discountPrice = widget.offerData?.discountPrice;
 
     // Calculate correct discount price based on offer type
-    double displayDiscountPrice = discountPrice ?? 0;
+    double displayDiscountPrice = discountPrice ?? 0.0;
     if (widget.offerData != null &&
         originalPrice != null &&
         originalPrice > 0) {
@@ -143,7 +143,6 @@ class _OfferCardState extends State<OfferCard> {
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
         child: Container(
           width: double.infinity,
-          height: 240.0,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: Colors.white,
@@ -280,11 +279,10 @@ class _OfferCardState extends State<OfferCard> {
 
                     // Details
                     Container(
-                      height: 85.0,
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(6),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.max,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             widget.offer['title'] ?? '',
@@ -297,17 +295,18 @@ class _OfferCardState extends State<OfferCard> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 1),
                           // Price section or discount badge
                           if (widget.offerData != null &&
                               displayDiscountPrice > 0 &&
                               originalPrice != null &&
                               originalPrice > 0)
-                            Expanded(
+                            Padding(
+                              padding: const EdgeInsets.only(top: 3),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(
                                     child: Column(
@@ -315,25 +314,31 @@ class _OfferCardState extends State<OfferCard> {
                                           CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
+                                        // Offer Price - Large and prominent
                                         Text(
-                                          '₹${displayDiscountPrice.toStringAsFixed(0)}',
+                                          '₹${(displayDiscountPrice).toStringAsFixed(2)}',
                                           style: const TextStyle(
-                                            fontSize: 15,
+                                            fontSize: 17,
                                             fontWeight: FontWeight.w900,
                                             color: Color(0xFF1F477D),
                                             letterSpacing: -0.5,
+                                            height: 1.0,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
+                                        // Spacer for better visual hierarchy
+                                        const SizedBox(height: 2),
+                                        // Original Price - Smaller and struck through
                                         Text(
-                                          '₹${originalPrice.toStringAsFixed(0)}',
+                                          '₹${(originalPrice ?? 0).toStringAsFixed(0)}',
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: Colors.grey,
                                             decoration:
                                                 TextDecoration.lineThrough,
-                                            fontWeight: FontWeight.w600,
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.0,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -341,60 +346,70 @@ class _OfferCardState extends State<OfferCard> {
                                       ],
                                     ),
                                   ),
+                                  // Compare/Save button - positioned on the right
                                   if (widget.offerData != null)
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: isInCompare
-                                            ? const Color(0xFF1F477D)
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: const Color(0xFF1F477D),
-                                          width: 1.4,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withAlpha(12),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: IconButton(
-                                        icon: Icon(
-                                          isInCompare
-                                              ? Icons.done
-                                              : Icons.compare_arrows_outlined,
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8),
+                                      child: Container(
+                                        decoration: BoxDecoration(
                                           color: isInCompare
-                                              ? Colors.white
-                                              : const Color(0xFF1F477D),
-                                          size: 20,
+                                              ? const Color(0xFF1F477D)
+                                              : Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: const Color(0xFF1F477D),
+                                            width: 1.4,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.black.withAlpha(12),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
                                         ),
-                                        onPressed: () {
-                                          if (!compareService.isFull ||
-                                              isInCompare) {
-                                            compareService.toggleCompare(
-                                                widget.offerData!);
-                                          } else {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                    'You can compare up to 4 offers'),
-                                                duration: Duration(seconds: 2),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        padding: const EdgeInsets.all(10),
-                                        constraints: const BoxConstraints(),
+                                        child: IconButton(
+                                          icon: Icon(
+                                            isInCompare
+                                                ? Icons.done
+                                                : Icons.compare_arrows_outlined,
+                                            color: isInCompare
+                                                ? Colors.white
+                                                : const Color(0xFF1F477D),
+                                            size: 20,
+                                          ),
+                                          onPressed: () {
+                                            if (!compareService.isFull ||
+                                                isInCompare) {
+                                              compareService.toggleCompare(
+                                                  widget.offerData!);
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      'You can compare up to 4 offers'),
+                                                  duration:
+                                                      Duration(seconds: 2),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          padding:
+                                              const EdgeInsets.all(10),
+                                          constraints:
+                                              const BoxConstraints(),
+                                        ),
                                       ),
                                     ),
                                 ],
                               ),
                             )
                           else
-                            Expanded(
+                            Flexible(
+                              fit: FlexFit.loose,
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,

@@ -138,7 +138,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
   }
 
   Future<void> _shareOffer() async {
-    double displayDiscountPrice = widget.offer.discountPrice ?? 0;
+    double displayDiscountPrice = widget.offer.discountPrice ?? 0.0;
     final originalPrice = widget.offer.originalPrice;
     final hasOriginalPrice = originalPrice > 0;
 
@@ -157,13 +157,13 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
 
     final discount = hasOriginalPrice && displayDiscountPrice > 0
         ? ((1 - (displayDiscountPrice / originalPrice)) * 100)
-            .toStringAsFixed(0)
+            .toStringAsFixed(2)
         : '0';
     String text = 'Check out this amazing offer!\n\n'
         '${widget.offer.title}\n\n'
-        'Offer Price: ₹${displayDiscountPrice.toStringAsFixed(0)}\n';
+        'Offer Price: ₹${displayDiscountPrice.toStringAsFixed(2)}\n';
     if (hasOriginalPrice) {
-      text += 'Original Price: ₹${originalPrice.toStringAsFixed(0)}\n';
+      text += 'Original Price: ₹${originalPrice.toStringAsFixed(2)}\n';
       text += 'Save $discount%!\n\n';
     }
     text += '${widget.offer.description}\n\n'
@@ -604,7 +604,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
     final currency = NumberFormat.currency(symbol: '₹', decimalDigits: 0);
     final dateFormat = DateFormat('dd MMM yyyy');
     double discount = 0;
-    double displayDiscountPrice = offer.discountPrice ?? 0;
+    double displayDiscountPrice = offer.discountPrice ?? 0.0;
 
     if (offer.offerType == OfferType.percentageDiscount) {
       discount = offer.percentageOff ?? 0;
@@ -642,7 +642,7 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
           Row(
             children: [
               Text(
-                currency.format(displayDiscountPrice.toInt()),
+                '₹${displayDiscountPrice.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: screenSize == ScreenSizeCategory.mobile ? 24 : 28,
                   fontWeight: FontWeight.w900,

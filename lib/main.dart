@@ -18,8 +18,21 @@ import 'app/router/app_router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setPathUrlStrategy();
-  await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    if (kDebugMode) print('Warning: Could not load .env file: $e');
+  }
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    if (kDebugMode) print('Error initializing Firebase: $e');
+  }
+
   // Enable persistence for web to maintain authentication state
   if (Firebase.apps.isNotEmpty) {
     try {
@@ -28,6 +41,7 @@ void main() async {
       if (kDebugMode) print('Error setting persistence: $e');
     }
   }
+
   runApp(const OfforaApp());
 }
 

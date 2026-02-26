@@ -100,66 +100,9 @@
   <!-- Load Google APIs -->
   <script src="https://apis.google.com/js/api.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics-compat.js"></script>
 </head>
 <body>
   
-  <script>
-    // Load Firebase configuration from external config.json
-    let firebaseConfig = null;
-
-    fetch('config.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to load config.json');
-        }
-        return response.json();
-      })
-      .then(config => {
-        firebaseConfig = {
-          apiKey: config.apiKey,
-          authDomain: config.authDomain,
-          projectId: config.projectId,
-          storageBucket: config.storageBucket,
-          messagingSenderId: config.messagingSenderId,
-          appId: config.appId,
-          measurementId: config.measurementId
-        };
-
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-        }
-
-        // Enable offline persistence for better reliability
-        try {
-          firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-        } catch (e) {
-          console.warn('Could not set persistence:', e);
-        }
-
-        // Monitor authentication state with better error handling
-        firebase.auth().onAuthStateChanged(function(user) {
-          if (user) {
-            console.log('User is signed in:', user.email);
-          } else {
-            console.log('No user is signed in');
-          }
-        }, function(error) {
-          console.error('Auth state change error:', error);
-        });
-      })
-      .catch(error => {
-        console.error('Error loading Firebase configuration:', error);
-        alert('Failed to load application configuration. Please refresh the page.');
-      });
-  </script>
-
   <!-- Add a container for the Google Sign-In button -->
   <div id="g_id_signin"></div>
   
