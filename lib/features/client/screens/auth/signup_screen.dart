@@ -87,6 +87,7 @@ class _SignupScreenState extends State<SignupScreen> {
     'Optical',
     'Travel & Tours',
     'Department Store',
+    'Construction',
     'Other',
   ];
 

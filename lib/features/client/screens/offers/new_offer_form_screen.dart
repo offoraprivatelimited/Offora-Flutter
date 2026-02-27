@@ -117,6 +117,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     'Optical',
     'Travel & Tours',
     'Department Store',
+    'Construction',
     'Other',
   ];
 
