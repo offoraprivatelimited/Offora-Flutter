@@ -15,6 +15,8 @@ class PremiumTextField extends StatelessWidget {
   final TextInputAction? textInputAction;
   final bool readOnly;
   final VoidCallback? onTap;
+  final FocusNode? focusNode;
+  final void Function(String)? onFieldSubmitted;
 
   const PremiumTextField({
     super.key,
@@ -31,6 +33,8 @@ class PremiumTextField extends StatelessWidget {
     this.textInputAction,
     this.readOnly = false,
     this.onTap,
+    this.focusNode,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -43,6 +47,8 @@ class PremiumTextField extends StatelessWidget {
       validator: validator,
       onChanged: onChanged,
       textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
+      focusNode: focusNode,
       readOnly: readOnly,
       onTap: onTap,
       style: const TextStyle(

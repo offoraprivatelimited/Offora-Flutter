@@ -8,6 +8,8 @@ class PercentageDiscountFields extends StatelessWidget {
   final Color darkBlue;
   final Color brightGold;
   final bool isEditing;
+  final FocusNode? focusNode;
+  final void Function(String)? onFieldSubmitted;
 
   const PercentageDiscountFields({
     super.key,
@@ -17,6 +19,8 @@ class PercentageDiscountFields extends StatelessWidget {
     required this.darkBlue,
     required this.brightGold,
     required this.isEditing,
+    this.focusNode,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -26,6 +30,9 @@ class PercentageDiscountFields extends StatelessWidget {
         TextFormField(
           controller: percentageOffController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          focusNode: focusNode,
+          textInputAction: TextInputAction.next,
+          onFieldSubmitted: onFieldSubmitted,
           style: TextStyle(color: darkBlue),
           onChanged: onPercentageChanged,
           decoration: InputDecoration(
@@ -50,6 +57,8 @@ class FlatDiscountFields extends StatelessWidget {
   final String Function(String?)? validator;
   final Color darkBlue;
   final Color brightGold;
+  final FocusNode? focusNode;
+  final void Function(String)? onFieldSubmitted;
 
   const FlatDiscountFields({
     super.key,
@@ -57,6 +66,8 @@ class FlatDiscountFields extends StatelessWidget {
     this.validator,
     required this.darkBlue,
     required this.brightGold,
+    this.focusNode,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -66,6 +77,9 @@ class FlatDiscountFields extends StatelessWidget {
         TextFormField(
           controller: flatDiscountController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          focusNode: focusNode,
+          textInputAction: TextInputAction.next,
+          onFieldSubmitted: onFieldSubmitted,
           style: TextStyle(color: darkBlue),
           decoration: InputDecoration(
             labelText: 'Flat Discount Amount (₹)',

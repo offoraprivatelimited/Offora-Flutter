@@ -52,6 +52,22 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   late TextEditingController _addressController;
   late TextEditingController _contactNumberController;
 
+  // Focus nodes for keyboard navigation
+  late FocusNode _titleFocusNode;
+  late FocusNode _descriptionFocusNode;
+  late FocusNode _originalPriceFocusNode;
+  late FocusNode _addressFocusNode;
+  late FocusNode _contactNumberFocusNode;
+  late FocusNode _termsFocusNode;
+  late FocusNode _percentageOffFocusNode;
+  late FocusNode _flatDiscountFocusNode;
+  late FocusNode _buyQuantityFocusNode;
+  late FocusNode _getQuantityFocusNode;
+  late FocusNode _advancedPercentageFocusNode;
+  late FocusNode _minimumPurchaseFocusNode;
+  late FocusNode _maxUsagePerCustomerFocusNode;
+  late FocusNode _keywordsFocusNode;
+
   // Date fields
   DateTime? _selectedStartDate;
   DateTime? _selectedEndDate;
@@ -163,6 +179,22 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _maxUsagePerCustomerController = TextEditingController();
     _keywordsController = TextEditingController();
     _keywords = [];
+
+    // Initialize focus nodes
+    _titleFocusNode = FocusNode();
+    _descriptionFocusNode = FocusNode();
+    _originalPriceFocusNode = FocusNode();
+    _addressFocusNode = FocusNode();
+    _contactNumberFocusNode = FocusNode();
+    _termsFocusNode = FocusNode();
+    _percentageOffFocusNode = FocusNode();
+    _flatDiscountFocusNode = FocusNode();
+    _buyQuantityFocusNode = FocusNode();
+    _getQuantityFocusNode = FocusNode();
+    _advancedPercentageFocusNode = FocusNode();
+    _minimumPurchaseFocusNode = FocusNode();
+    _maxUsagePerCustomerFocusNode = FocusNode();
+    _keywordsFocusNode = FocusNode();
 
     _selectedOfferType = OfferType.percentageDiscount;
     _selectedOfferCategory = OfferCategory.product;
@@ -282,6 +314,23 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     _keywordsController.dispose();
     _cityController.dispose();
     _businessCategoryController.dispose();
+
+    // Dispose focus nodes
+    _titleFocusNode.dispose();
+    _descriptionFocusNode.dispose();
+    _originalPriceFocusNode.dispose();
+    _addressFocusNode.dispose();
+    _contactNumberFocusNode.dispose();
+    _termsFocusNode.dispose();
+    _percentageOffFocusNode.dispose();
+    _flatDiscountFocusNode.dispose();
+    _buyQuantityFocusNode.dispose();
+    _getQuantityFocusNode.dispose();
+    _advancedPercentageFocusNode.dispose();
+    _minimumPurchaseFocusNode.dispose();
+    _maxUsagePerCustomerFocusNode.dispose();
+    _keywordsFocusNode.dispose();
+
     if (_autocompleteCityController != null && _autocompleteListener != null) {
       _autocompleteCityController!.removeListener(_autocompleteListener!);
       _autocompleteListener = null;
@@ -696,6 +745,12 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       labelText: 'Offer Title *',
                       hintText: 'e.g., 50% Off Laptops, Buy 1 Get 1 Free',
                       prefixIcon: Icons.title,
+                      focusNode: _titleFocusNode,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context)
+                            .requestFocus(_descriptionFocusNode);
+                      },
                       validator: (value) => value?.isEmpty ?? true
                           ? 'Please enter offer title'
                           : null,
@@ -708,6 +763,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                           'What\'s included? Example: Valid on winter clothes, excludes sale items',
                       prefixIcon: Icons.description,
                       maxLines: 4,
+                      focusNode: _descriptionFocusNode,
+                      textInputAction: TextInputAction.newline,
                       validator: (value) => value?.isEmpty ?? true
                           ? 'Please describe the offer'
                           : null,
@@ -720,6 +777,12 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       prefixIcon: Icons.currency_rupee,
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
+                      focusNode: _originalPriceFocusNode,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context)
+                            .requestFocus(_descriptionFocusNode);
+                      },
                       validator: (value) {
                         if (value != null &&
                             value.isNotEmpty &&
@@ -777,6 +840,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       hintText: 'Full address of your shop/location',
                       prefixIcon: Icons.location_on,
                       maxLines: 2,
+                      focusNode: _addressFocusNode,
+                      textInputAction: TextInputAction.newline,
                       validator: (value) => value?.isEmpty ?? true
                           ? 'Please enter your address'
                           : null,
@@ -786,6 +851,11 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       controller: _contactNumberController,
                       keyboardType: TextInputType.phone,
                       maxLength: 10,
+                      focusNode: _contactNumberFocusNode,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(_termsFocusNode);
+                      },
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(10),
@@ -885,6 +955,12 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       prefixIcon: Icons.shopping_cart,
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
+                      focusNode: _minimumPurchaseFocusNode,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context)
+                            .requestFocus(_maxUsagePerCustomerFocusNode);
+                      },
                       validator: (value) {
                         if (value?.isNotEmpty ?? false) {
                           if (double.tryParse(value!) == null) {
@@ -901,6 +977,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       hintText: 'Maximum times per customer (e.g., 1, 2, 5)',
                       prefixIcon: Icons.person,
                       keyboardType: TextInputType.number,
+                      focusNode: _maxUsagePerCustomerFocusNode,
+                      textInputAction: TextInputAction.done,
                       validator: (value) {
                         if (value?.isNotEmpty ?? false) {
                           if (int.tryParse(value!) == null) {
@@ -991,6 +1069,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       hintText:
                           'Example: Not valid with other offers, Only for registered members',
                       maxLines: 4,
+                      focusNode: _termsFocusNode,
+                      textInputAction: TextInputAction.newline,
                     ),
                     const SizedBox(height: 24),
 
@@ -1009,6 +1089,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                           'Separate keywords with commas • Example: buy one get one, BOGO, electronics, gadgets, summer sale',
                       prefixIcon: Icons.search,
                       maxLines: 2,
+                      focusNode: _keywordsFocusNode,
+                      textInputAction: TextInputAction.newline,
                     ),
                     const SizedBox(height: 24),
 
@@ -1401,6 +1483,10 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           darkBlue: AppColors.darkBlue,
           brightGold: AppColors.brightGold,
           isEditing: widget.offerToEdit != null,
+          focusNode: _percentageOffFocusNode,
+          onFieldSubmitted: (_) {
+            FocusScope.of(context).requestFocus(_addressFocusNode);
+          },
         ),
         const SizedBox(height: 24),
       ],
@@ -1414,6 +1500,10 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
           flatDiscountController: _flatDiscountController,
           darkBlue: AppColors.darkBlue,
           brightGold: AppColors.brightGold,
+          focusNode: _flatDiscountFocusNode,
+          onFieldSubmitted: (_) {
+            FocusScope.of(context).requestFocus(_addressFocusNode);
+          },
         ),
         const SizedBox(height: 24),
       ],
