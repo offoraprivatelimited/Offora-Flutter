@@ -385,13 +385,35 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     );
 
     if (picked != null) {
-      setState(() {
-        if (isStartDate) {
-          _selectedStartDate = picked;
-        } else {
-          _selectedEndDate = picked;
+      // Validate date logic
+      if (isStartDate) {
+        // When setting start date, ensure it's not after the end date
+        if (_selectedEndDate != null && picked.isAfter(_selectedEndDate!)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Start date cannot be after the end date'),
+              ),
+            );
+          }
+          return;
         }
-      });
+        setState(() => _selectedStartDate = picked);
+      } else {
+        // When setting end date, ensure it's not before the start date
+        if (_selectedStartDate != null &&
+            picked.isBefore(_selectedStartDate!)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('End date cannot be before the start date'),
+              ),
+            );
+          }
+          return;
+        }
+        setState(() => _selectedEndDate = picked);
+      }
     }
   }
 
@@ -407,6 +429,16 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     if (_selectedStartDate == null || _selectedEndDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select both start and end dates')),
+      );
+      return;
+    }
+
+    // Validate that end date is after start date
+    if (_selectedEndDate!.isBefore(_selectedStartDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('End date must be after the start date'),
+        ),
       );
       return;
     }
