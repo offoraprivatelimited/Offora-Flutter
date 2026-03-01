@@ -31,7 +31,6 @@ class SortFilterBar extends StatefulWidget {
 
 class _SortFilterBarState extends State<SortFilterBar> {
   late String _selectedCategory;
-  late String _selectedCity;
   late String _selectedSortBy;
   List<String> _citySuggestions = [];
   late TextEditingController _cityController;
@@ -40,7 +39,6 @@ class _SortFilterBarState extends State<SortFilterBar> {
   void initState() {
     super.initState();
     _selectedCategory = widget.selectedCategory ?? 'All Categories';
-    _selectedCity = widget.selectedCity ?? '';
     _selectedSortBy = widget.currentSortBy;
     _cityController = TextEditingController(text: widget.selectedCity ?? '');
     _fetchCities();
@@ -58,7 +56,6 @@ class _SortFilterBarState extends State<SortFilterBar> {
     // Update city controller if it changed from parent
     if (oldWidget.selectedCity != widget.selectedCity) {
       setState(() {
-        _selectedCity = widget.selectedCity ?? '';
         _cityController.text = widget.selectedCity ?? '';
       });
     }
@@ -384,9 +381,7 @@ class _SortFilterBarState extends State<SortFilterBar> {
                           fontSize: 14,
                         ),
                         onChanged: (value) {
-                          setState(() {
-                            _selectedCity = value;
-                          });
+                          // City state is managed through _cityController
                         },
                         decoration: InputDecoration(
                           hintText: 'Select Location',
@@ -406,7 +401,6 @@ class _SortFilterBarState extends State<SortFilterBar> {
                                   onPressed: () {
                                     fieldController.clear();
                                     setState(() {
-                                      _selectedCity = '';
                                       _cityController.clear();
                                     });
                                     widget.onCityChanged(null);
@@ -439,7 +433,6 @@ class _SortFilterBarState extends State<SortFilterBar> {
                     },
                     onSelected: (String selection) {
                       setState(() {
-                        _selectedCity = selection;
                         _cityController.text = selection;
                       });
                       widget.onCityChanged(selection);
