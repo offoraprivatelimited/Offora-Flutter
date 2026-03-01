@@ -399,11 +399,12 @@ class _SortFilterBarState extends State<SortFilterBar> {
                             color: AppColors.darkBlue,
                             size: 18,
                           ),
-                          suffixIcon: _selectedCity.isNotEmpty
+                          suffixIcon: fieldController.text.isNotEmpty
                               ? IconButton(
                                   icon: const Icon(Icons.clear,
                                       color: AppColors.darkBlue, size: 18),
                                   onPressed: () {
+                                    fieldController.clear();
                                     setState(() {
                                       _selectedCity = '';
                                       _cityController.clear();
