@@ -84,10 +84,8 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   VoidCallback? _autocompleteListener;
   List<String> _citySuggestions = [];
 
-  // Business category autocomplete
+  // Business category dropdown
   late TextEditingController _businessCategoryController;
-  TextEditingController? _autocompleteBusinessCategoryController;
-  VoidCallback? _autocompleteBCListener;
   List<String> _businessCategorySuggestions = [];
 
   // Business categories from signup
@@ -272,6 +270,9 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     if (offer.getPercentage != null) {
       _advancedPercentageController.text = offer.getPercentage.toString();
     }
+    if (offer.getRupees != null) {
+      _advancedFlatDiscountController.text = offer.getRupees.toString();
+    }
     if (offer.buyQuantity != null) {
       _buyQuantityController.text = offer.buyQuantity.toString();
     }
@@ -336,13 +337,6 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
       _autocompleteCityController!.removeListener(_autocompleteListener!);
       _autocompleteListener = null;
       _autocompleteCityController = null;
-    }
-    if (_autocompleteBusinessCategoryController != null &&
-        _autocompleteBCListener != null) {
-      _autocompleteBusinessCategoryController!
-          .removeListener(_autocompleteBCListener!);
-      _autocompleteBCListener = null;
-      _autocompleteBusinessCategoryController = null;
     }
     super.dispose();
   }
@@ -574,10 +568,19 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
         getPercentage: _advancedPercentageController.text.isNotEmpty
             ? double.tryParse(_advancedPercentageController.text)
             : null,
+        getRupees: _advancedFlatDiscountController.text.isNotEmpty
+            ? double.tryParse(_advancedFlatDiscountController.text)
+            : null,
         applicableProducts:
             _applicableProducts.isNotEmpty ? _applicableProducts : null,
         applicableServices:
             _applicableServices.isNotEmpty ? _applicableServices : null,
+        minimumPurchase: _minimumPurchaseController.text.isNotEmpty
+            ? double.tryParse(_minimumPurchaseController.text)
+            : null,
+        maxUsagePerCustomer: _maxUsagePerCustomerController.text.isNotEmpty
+            ? int.tryParse(_maxUsagePerCustomerController.text)
+            : null,
         keywords: _parseKeywords(),
       );
 
@@ -779,11 +782,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       focusNode: _originalPriceFocusNode,
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) {
-                        FocusScope.of(context)
-                            .requestFocus(_descriptionFocusNode);
-                      },
+                      textInputAction: TextInputAction.done,
                       validator: (value) {
                         if (value != null &&
                             value.isNotEmpty &&
@@ -842,7 +841,11 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       prefixIcon: Icons.location_on,
                       maxLines: 2,
                       focusNode: _addressFocusNode,
-                      textInputAction: TextInputAction.newline,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context)
+                            .requestFocus(_contactNumberFocusNode);
+                      },
                       validator: (value) => value?.isEmpty ?? true
                           ? 'Please enter your address'
                           : null,
@@ -853,10 +856,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                       keyboardType: TextInputType.phone,
                       maxLength: 10,
                       focusNode: _contactNumberFocusNode,
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) {
-                        FocusScope.of(context).requestFocus(_termsFocusNode);
-                      },
+                      textInputAction: TextInputAction.done,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(10),
@@ -1095,6 +1095,70 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                     ),
                     const SizedBox(height: 24),
 
+                    // Additional Conditions Section
+                    _buildSectionTitle('⚙️ Additional Conditions (Optional)'),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: PremiumTextField(
+                            controller: _minimumPurchaseController,
+                            labelText: 'Minimum Purchase',
+                            hintText: 'Minimum purchase amount (₹)',
+                            prefixIcon: Icons.shopping_cart,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            textInputAction: TextInputAction.next,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _maxUsagePerCustomerController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Max Usage Per Customer',
+                              hintText: 'Max times per customer',
+                              prefixIcon: const Icon(Icons.repeat,
+                                  color: AppColors.darkBlue),
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide:
+                                    const BorderSide(color: Colors.grey),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                    color: AppColors.darkBlue, width: 2),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Colors.red),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                    color: Colors.red, width: 2),
+                              ),
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            cursorColor: AppColors.darkBlue,
+                            textInputAction: TextInputAction.done,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
                     // Images Section
                     _buildSectionTitle('🖼️ Add Photos'),
                     const SizedBox(height: 16),
@@ -1228,125 +1292,59 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   Widget _buildBusinessCategoryDropdown() {
     return SizedBox(
       width: double.infinity,
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+      child: DropdownButtonFormField<String>(
+        initialValue: _selectedBusinessCategory.isNotEmpty
+            ? _selectedBusinessCategory
+            : null,
+        hint: const Text('Select category',
+            style: TextStyle(color: Colors.black54, fontSize: 16)),
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: 'Business Category *',
+          prefixIcon: const Icon(Icons.business, color: AppColors.darkBlue),
+          filled: true,
+          fillColor: Colors.white,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.grey),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.darkBlue, width: 2),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.red),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.red, width: 2),
           ),
         ),
-        child: Autocomplete<String>(
-          optionsBuilder: (TextEditingValue textEditingValue) {
-            if (textEditingValue.text.isEmpty) {
-              return const Iterable<String>.empty();
-            }
-            return _businessCategorySuggestions.where((category) => category
-                .toLowerCase()
-                .contains(textEditingValue.text.toLowerCase()));
-          },
-          optionsViewBuilder: (context, onSelected, options) {
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Material(
-                elevation: 4.0,
-                child: Container(
-                  width: 300,
-                  color: Colors.white,
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemCount: options.length,
-                    itemBuilder: (context, index) {
-                      final option = options.elementAt(index);
-                      return InkWell(
-                        onTap: () => onSelected(option),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 12.0),
-                          child: Text(
-                            option,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            );
-          },
-          fieldViewBuilder:
-              (context, categoryFieldController, focusNode, onFieldSubmitted) {
-            _autocompleteBusinessCategoryController ??= categoryFieldController;
-            if (_autocompleteBusinessCategoryController!.text !=
-                _businessCategoryController.text) {
-              _autocompleteBusinessCategoryController!.text =
-                  _businessCategoryController.text;
-              _autocompleteBusinessCategoryController!.selection =
-                  _businessCategoryController.selection;
-            }
-            if (_autocompleteBCListener == null) {
-              _autocompleteBCListener = () {
-                if (_autocompleteBusinessCategoryController != null &&
-                    _businessCategoryController.text !=
-                        _autocompleteBusinessCategoryController!.text) {
-                  _businessCategoryController.text =
-                      _autocompleteBusinessCategoryController!.text;
-                  _businessCategoryController.selection =
-                      _autocompleteBusinessCategoryController!.selection;
-                }
-              };
-              _autocompleteBusinessCategoryController!
-                  .addListener(_autocompleteBCListener!);
-            }
-            return TextFormField(
-              controller: categoryFieldController,
-              focusNode: focusNode,
-              style: const TextStyle(color: Colors.black),
-              decoration: InputDecoration(
-                labelText: 'Business Category *',
-                hintText: 'Type or select category (e.g., Grocery, Restaurant)',
-                prefixIcon:
-                    const Icon(Icons.business, color: AppColors.darkBlue),
-                filled: true,
-                fillColor: Colors.white,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.grey),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: AppColors.darkBlue, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please select a business category';
-                }
-                return null;
-              },
-            );
-          },
-          onSelected: (String selection) {
-            setState(() {
-              _selectedBusinessCategory = selection;
-              _businessCategoryController.text = selection;
-            });
-          },
-        ),
+        dropdownColor: Colors.white,
+        menuMaxHeight: 300,
+        items: _businessCategorySuggestions.map((String category) {
+          return DropdownMenuItem<String>(
+            value: category,
+            child: Text(
+              category,
+              style: const TextStyle(color: Colors.black87, fontSize: 16),
+            ),
+          );
+        }).toList(),
+        style: const TextStyle(color: Colors.black87, fontSize: 16),
+        onChanged: (String? newValue) {
+          setState(() {
+            _selectedBusinessCategory = newValue ?? '';
+            _businessCategoryController.text = newValue ?? '';
+          });
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please select a business category';
+          }
+          return null;
+        },
       ),
     );
   }

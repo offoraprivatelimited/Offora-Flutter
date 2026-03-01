@@ -39,10 +39,20 @@ class PremiumTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determine the keyboard type to use.
+    // If textInputAction is newline and maxLines > 1, ensure keyboardType is multiline
+    // to avoid internal Flutter assertion failure.
+    TextInputType effectiveKeyboardType = keyboardType;
+    if (textInputAction == TextInputAction.newline &&
+        maxLines > 1 &&
+        keyboardType == TextInputType.text) {
+      effectiveKeyboardType = TextInputType.multiline;
+    }
+
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
-      keyboardType: keyboardType,
+      keyboardType: effectiveKeyboardType,
       maxLines: maxLines,
       validator: validator,
       onChanged: onChanged,

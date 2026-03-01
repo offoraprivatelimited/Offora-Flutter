@@ -331,7 +331,7 @@ class _OfferCardState extends State<OfferCard> {
                                         const SizedBox(height: 2),
                                         // Original Price - Smaller and struck through
                                         Text(
-                                          '₹${(originalPrice ?? 0).toStringAsFixed(0)}',
+                                          '₹${(originalPrice).toStringAsFixed(0)}',
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: Colors.grey,
@@ -363,8 +363,7 @@ class _OfferCardState extends State<OfferCard> {
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color:
-                                                  Colors.black.withAlpha(12),
+                                              color: Colors.black.withAlpha(12),
                                               blurRadius: 8,
                                               offset: const Offset(0, 2),
                                             ),
@@ -397,10 +396,8 @@ class _OfferCardState extends State<OfferCard> {
                                               );
                                             }
                                           },
-                                          padding:
-                                              const EdgeInsets.all(10),
-                                          constraints:
-                                              const BoxConstraints(),
+                                          padding: const EdgeInsets.all(10),
+                                          constraints: const BoxConstraints(),
                                         ),
                                       ),
                                     ),

@@ -237,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
     },
     {
       'name': 'Construction',
-      'icon': Icons.construction_outlined,
+      'icon': Icons.home_repair_service_outlined,
       'color': const Color(0xFFFF8A65),
       'gradient': [const Color(0xFFFF8A65), const Color(0xFFFFAB91)],
     },

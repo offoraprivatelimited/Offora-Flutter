@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/services/auth_service.dart';
 import '../../../../core/errors/error_messages.dart';
 import '../../../../core/utils/keyboard_utils.dart';
@@ -419,14 +420,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                         ),
                       );
                       // ignore: use_build_context_synchronously
-                      final nav = Navigator.of(context);
-                      if (!mounted) return;
                       if (confirmed != true) return;
                       await authService.signOut();
                       if (!mounted) return;
-                      // Use pushNamedAndRemoveUntil to clear the entire navigation stack
-                      nav.pushNamedAndRemoveUntil(
-                          '/role-selection', (route) => false);
+                      // Use GoRouter to navigate and clear the entire navigation stack
+                      context.go('/role-selection');
                     },
                     icon: const Icon(Icons.logout, color: Color(0xFF1F477D)),
                     label: const Text('Logout',

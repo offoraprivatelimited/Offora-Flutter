@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:offora/features/auth/screens/auth_gate.dart';
 import 'package:offora/features/auth/screens/role_selection_screen.dart';
 import 'package:offora/features/user/screens/splash_screen.dart' as user;
@@ -30,6 +31,7 @@ import 'package:offora/features/client/screens/dashboard/manage_offers_screen.da
     as client;
 import 'package:offora/features/client/screens/offers/new_offer_form_screen.dart'
     as client;
+import 'package:offora/shared/services/auth_service.dart';
 
 class AppRouter {
   // User routes
@@ -71,6 +73,33 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     initialLocation: '/',
+    redirect: (context, state) {
+      // Get auth service from context
+      final authService = context.read<AuthService>();
+      final isLoggedIn = authService.isLoggedIn;
+      final isGoingToAuth = state.path == '/' ||
+          state.path == '/role-selection' ||
+          state.path == '/splash' ||
+          state.path == '/onboarding' ||
+          state.path == '/auth' ||
+          state.path == '/user-login' ||
+          state.path == '/profile-complete' ||
+          state.path == '/client-login' ||
+          state.path == '/client-signup' ||
+          state.path == '/pending-approval' ||
+          state.path == '/rejection' ||
+          state.path == '/about-us' ||
+          state.path == '/contact-us' ||
+          state.path == '/terms-and-conditions' ||
+          state.path == '/privacy-policy';
+
+      // If user is logged out but trying to access protected routes, redirect to role selection
+      if (!isLoggedIn && !isGoingToAuth) {
+        return '/role-selection';
+      }
+
+      return null; // No redirect needed
+    },
     // Simple error handler - just show error page
     errorBuilder: (context, state) {
       final location = state.matchedLocation;
