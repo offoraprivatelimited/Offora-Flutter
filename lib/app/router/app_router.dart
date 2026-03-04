@@ -74,43 +74,53 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
-      // Get auth service from context
-      final authService = context.read<AuthService>();
-      final isLoggedIn = authService.isLoggedIn;
+      try {
+        final authService = context.read<AuthService>();
+        final isLoggedIn = authService.isLoggedIn;
 
-      // List of auth routes that should be accessible without login
-      const authRoutes = {
-        '/',
-        '/role-selection',
-        '/splash',
-        '/onboarding',
-        '/auth',
-        '/user-login',
-        '/profile-complete',
-        '/client-login',
-        '/client-signup',
-        '/pending-approval',
-        '/rejection',
-        '/about-us',
-        '/contact-us',
-        '/terms-and-conditions',
-        '/privacy-policy',
-      };
+        // Get the path - strip query params and fragments
+        final path = state.uri.path;
 
-      // Use matchedLocation for more reliable path matching
-      final currentLocation = state.matchedLocation;
+        // Define routes that don't require authentication
+        const unprotectedRoutes = <String>{
+          '/',
+          '/role-selection',
+          '/splash',
+          '/onboarding',
+          '/auth',
+          '/user-login',
+          '/profile-complete',
+          '/client-login',
+          '/client-signup',
+          '/pending-approval',
+          '/rejection',
+          '/about-us',
+          '/contact-us',
+          '/terms-and-conditions',
+          '/privacy-policy',
+        };
 
-      // Check if current route is an auth route
-      final isGoingToAuth = authRoutes.contains(currentLocation) ||
-          (currentLocation.startsWith('/__/') &&
-              currentLocation.contains('auth'));
+        // Allow Firebase auth routes
+        if (path.startsWith('/__/')) {
+          return null;
+        }
 
-      // If user is logged out but trying to access protected routes, redirect to role selection
-      if (!isLoggedIn && !isGoingToAuth) {
+        // If logged in, allow navigation anywhere
+        if (isLoggedIn) {
+          return null;
+        }
+
+        // If not logged in, only allow unprotected routes
+        if (unprotectedRoutes.contains(path)) {
+          return null;
+        }
+
+        // Trying to access protected route while not logged in - redirect to role selection
         return '/role-selection';
+      } catch (e) {
+        // On error, don't redirect - let the app continue
+        return null;
       }
-
-      return null; // No redirect needed
     },
     // Simple error handler - just show error page
     errorBuilder: (context, state) {

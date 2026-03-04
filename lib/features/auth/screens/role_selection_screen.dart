@@ -182,7 +182,7 @@ class RoleSelectionScreen extends StatelessWidget {
                                       icon: Icons.shopping_bag_outlined,
                                       buttonText: 'Continue as User',
                                       onPressed: () {
-                                        context.go('/user-login');
+                                        context.goNamed('user-login');
                                       },
                                     ),
                                     const SizedBox(height: 20),
@@ -195,7 +195,7 @@ class RoleSelectionScreen extends StatelessWidget {
                                       icon: Icons.store_outlined,
                                       buttonText: 'Continue as Shop Owner',
                                       onPressed: () {
-                                        context.go('/client-login');
+                                        context.goNamed('client-login');
                                       },
                                       isPrimary: false,
                                     ),
@@ -393,7 +393,7 @@ class _RoleSelectionContent extends StatelessWidget {
                               'Discover and save the best local deals as a user.',
                           buttonText: 'Continue as User',
                           onPressed: () {
-                            context.go('/user-login');
+                            context.goNamed('user-login');
                           },
                         ),
                         const SizedBox(height: 12),
@@ -404,7 +404,7 @@ class _RoleSelectionContent extends StatelessWidget {
                               'Manage your shop and publish exclusive offers.',
                           buttonText: 'Continue as Shop Owner',
                           onPressed: () {
-                            context.go('/client-login');
+                            context.goNamed('client-login');
                           },
                         ),
                       ],
