@@ -394,6 +394,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                   OutlinedButton.icon(
                     onPressed: () async {
                       final authService = context.read<AuthService>();
+                      final router = GoRouter.of(context);
                       final confirmed = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
@@ -419,12 +420,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                           ],
                         ),
                       );
-                      // ignore: use_build_context_synchronously
                       if (confirmed != true) return;
                       await authService.signOut();
                       if (!mounted) return;
                       // Use GoRouter to navigate and clear the entire navigation stack
-                      context.go('/role-selection');
+                      router.go('/role-selection');
                     },
                     icon: const Icon(Icons.logout, color: Color(0xFF1F477D)),
                     label: const Text('Logout',

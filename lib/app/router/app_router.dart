@@ -77,21 +77,33 @@ class AppRouter {
       // Get auth service from context
       final authService = context.read<AuthService>();
       final isLoggedIn = authService.isLoggedIn;
-      final isGoingToAuth = state.path == '/' ||
-          state.path == '/role-selection' ||
-          state.path == '/splash' ||
-          state.path == '/onboarding' ||
-          state.path == '/auth' ||
-          state.path == '/user-login' ||
-          state.path == '/profile-complete' ||
-          state.path == '/client-login' ||
-          state.path == '/client-signup' ||
-          state.path == '/pending-approval' ||
-          state.path == '/rejection' ||
-          state.path == '/about-us' ||
-          state.path == '/contact-us' ||
-          state.path == '/terms-and-conditions' ||
-          state.path == '/privacy-policy';
+
+      // List of auth routes that should be accessible without login
+      const authRoutes = {
+        '/',
+        '/role-selection',
+        '/splash',
+        '/onboarding',
+        '/auth',
+        '/user-login',
+        '/profile-complete',
+        '/client-login',
+        '/client-signup',
+        '/pending-approval',
+        '/rejection',
+        '/about-us',
+        '/contact-us',
+        '/terms-and-conditions',
+        '/privacy-policy',
+      };
+
+      // Use matchedLocation for more reliable path matching
+      final currentLocation = state.matchedLocation;
+
+      // Check if current route is an auth route
+      final isGoingToAuth = authRoutes.contains(currentLocation) ||
+          (currentLocation.startsWith('/__/') &&
+              currentLocation.contains('auth'));
 
       // If user is logged out but trying to access protected routes, redirect to role selection
       if (!isLoggedIn && !isGoingToAuth) {
