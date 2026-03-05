@@ -88,6 +88,7 @@ class _SignupScreenState extends State<SignupScreen> {
     'Travel & Tours',
     'Department Store',
     'Construction',
+    'Metal Mart',
     'Other',
   ];
 
@@ -980,7 +981,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                                 cursorColor:
                                                     const Color(0xFF1F477D),
                                                 decoration: InputDecoration(
-                                                  labelText: 'Password',
+                                                  labelText: 'Create Password',
                                                   labelStyle: const TextStyle(
                                                     color: Color(0xFF666666),
                                                     fontWeight: FontWeight.w500,

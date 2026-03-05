@@ -242,6 +242,12 @@ class _HomeScreenState extends State<HomeScreen> {
       'gradient': [const Color(0xFFFF8A65), const Color(0xFFFFAB91)],
     },
     {
+      'name': 'Metal Mart',
+      'icon': Icons.construction_outlined,
+      'color': const Color(0xFF455A64),
+      'gradient': [const Color(0xFF455A64), const Color(0xFF607D8B)],
+    },
+    {
       'name': 'Other',
       'icon': Icons.category_outlined,
       'color': const Color(0xFFBDBDBD),

@@ -116,6 +116,7 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
     'Travel & Tours',
     'Department Store',
     'Construction',
+    'Metal Mart',
     'Other',
   ];
 
@@ -419,12 +420,18 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   }
 
   Future<void> _selectDate(bool isStartDate) async {
+    // For end date, set firstDate to prevent selecting previous dates
+    final DateTime firstDate =
+        isStartDate ? DateTime(2020) : (_selectedStartDate ?? DateTime.now());
+
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: isStartDate
           ? (_selectedStartDate ?? DateTime.now())
-          : (_selectedEndDate ?? DateTime.now()),
-      firstDate: DateTime(2020),
+          : (_selectedEndDate ??
+              (_selectedStartDate ?? DateTime.now())
+                  .add(const Duration(days: 1))),
+      firstDate: firstDate,
       lastDate: DateTime(2101),
     );
 
@@ -1352,123 +1359,141 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
   Widget _buildCityDropdown() {
     return SizedBox(
       width: double.infinity,
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+      child: FormField<String>(
+        initialValue: _selectedCity,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter a city';
+          }
+          return null;
+        },
+        builder: (FormFieldState<String> field) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              inputDecorationTheme: InputDecorationTheme(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
-          ),
-        ),
-        child: Autocomplete<String>(
-          optionsBuilder: (TextEditingValue textEditingValue) {
-            if (textEditingValue.text.isEmpty || _citySuggestions.isEmpty) {
-              return const Iterable<String>.empty();
-            }
-            return _citySuggestions.where((city) => city
-                .toLowerCase()
-                .contains(textEditingValue.text.toLowerCase()));
-          },
-          optionsViewBuilder: (context, onSelected, options) {
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Material(
-                elevation: 4.0,
-                child: Container(
-                  width: 300,
-                  color: Colors.white,
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemCount: options.length,
-                    itemBuilder: (context, index) {
-                      final option = options.elementAt(index);
-                      return InkWell(
-                        onTap: () => onSelected(option),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 12.0),
-                          child: Text(
-                            option,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            );
-          },
-          fieldViewBuilder:
-              (context, cityFieldController, focusNode, onFieldSubmitted) {
-            // Keep a single listener attached to the Autocomplete controller
-            _autocompleteCityController ??= cityFieldController;
-            // initialize content
-            if (_autocompleteCityController!.text != _cityController.text) {
-              _autocompleteCityController!.text = _cityController.text;
-              _autocompleteCityController!.selection =
-                  _cityController.selection;
-            }
-            // Attach a single listener and store it so it can be removed on dispose
-            if (_autocompleteListener == null) {
-              _autocompleteListener = () {
-                if (_autocompleteCityController != null &&
-                    _cityController.text != _autocompleteCityController!.text) {
-                  _cityController.text = _autocompleteCityController!.text;
-                  _cityController.selection =
-                      _autocompleteCityController!.selection;
+            child: Autocomplete<String>(
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                if (textEditingValue.text.isEmpty || _citySuggestions.isEmpty) {
+                  return const Iterable<String>.empty();
                 }
-              };
-              _autocompleteCityController!.addListener(_autocompleteListener!);
-            }
-            return TextFormField(
-              controller: cityFieldController,
-              focusNode: focusNode,
-              style: const TextStyle(color: Colors.black),
-              decoration: InputDecoration(
-                labelText: 'City/Town *',
-                hintText: 'Type city name (e.g., Mumbai, Delhi, Bangalore)',
-                prefixIcon: const Icon(Icons.location_city_outlined,
-                    color: AppColors.darkBlue),
-                filled: true,
-                fillColor: Colors.white,
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.grey),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      const BorderSide(color: AppColors.darkBlue, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.red, width: 2),
-                ),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a city';
-                }
-                return null;
+                return _citySuggestions.where((city) => city
+                    .toLowerCase()
+                    .contains(textEditingValue.text.toLowerCase()));
               },
-            );
-          },
-          onSelected: (String selection) {
-            setState(() {
-              _selectedCity = selection;
-              _cityController.text = selection;
-            });
-          },
-        ),
+              optionsViewBuilder: (context, onSelected, options) {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4.0,
+                    child: Container(
+                      width: 300,
+                      color: Colors.white,
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: options.length,
+                        itemBuilder: (context, index) {
+                          final option = options.elementAt(index);
+                          return InkWell(
+                            onTap: () => onSelected(option),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0, vertical: 12.0),
+                              child: Text(
+                                option,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
+              fieldViewBuilder:
+                  (context, cityFieldController, focusNode, onFieldSubmitted) {
+                // Keep a single listener attached to the Autocomplete controller
+                _autocompleteCityController ??= cityFieldController;
+                // initialize content
+                if (_autocompleteCityController!.text != _cityController.text) {
+                  _autocompleteCityController!.text = _cityController.text;
+                  _autocompleteCityController!.selection =
+                      _cityController.selection;
+                }
+                // Attach a single listener and store it so it can be removed on dispose
+                if (_autocompleteListener == null) {
+                  _autocompleteListener = () {
+                    if (_autocompleteCityController != null &&
+                        _cityController.text !=
+                            _autocompleteCityController!.text) {
+                      _cityController.text = _autocompleteCityController!.text;
+                      _cityController.selection =
+                          _autocompleteCityController!.selection;
+                      field.didChange(_autocompleteCityController!.text);
+                    }
+                  };
+                  _autocompleteCityController!
+                      .addListener(_autocompleteListener!);
+                }
+                return TextField(
+                  controller: cityFieldController,
+                  focusNode: focusNode,
+                  style: const TextStyle(color: Colors.black),
+                  decoration: InputDecoration(
+                    labelText: 'City/Town *',
+                    hintText: 'Type city name (e.g., Mumbai, Delhi, Bangalore)',
+                    prefixIcon: const Icon(Icons.location_city_outlined,
+                        color: AppColors.darkBlue),
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          const BorderSide(color: AppColors.darkBlue, width: 2),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: field.hasError
+                          ? const BorderSide(color: Colors.red)
+                          : const BorderSide(color: Colors.grey),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: field.hasError
+                          ? const BorderSide(color: Colors.red, width: 2)
+                          : const BorderSide(
+                              color: AppColors.darkBlue, width: 2),
+                    ),
+                    errorText: field.errorText,
+                  ),
+                  onChanged: (value) {
+                    field.didChange(value);
+                  },
+                );
+              },
+              onSelected: (String selection) {
+                setState(() {
+                  _selectedCity = selection;
+                  _cityController.text = selection;
+                  field.didChange(selection);
+                });
+              },
+            ),
+          );
+        },
       ),
     );
   }
