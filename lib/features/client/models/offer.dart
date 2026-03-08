@@ -204,8 +204,12 @@ class Offer {
       applicableServices: (data['applicableServices'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      minimumPurchase: (data['minimumPurchase'] as num?)?.toDouble(),
-      maxUsagePerCustomer: data['maxUsagePerCustomer'] as int?,
+      // Support both new and old field names for backwards compatibility
+      minimumPurchase:
+          ((data['minimumPurchase'] ?? data['minPurchaseAmount']) as num?)
+              ?.toDouble(),
+      maxUsagePerCustomer:
+          (data['maxUsagePerCustomer'] ?? data['maxUsage']) as int?,
       keywords: (data['keywords'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
