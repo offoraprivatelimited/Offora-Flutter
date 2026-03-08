@@ -205,11 +205,10 @@ class Offer {
           ?.map((e) => e as String)
           .toList(),
       // Support both new and old field names for backwards compatibility
-      minimumPurchase:
-          ((data['minimumPurchase'] ?? data['minPurchaseAmount']) as num?)
-              ?.toDouble(),
+      minimumPurchase: _parseDoubleValue(
+          data['minimumPurchase'] ?? data['minPurchaseAmount']),
       maxUsagePerCustomer:
-          (data['maxUsagePerCustomer'] ?? data['maxUsage']) as int?,
+          _parseIntValue(data['maxUsagePerCustomer'] ?? data['maxUsage']),
       keywords: (data['keywords'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -220,6 +219,24 @@ class Offer {
     if (value is Timestamp) {
       return value.toDate();
     }
+    return null;
+  }
+
+  static double? _parseDoubleValue(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  static int? _parseIntValue(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
     return null;
   }
 
