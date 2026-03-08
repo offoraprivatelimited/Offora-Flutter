@@ -948,56 +948,6 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Additional Options
-                    _buildSectionTitle('⚙️ Extra Rules (Optional)'),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Add conditions for your offer',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 16),
-                    PremiumTextField(
-                      controller: _minimumPurchaseController,
-                      labelText: 'Minimum Purchase Amount',
-                      hintText: 'Customer must buy at least this (e.g., 500)',
-                      prefixIcon: Icons.shopping_cart,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      focusNode: _minimumPurchaseFocusNode,
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) {
-                        FocusScope.of(context)
-                            .requestFocus(_maxUsagePerCustomerFocusNode);
-                      },
-                      validator: (value) {
-                        if (value?.isNotEmpty ?? false) {
-                          if (double.tryParse(value!) == null) {
-                            return 'Invalid amount';
-                          }
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    PremiumTextField(
-                      controller: _maxUsagePerCustomerController,
-                      labelText: 'How Many Times Can Customer Use?',
-                      hintText: 'Maximum times per customer (e.g., 1, 2, 5)',
-                      prefixIcon: Icons.person,
-                      keyboardType: TextInputType.number,
-                      focusNode: _maxUsagePerCustomerFocusNode,
-                      textInputAction: TextInputAction.done,
-                      validator: (value) {
-                        if (value?.isNotEmpty ?? false) {
-                          if (int.tryParse(value!) == null) {
-                            return 'Invalid number';
-                          }
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
                     // Date Section
                     Row(
                       children: [
@@ -1104,65 +1054,52 @@ class _NewOfferFormScreenState extends State<NewOfferFormScreen> {
 
                     // Additional Conditions Section
                     _buildSectionTitle('⚙️ Additional Conditions (Optional)'),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Set purchase requirements and usage limits for your offer',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: PremiumTextField(
-                            controller: _minimumPurchaseController,
-                            labelText: 'Minimum Purchase',
-                            hintText: 'Minimum purchase amount (₹)',
-                            prefixIcon: Icons.shopping_cart,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            textInputAction: TextInputAction.next,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _maxUsagePerCustomerController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              labelText: 'Max Usage Per Customer',
-                              hintText: 'Max times per customer',
-                              prefixIcon: const Icon(Icons.repeat,
-                                  color: AppColors.darkBlue),
-                              filled: true,
-                              fillColor: Colors.white,
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide:
-                                    const BorderSide(color: Colors.grey),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                    color: AppColors.darkBlue, width: 2),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(color: Colors.red),
-                              ),
-                              focusedErrorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                    color: Colors.red, width: 2),
-                              ),
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            cursorColor: AppColors.darkBlue,
-                            textInputAction: TextInputAction.done,
-                          ),
-                        ),
-                      ],
+                    PremiumTextField(
+                      controller: _minimumPurchaseController,
+                      labelText: 'Minimum Purchase Amount',
+                      hintText: 'Customer must buy at least this (e.g., 500)',
+                      prefixIcon: Icons.shopping_cart,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      focusNode: _minimumPurchaseFocusNode,
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context)
+                            .requestFocus(_maxUsagePerCustomerFocusNode);
+                      },
+                      validator: (value) {
+                        if (value?.isNotEmpty ?? false) {
+                          if (double.tryParse(value!) == null) {
+                            return 'Invalid amount';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    PremiumTextField(
+                      controller: _maxUsagePerCustomerController,
+                      labelText: 'Maximum Usage Per Customer',
+                      hintText:
+                          'How many times can customer use? (e.g., 1, 2, 5)',
+                      prefixIcon: Icons.repeat,
+                      keyboardType: TextInputType.number,
+                      focusNode: _maxUsagePerCustomerFocusNode,
+                      textInputAction: TextInputAction.done,
+                      validator: (value) {
+                        if (value?.isNotEmpty ?? false) {
+                          if (int.tryParse(value!) == null) {
+                            return 'Invalid number';
+                          }
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 24),
 
