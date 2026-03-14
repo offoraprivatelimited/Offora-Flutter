@@ -367,7 +367,9 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
       final amount = offer.getRupees ?? 0;
       return 'Buy $buyQty Get $getQty ₹${amount.toStringAsFixed(0)}';
     } else if (offer.offerType == OfferType.bogo) {
-      return 'BOGO';
+      final buyQty = offer.buyQuantity ?? 1;
+      final getQty = offer.getQuantity ?? 1;
+      return 'Buy $buyQty Get $getQty FREE';
     } else if (offer.offerType == OfferType.productSpecific) {
       return 'DEAL';
     } else if (offer.offerType == OfferType.serviceSpecific) {
@@ -684,6 +686,66 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
               ),
             ],
           ),
+        // Show BOGO details if it's a BOGO offer
+        if (offer.offerType == OfferType.bogo) ...[
+          const SizedBox(height: 24),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Offer Details',
+                style: TextStyle(
+                  fontSize: screenSize == ScreenSizeCategory.mobile ? 16 : 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.darkBlue,
+                ),
+              ),
+              SizedBox(
+                  height: screenSize == ScreenSizeCategory.mobile ? 12 : 16),
+              Container(
+                padding: EdgeInsets.all(
+                    screenSize == ScreenSizeCategory.mobile ? 12 : 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(8),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _InfoRow(
+                      label: 'Buy Quantity',
+                      value: '${offer.buyQuantity ?? 1} item(s)',
+                      screenSize: screenSize,
+                      icon: Icons.shopping_bag,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical:
+                            screenSize == ScreenSizeCategory.mobile ? 6 : 8,
+                      ),
+                      child: const Divider(height: 1),
+                    ),
+                    _InfoRow(
+                      label: 'Get Free',
+                      value: '${offer.getQuantity ?? 1} item(s)',
+                      screenSize: screenSize,
+                      icon: Icons.redeem,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                  height: screenSize == ScreenSizeCategory.mobile ? 18 : 24),
+            ],
+          ),
+        ],
         // Show minimum purchase and max usage per customer if present
         if ((offer.minimumPurchase != null && offer.minimumPurchase! > 0) ||
             (offer.maxUsagePerCustomer != null &&
