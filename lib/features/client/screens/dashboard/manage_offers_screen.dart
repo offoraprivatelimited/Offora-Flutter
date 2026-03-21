@@ -40,47 +40,57 @@ class _ManageOffersScreenState extends State<ManageOffersScreen> {
   }
 
   void _viewOfferDetails(Offer offer) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFF7F9FD),
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
-          ),
-          child: Column(
-            children: [
-              Container(
-                height: 5,
-                width: 40,
-                margin: const EdgeInsets.only(top: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade400,
-                  borderRadius: BorderRadius.circular(2.5),
-                ),
+    try {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        useRootNavigator: true,
+        builder: (BuildContext modalContext) => DraggableScrollableSheet(
+          initialChildSize: 0.9,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder:
+              (BuildContext sheetContext, ScrollController scrollController) =>
+                  Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF7F9FD),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(24),
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: OfferDetailsContent(offer: offer),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  height: 5,
+                  width: 40,
+                  margin: const EdgeInsets.only(top: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(2.5),
                   ),
                 ),
-              ),
-            ],
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: OfferDetailsContent(offer: offer),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      ).catchError((dynamic error) {
+        _showMessage('Error loading offer details: $error');
+      });
+    } catch (e) {
+      _showMessage('Error: Unable to view offer details');
+    }
   }
 
   Future<void> _editOffer(Offer offer) async {
@@ -552,50 +562,62 @@ class _OfferCard extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: onViewDetails,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 4,
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onViewDetails,
+                      borderRadius: BorderRadius.circular(5),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: darkBlue,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Icon(Icons.visibility,
+                            size: 12, color: Colors.white),
                       ),
-                      decoration: BoxDecoration(
-                        color: darkBlue,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: const Icon(Icons.visibility,
-                          size: 12, color: Colors.white),
                     ),
                   ),
                   const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: onEdit,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 4,
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onEdit,
+                      borderRadius: BorderRadius.circular(5),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: darkBlue, width: 0.8),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(Icons.edit, size: 12, color: darkBlue),
                       ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: darkBlue, width: 0.8),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: Icon(Icons.edit, size: 12, color: darkBlue),
                     ),
                   ),
                   const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: onDelete,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 4,
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onDelete,
+                      borderRadius: BorderRadius.circular(5),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.red, width: 0.8),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Icon(Icons.delete,
+                            size: 12, color: Colors.red),
                       ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.red, width: 0.8),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child:
-                          const Icon(Icons.delete, size: 12, color: Colors.red),
                     ),
                   ),
                 ],
