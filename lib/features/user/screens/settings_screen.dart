@@ -10,14 +10,12 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Account Section
@@ -234,8 +232,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   void _showComingSoon(BuildContext context) {

@@ -12,7 +12,6 @@ import '../../../../shared/services/auth_service.dart';
 import '../../../../core/errors/error_messages.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/premium_app_bar.dart';
-import '../../../../shared/widgets/app_exit_dialog.dart';
 import '../../../../core/utils/keyboard_utils.dart';
 
 class ClientMainScreen extends StatefulWidget {
@@ -140,22 +139,25 @@ class _ClientMainScreenState extends State<ClientMainScreen> {
   Widget build(BuildContext context) {
     const brightGold = Color(0xFFF0B84D);
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
-        // Show exit dialog when user tries to go back (browser back, swipe back, etc.)
-        if (didPop) return;
-        await AppExitDialog.show(
-          context,
-          userRole: 'shopowner',
-          isExiting: true,
-        );
+        if (!didPop) return;
+
+        // If viewing an info page, close it instead of going back
+        if (_infoPage != null) {
+          setState(() => _infoPage = null);
+        }
+        // Allow natural back navigation - user stays in app
       },
       child: GestureDetector(
         onTap: () => KeyboardUtils.dismissKeyboard(context),
         child: Scaffold(
           resizeToAvoidBottomInset: true,
-          // Keep drawer for narrow screens
+          extendBody: false,
+          // Keep drawer for narrow screens - Scaffold handles modal barrier automatically
           drawer: const AppDrawer(),
+          drawerScrimColor: Colors.black54,
+          drawerEdgeDragWidth: 20,
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(64),
             child: Builder(

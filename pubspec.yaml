@@ -5,7 +5,7 @@ description: "A new Flutter project."
 publish_to: 'none'
 
 # [Corrected/Modernized Versions]
-version: 1.0.2+6
+version: 1.0.3+7
 
 environment:
   # FIX: Dart SDK version updated to a stable range compatible with the latest package versions.
@@ -48,6 +48,7 @@ dependencies:
   cached_network_image: ^3.4.0
   http: ^1.6.0
   photo_view: ^0.14.0
+  flutter_cache_manager: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -86,3 +87,5 @@ flutter:
     - assets/images/logo/
     - assets/images/logo/original/
     - .env
+
+    

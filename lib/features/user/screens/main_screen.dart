@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../../shared/widgets/premium_app_bar.dart';
 import '../../../shared/widgets/app_drawer.dart';
 import '../../../shared/widgets/custom_bottom_navbar.dart';
-import '../../../shared/widgets/app_exit_dialog.dart';
 import '../../../core/utils/keyboard_utils.dart';
 import 'home_screen.dart';
 import 'explore_screen.dart';
@@ -73,24 +72,29 @@ class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
-        // Show exit dialog when user tries to go back (browser back, swipe back, etc.)
-        if (didPop) return;
-        await AppExitDialog.show(
-          context,
-          userRole: 'user',
-          isExiting: true,
-        );
+        if (!didPop) return;
+
+        // If viewing offer details or info page, close it instead of going back
+        if (_selectedOffer != null || _infoPage != null) {
+          setState(() {
+            _selectedOffer = null;
+            _infoPage = null;
+          });
+        }
+        // Allow natural back navigation - user stays in app
       },
       child: GestureDetector(
         onTap: () => KeyboardUtils.dismissKeyboard(context),
         child: Scaffold(
           resizeToAvoidBottomInset: true,
-          extendBody: true,
+          extendBody: false,
           appBar: const PremiumAppBar(),
-          // Keep drawer for narrow screens
+          // Keep drawer for narrow screens - Scaffold handles modal barrier automatically
           drawer: const AppDrawer(),
+          drawerScrimColor: Colors.black54,
+          drawerEdgeDragWidth: 20,
           body: LayoutBuilder(builder: (context, constraints) {
             final isWide = constraints.maxWidth > 920;
 
@@ -110,7 +114,10 @@ class MainScreenState extends State<MainScreen> {
                   child: _infoPage != null
                       ? _infoPage!
                       : _selectedOffer != null
-                          ? OfferDetailsContent(offer: _selectedOffer!)
+                          ? OfferDetailsContent(
+                              offer: _selectedOffer!,
+                              onClose: clearInfoPage,
+                            )
                           : AnimatedSwitcher(
                               duration: const Duration(milliseconds: 350),
                               child: _tabs[_index],

@@ -51,7 +51,12 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
 
 class OfferDetailsContent extends StatefulWidget {
   final Offer offer;
-  const OfferDetailsContent({super.key, required this.offer});
+  final VoidCallback? onClose;
+  const OfferDetailsContent({
+    super.key,
+    required this.offer,
+    this.onClose,
+  });
 
   @override
   State<OfferDetailsContent> createState() => _OfferDetailsContentState();
@@ -430,6 +435,37 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
     if (screenSize == ScreenSizeCategory.desktop) {
       return Scaffold(
         backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: AppColors.darkBlue),
+            onPressed: widget.onClose ?? () => Navigator.of(context).pop(),
+          ),
+          actions: [
+            IconButton(
+              onPressed: _toggleCompare,
+              tooltip: _isInCompare ? 'Remove from Compare' : 'Compare',
+              icon: Icon(
+                _isInCompare ? Icons.check_circle : Icons.compare_arrows,
+                color: _isInCompare ? Colors.green : AppColors.darkBlue,
+              ),
+            ),
+            IconButton(
+              onPressed: _toggleSave,
+              tooltip: _isSaved ? 'Remove from Saved' : 'Save',
+              icon: Icon(
+                _isSaved ? Icons.favorite : Icons.favorite_border,
+                color: _isSaved ? Colors.redAccent : AppColors.darkBlue,
+              ),
+            ),
+            IconButton(
+              onPressed: _shareOffer,
+              tooltip: 'Share',
+              icon: const Icon(Icons.share_outlined, color: AppColors.darkBlue),
+            ),
+          ],
+        ),
         body: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -465,7 +501,10 @@ class _OfferDetailsContentState extends State<OfferDetailsContent> {
                 FlexibleSpaceBar(background: _buildHeroSection(offer, images)),
             backgroundColor: Colors.white,
             elevation: 0,
-            automaticallyImplyLeading: true,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: AppColors.darkBlue),
+              onPressed: widget.onClose ?? () => Navigator.of(context).pop(),
+            ),
             pinned: true,
             actions: [
               IconButton(

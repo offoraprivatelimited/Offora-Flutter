@@ -11,6 +11,7 @@ import 'shared/theme/app_theme.dart';
 import 'shared/services/auth_service.dart';
 import 'shared/services/saved_offers_service.dart';
 import 'shared/services/compare_service.dart';
+import 'shared/services/image_cache_service.dart';
 import 'features/client/services/offer_service.dart';
 import 'shared/widgets/responsive_wrapper.dart';
 import 'app/router/app_router.dart';
@@ -18,6 +19,9 @@ import 'app/router/app_router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setPathUrlStrategy();
+
+  // Initialize image cache service for banner caching
+  await ImageCacheService.initialize();
 
   try {
     await dotenv.load(fileName: ".env");

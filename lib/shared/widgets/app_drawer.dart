@@ -21,9 +21,14 @@ class AppDrawer extends StatelessWidget {
     void navigateToPage(String routeName) {
       // Close the drawer first
       Navigator.of(context).pop();
-      // Navigate using GoRouter
-      // Note: GoRouter will check the user's role in context automatically
-      context.goNamed(routeName);
+      
+      // Delay navigation to allow drawer animation to complete
+      // This prevents overlap issues between drawer and destination page
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (context.mounted) {
+          context.goNamed(routeName);
+        }
+      });
     }
 
     return Drawer(

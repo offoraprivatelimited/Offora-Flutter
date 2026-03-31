@@ -14,60 +14,18 @@ class NotificationsScreen extends StatelessWidget {
     final auth = context.watch<AuthService>();
     final user = auth.currentUser;
 
-    return SafeArea(
-      child: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 96,
-            floating: false,
-            pinned: true,
-            backgroundColor: Colors.white,
-            elevation: 1,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.darkBlue,
-                      AppColors.darkBlue.withAlpha(200),
-                    ],
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 36,
-                      child: Image.asset(
-                        'assets/images/logo/original/Text_without_logo_without_background.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Notifications',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white70,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
+    return CustomScrollView(
+      slivers: [
+        if (user == null)
+          const SliverFillRemaining(
+            child: EmptyState(
+              icon: Icons.notifications_off_outlined,
+              title: 'Sign in required',
+              message: 'Please sign in to view notifications',
             ),
-          ),
-          if (user == null)
-            const SliverFillRemaining(
-              child: EmptyState(
-                icon: Icons.notifications_off_outlined,
-                title: 'Sign in required',
-                message: 'Please sign in to view notifications',
-              ),
-            )
-          else
-            StreamBuilder<QuerySnapshot>(
+          )
+        else
+          StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
                   .doc(user.uid)
@@ -137,8 +95,7 @@ class NotificationsScreen extends StatelessWidget {
             ),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
-      ),
-    );
+      );
   }
 }
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../services/image_cache_service.dart';
 
 class OfferBanner extends StatefulWidget {
   const OfferBanner({
@@ -113,24 +115,22 @@ class _OfferBannerState extends State<OfferBanner>
               itemBuilder: (context, index) {
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    widget.imageUrls[index],
+                  child: CachedNetworkImage(
+                    imageUrl: widget.imageUrls[index],
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    cacheManager: ImageCacheService.getBannerCacheManager(),
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
                       color: Colors.grey.shade300,
                       child: const Center(
                         child: Icon(Icons.image_not_supported, size: 48),
                       ),
                     ),
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        color: Colors.grey.shade200,
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    },
                   ),
                 );
               },
